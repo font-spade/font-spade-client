@@ -36,7 +36,7 @@
           *ngFor="let pair of data1.glyphset"
           [attr.data-id]="pair.left"
           (click)="selectPair1(pair)">
-          {{pair.left}}ㅤㅤ{{pair.right}}
+          {{renderArms(pair)}}
         </button>
       </div>
     </div>
@@ -54,7 +54,7 @@
           *ngFor="let pair of data2.glyphset"
           [attr.data-id]="pair.left"
           (click)="selectPair2(pair)">
-          {{pair.left}}ㅤ{{pair.right}}
+          {{renderEyes(pair)}}
         </button>
       </div>
     </div>
