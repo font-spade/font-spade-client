@@ -1,4 +1,4 @@
-<section class="w-full flex justify-center mt-10 min-h-[720px] mx-auto max-w-5xl">
+<section class="w-full flex justify-center mt-10 min-h-[720px] mx-auto max-w-5xl overflow-hidden">
   <div class="flex flex-col w-screen p-5 md:p-0 md:w-auto">
     <div class="flex justify-center items-center text-4xl md:text-5xl mb-5">
       Awsome Text Generator
@@ -9,8 +9,8 @@
     <div class="flex justify-center items-center md:text-1xl mb-5">
       Here's a simple example using ASCII characters:
     </div>
-    <div class="flex w-full items-center justify-center drop-shadow-md">
-      <div class="ascii-art-container w-full flex justify-center items-center min-h-[25px]">
+    <div class="flex md:w-full items-center justify-center drop-shadow-md">
+      <div class="ascii-art-container overflow-hidden flex justify-center items-center min-h-[25px]">
         {{HelloWorld}}
       </div>
     </div>
@@ -59,7 +59,7 @@
 <!--    </div>-->
     <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
       <div class="ascii-art-container flex items-center text-center w-full justify-center" (click)="copyToClipboard()">
-        <pre class="text-sx md:text-xl overflow-x-auto">{{fitletText}}</pre>
+        <pre [style.font-size]="fontSize" class="md:text-xl overflow-x-auto">{{fitletText}}</pre>
       </div>
     </div>
   </div>

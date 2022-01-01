@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import * as figlet from 'figlet';
 import { Clipboard } from '@angular/cdk/clipboard';
 import html2canvas from 'html2canvas';
@@ -313,19 +313,43 @@ export class TextArtComponent implements OnInit{
     private clipboard: Clipboard,) {
   }
 
-  ngOnInit (): void {
-    this.renderText(this.inputText);
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event): void {
+    this.setTextStyle();
   }
 
-  renderText (inputTxt :string) {
-    if (inputTxt == null || inputTxt == '') {
+  setTextStyle () {
+    const screenWidth = window.innerWidth;
+    const fontSize = Math.round(screenWidth / 55);
+    if (fontSize > 17) {
+      this.fontSize = '17px';
+      return;
+    }
+    this.fontSize = `${fontSize}px`;
+  }
+
+  ngOnInit (): void {
+    this.renderText(this.inputText);
+    this.setTextStyle();
+  }
+  // get screen size
+  fontSize: string = '1rem';
+  getScreenSize (event: any) {
+    console.log(event.target.innerWidth);
+    console.log(event.target.innerHeight);
+  }
+
+  renderText(inputTxt: string): void {
+    if (inputTxt == null || inputTxt === '') {
       inputTxt = 'No Data!';
     }
-    const assets:any = `/figlet/${this.selectedPair1}`;
+    const assets: any = `/figlet/${this.selectedPair1}`;
+
+
     figlet.text(inputTxt, {
       font: assets,
-      horizontalLayout: "default",
-      verticalLayout: "default",
+      horizontalLayout: 'default',
+      verticalLayout: 'default',
       width: 102,
       whitespaceBreak: true,
     }, (err, data) => {
@@ -339,9 +363,8 @@ export class TextArtComponent implements OnInit{
       }
       console.log(data);
       this.fitletText = data;
-    })
+    });
   }
-
 
   onChange ($event: Event) {
     this.inputText = ($event.target as HTMLInputElement).value;
