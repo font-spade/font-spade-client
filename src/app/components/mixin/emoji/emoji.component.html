@@ -7,7 +7,7 @@
   </div>
   <div class="flex w-full items-center rounded-3xl
               drop-shadow-md shadow-md bg-gray-100 mb-5">
-    <div class="flex items-center text-5xl md:text-7xl h-28 text-center w-full justify-center font-sans" (click)="copyToClipboard()">
+    <div class="flex items-center text-5xl md:text-7xl h-28 text-center w-full justify-center font-sans whitespace-pre" (click)="copyToClipboard()">
       <p  *ngIf="generatedEmoji">
         {{generatedEmoji}}
       </p>
@@ -31,12 +31,11 @@
         <button
           class="text-sm min-w-[7rem] md:text-2xl md:w-auto outline-shadow min-h-[40px]
       rounded-2xl transition duration-300 ease-in-out
-      hover:bg-gray-300 hover:shadow-lg md:first:mt-15"
+      hover:bg-gray-300 hover:shadow-lg md:first:mt-15 whitespace-pre"
           [ngClass]="{'bg-gray-200': selectedPair1 === pair, '': selectedPair1 !== pair}"
           *ngFor="let pair of data1.glyphset"
           [attr.data-id]="pair.left"
-          (click)="selectPair1(pair)">
-          {{renderArms(pair)}}
+          (click)="selectPair1(pair)" [innerHTML]="renderArms(pair)">
         </button>
       </div>
     </div>
@@ -49,12 +48,11 @@
         <button
           class="text-sm min-w-[7rem] md:text-2xl md:w-auto outline-shadow min-h-[40px]
           rounded-2xl transition duration-300 ease-in-out
-          hover:bg-gray-300 hover:shadow-lg md:first:mt-15"
+          hover:bg-gray-300 hover:shadow-lg md:first:mt-15 whitespace-pre"
           [ngClass]="{'bg-gray-200': selectedPair2 === pair, '': selectedPair2 !== pair}"
           *ngFor="let pair of data2.glyphset"
           [attr.data-id]="pair.left"
-          (click)="selectPair2(pair)">
-          {{renderEyes(pair)}}
+          (click)="selectPair2(pair)" [innerHTML]="renderEyes(pair)">
         </button>
       </div>
     </div>

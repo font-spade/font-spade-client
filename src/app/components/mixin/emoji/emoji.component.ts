@@ -167,10 +167,10 @@ export class EmojiComponent implements OnInit {
 
 
   renderArms (pair: GlyphPair) {
-    return pair.left + 'ㅤㅤ' + pair.right;
+    return pair.left + '        ' + pair.right;
   }
 
   renderEyes (pair: GlyphPair) {
-    return pair.left + 'ㅤ' + pair.right;
+    return pair.left + '    ' + pair.right;
   }
 }
