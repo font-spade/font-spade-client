@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
@@ -10,6 +10,7 @@ export class ImageUploaderComponent {
   uploadForm: FormGroup;
   selectedFile: File | undefined;
   isDragging = false; // 드래그 중인지 여부를 나타내는 변수
+  @Output() fileSelected: EventEmitter<File> = new EventEmitter<File>();
 
   constructor(private fb: FormBuilder) {
     this.uploadForm = this.fb.group({
@@ -43,6 +44,7 @@ export class ImageUploaderComponent {
     if (file) {
       this.selectedFile = file;
       this.uploadForm.get('image')?.setValue(file);
+      this.fileSelected.emit(file); // 파일이 선택되었을 때 이벤트 발생
     }
   }
 

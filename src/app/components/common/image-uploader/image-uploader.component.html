@@ -1,4 +1,4 @@
-<input type="file" id="fileInput2" style="display: none;" (change)="onFileSelected($event)">
+<input type="file" id="fileInput2" style="display: none;" (change)="onFileSelected($event)" #fileInput2>
 <div class="mx-auto lg:px-0 max-w-auto px-5 mb-5">
   <div>
     <div class="mx-auto text-center">
@@ -9,6 +9,7 @@
                (dragover)="onDragOver($event)"
                (dragleave)="onDragLeave($event)"
                (drop)="onDrop($event)"
+               (click)="fileInput2.click()"
                class="group relative block w-full rounded-md border-2
                 border-dashed border-gray-400 py-3 sm:py-5 transition-colors
                 bg-gray-100 lg:bg-transparent hover:bg-gray-100 border-[2px] lg:py-20">
