@@ -372,7 +372,6 @@ export class TextArtComponent implements OnInit{
   }
 
   capture() {
-    debugger;
     if (this.captureElement == null) {
       return;
     }
@@ -391,7 +390,6 @@ export class TextArtComponent implements OnInit{
     // setTimeout(() => {this.buttonText = "Copy to Clipboard"; this.cdRef.detectChanges();}, 2000);
   }
   captureAndCopy() {
-    debugger;
     if (this.captureElement == null) {
       return;
     }
