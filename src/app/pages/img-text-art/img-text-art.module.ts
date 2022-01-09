@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImgTextArtComponent } from './img-text-art.component';
 import { FormsModule } from '@angular/forms';
+import { ImageUploaderModule } from '../../components/common/image-uploader/image-uploader.module';
 
 
 
@@ -11,7 +12,8 @@ import { FormsModule } from '@angular/forms';
   ],
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    ImageUploaderModule
   ]
 })
 export class ImgTextArtModule { }
