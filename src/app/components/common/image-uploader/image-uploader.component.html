@@ -2,8 +2,8 @@
 <div class="mx-auto lg:px-0 max-w-auto px-5 mb-5">
   <div>
     <div class="mx-auto text-center">
-      <h1 class="text-2xl font-normal hidden lg:inline-block">Make Your Text Art</h1>
-      <div class="mx-auto lg:pt-5">
+<!--      <h1 class="text-2xl font-normal hidden lg:inline-block">Make Your Text Art</h1>-->
+      <div class="mx-auto">
         <label id="drag-drop-box-button"
                [class.bg-gray-100]="isDragging"
                (dragover)="onDragOver($event)"
@@ -15,10 +15,10 @@
                 bg-gray-100 lg:bg-transparent hover:bg-gray-100 border-[2px] lg:py-20">
           <div id="drag-drop-box-div" class="flex h-full flex-col items-center justify-center">
           <app-image-upload-icon></app-image-upload-icon>
-            <p id="drag-drop-box-desktop-text" class="hidden text-lg font-normal text-gray-700 mt-10 lg:inline-block">클릭을 하거나 이미지를 드래그 / 드롭 해주세요.</p>
-            <p id="drag-drop-box-mobile-text" class="text-sm font-normal text-gray-700 lg:hidden">지금 이미지를 업로드 해보세요</p>
+            <p id="drag-drop-box-desktop-text" class="hidden text-lg font-normal text-gray-700 mt-10 lg:inline-block">Select Image or Drag & Drop</p>
+            <p id="drag-drop-box-mobile-text" class="text-sm font-normal text-gray-700 lg:hidden">Make Your Text Art</p>
             <div class="mt-5 lg:hidden inline-block">
-              <div tabindex="-1" class="px-6 py-3 rounded-full bg-black text-white leading-6 cursor-pointer text-sm min-w-[170px]" for="fileInput">이미지 업로드</div>
+              <div tabindex="-1" class="px-6 py-3 rounded-full bg-black text-white leading-6 cursor-pointer text-sm min-w-[170px]" for="fileInput">Image Upload</div>
             </div>
           </div>
         </label>
