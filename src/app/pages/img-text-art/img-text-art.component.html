@@ -7,12 +7,11 @@
 
       If you're searching for a comparable text generator utilizing impressive image text and ASCII, you can craft a range of stylized text using various fonts and characters.
     </div>
-<!--    <input #fileInput type="file" accept=".png" (change)="handleFileSelect($event)">-->
-    <app-image-uploader (fileSelected)="onFileSelected($event)"></app-image-uploader>
     <div>
       <label for="customIntensityRamp">Custom Intensity Ramp:</label>
       <input type="text" id="customIntensityRamp" [(ngModel)]="customIntensityRamp" (input)="updateAsciiArt()">
     </div>
+    <app-image-uploader (fileSelected)="onFileSelected($event)"></app-image-uploader>
 
     <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
       <div class="ascii-art-container flex items-center text-center w-full justify-center">
