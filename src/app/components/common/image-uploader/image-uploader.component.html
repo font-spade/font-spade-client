@@ -15,14 +15,14 @@
                 bg-gray-100 lg:bg-transparent hover:bg-gray-100 border-[2px] lg:py-20">
           <div id="drag-drop-box-div" class="flex h-full flex-col items-center justify-center">
           <app-image-upload-icon></app-image-upload-icon>
-            <p id="drag-drop-box-desktop-text" class="hidden text-lg font-normal text-gray-700 mt-10 lg:inline-block">Select Image or Drag & Drop</p>
+            <p id="drag-drop-box-desktop-text" class="hidden text-lg font-normal text-gray-700 mt-10 lg:inline-block" >Click Box or Drag & Drop Images</p>
             <p id="drag-drop-box-mobile-text" class="text-sm font-normal text-gray-700 lg:hidden">Make Your Text Art</p>
             <div class="mt-5 lg:hidden inline-block">
               <div tabindex="-1" class="px-6 py-3 rounded-full bg-black text-white leading-6 cursor-pointer text-sm min-w-[170px]" for="fileInput">Image Upload</div>
             </div>
           </div>
         </label>
-        <div class="mt-10 hidden lg:inline-block">
+        <div *ngIf="false" class="mt-10 hidden lg:inline-block">
           <label tabindex="-1" class="px-6 py-3 rounded-full bg-black text-white leading-6 cursor-pointer min-w-[170px]"
                  for="uploadInput">Select Image</label>
         </div>
