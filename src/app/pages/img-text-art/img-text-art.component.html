@@ -7,11 +7,24 @@
 
       If you're searching for a comparable text generator utilizing impressive image text and ASCII, you can craft a range of stylized text using various fonts and characters.
     </div>
-    <div>
-      <label for="customIntensityRamp">Custom Intensity Ramp:</label>
-      <input type="text" id="customIntensityRamp" [(ngModel)]="customIntensityRamp" (input)="updateAsciiArt()">
+    <div class="md:col-span-4 w-full ">
+      <div class="mx-auto lg:px-0 max-w-auto px-5 mb-5">
+        <div>
+          <div class="mx-auto text-center">
+            <div class="mx-auto md:pl-2 md:pr-2 grid grid-cols-1 md:grid-cols-4">
+              <h3 class="text-md md:text-xl font-bold flex items-center justify-center md:mb-0 mb-3">Custom Intensity Ramp:</h3>
+              <input
+                class="text-sm md:text-2xl w-full outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-50 hover:shadow-lg first-item-margin text-center"
+                [(ngModel)]="customIntensityRamp" (input)="updateAsciiArt()"
+                type="text">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <app-image-uploader (fileSelected)="onFileSelected($event)"></app-image-uploader>
     </div>
-    <app-image-uploader (fileSelected)="onFileSelected($event)"></app-image-uploader>
+
 
     <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
       <div class="ascii-art-container flex items-center text-center w-full justify-center">

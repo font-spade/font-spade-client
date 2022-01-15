@@ -22,7 +22,7 @@ export class ImgTextArtComponent {
 
   setTextStyle () {
     const screenWidth = window.innerWidth;
-    const fontSize = Math.round(screenWidth / 55);
+    const fontSize = Math.round(screenWidth / 60);
     if (fontSize > 17) {
       this.fontSize = '17px';
       return;
