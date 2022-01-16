@@ -371,21 +371,7 @@ export class TextArtComponent implements OnInit{
     this.renderText(this.inputText);
   }
 
-  capture() {
-    if (this.captureElement == null) {
-      return;
-    }
-    html2canvas(this.captureElement.nativeElement).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = 'captured-image.png';
-      link.click();
-    });
-  }
   copyToClipboard () {
-    // this.clipboard.copy(this.fitletText);
-    // this.capture()
     this.captureAndCopy();
     // setTimeout(() => {this.buttonText = "Copy to Clipboard"; this.cdRef.detectChanges();}, 2000);
   }
@@ -414,5 +400,18 @@ export class TextArtComponent implements OnInit{
   selectPair1 (pair: any) {
     this.selectedPair1 = pair.value;
     this.renderText(this.inputText);
+  }
+
+  downloadImage () {
+    if (this.captureElement == null) {
+      return;
+    }
+    html2canvas(this.captureElement.nativeElement).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = 'captured-image.png';
+      link.click();
+    });
   }
 }
