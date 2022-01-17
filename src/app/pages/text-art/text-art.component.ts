@@ -371,32 +371,6 @@ export class TextArtComponent implements OnInit{
     this.renderText(this.inputText);
   }
 
-  copyToClipboard () {
-    this.captureAndCopy();
-    // setTimeout(() => {this.buttonText = "Copy to Clipboard"; this.cdRef.detectChanges();}, 2000);
-  }
-  captureAndCopy() {
-    if (this.captureElement == null) {
-      return;
-    }
-    html2canvas(this.captureElement.nativeElement).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-
-      const imageElement = new Image();
-      imageElement.src = imgData;
-
-      const clipboardData = new DataTransfer();
-      clipboardData.items.add(new File([imageElement.src], 'captured-image.png', { type: 'image/png' }));
-
-      // @ts-ignore
-      navigator.clipboard.write(clipboardData).then(() => {
-        console.log('Image copied to clipboard!');
-        alert('Image copied to clipboard!')
-      }).catch(err => {
-        console.error('Failed to copy image to clipboard:', err);
-      });
-    });
-  }
   selectPair1 (pair: any) {
     this.selectedPair1 = pair.value;
     this.renderText(this.inputText);
@@ -413,5 +387,9 @@ export class TextArtComponent implements OnInit{
       link.download = 'captured-image.png';
       link.click();
     });
+  }
+
+  copyTextToClipboard () {
+    this.clipboard.copy(this.fitletText);
   }
 }

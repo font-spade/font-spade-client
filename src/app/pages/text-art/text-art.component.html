@@ -51,9 +51,9 @@
 
       <button
         class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"
-        (click)="copyToClipboard()"
+        (click)="copyTextToClipboard()"
       >
-        Copy to Clipboard
+        Copy Text to Clipboard
       </button>
       <button
         class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"
@@ -70,7 +70,7 @@
 <!--      </button>-->
 <!--    </div>-->
     <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
-      <div class="ascii-art-container flex items-center text-center w-full justify-center" (click)="copyToClipboard()">
+      <div class="ascii-art-container flex items-center text-center w-full justify-center" (click)="copyTextToClipboard()">
         <pre [style.font-size]="fontSize" class="md:text-xl overflow-x-auto">{{fitletText}}</pre>
       </div>
     </div>
