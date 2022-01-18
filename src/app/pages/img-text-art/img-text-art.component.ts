@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-img-text-art',
@@ -13,6 +14,7 @@ export class ImgTextArtComponent {
   customIntensityRamp: string = "@%#*+=-;. ";
   imageData: ImageData | undefined;
   fontSize: string = '17px';
+  @ViewChild('captureElement') captureElement!: ElementRef<HTMLDivElement>;
   constructor(private cdr: ChangeDetectorRef) {}
 
   @HostListener('window:resize', ['$event'])
@@ -107,4 +109,17 @@ export class ImgTextArtComponent {
       reader.readAsDataURL(file);
     }
   }
+  downloadImage () {
+    if (this.captureElement == null) {
+      return;
+    }
+    html2canvas(this.captureElement.nativeElement).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = 'captured-image.png';
+      link.click();
+    });
+  }
+
 }
