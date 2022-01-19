@@ -1,21 +1,24 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import html2canvas from 'html2canvas';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { fontSize } from 'html2canvas/dist/types/css/property-descriptors/font-size';
 
 @Component({
   selector: 'app-img-text-art',
   templateUrl: './img-text-art.component.html',
   styleUrls: ['./img-text-art.component.css']
 })
-export class ImgTextArtComponent {
+export class ImgTextArtComponent implements AfterViewInit{
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  asciiArt: string | undefined;
+  asciiArt: string | undefined = '';
   maxCanvasWidth = 400;
   asciiArtWidth = 80;
   customIntensityRamp: string = "@%#*+=-;. ";
   imageData: ImageData | undefined;
-  fontSize: string = '17px';
+  fontSize: string = '0.1px';
   @ViewChild('captureElement') captureElement!: ElementRef<HTMLDivElement>;
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef,
+              private clipboard: Clipboard) {}
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
@@ -26,7 +29,7 @@ export class ImgTextArtComponent {
     const screenWidth = window.innerWidth;
     const fontSize = Math.round(screenWidth / 60);
     if (fontSize > 17) {
-      this.fontSize = '17px';
+      this.fontSize = '4px';
       return;
     }
     this.fontSize = `${fontSize}px`;
@@ -43,6 +46,10 @@ export class ImgTextArtComponent {
     let output = '';
 
     const aspectRatio = imgData.width / imgData.height;
+    alert(aspectRatio);
+
+    // asciiArtWidth 값을 증가시켜서 aspectRatio를 낮춤
+    this.asciiArtWidth = 150; // 예시 값, 필요에 따라 조절
     const asciiArtHeight = Math.floor(this.asciiArtWidth / aspectRatio);
 
     const scaleFactorX = imgData.width / this.asciiArtWidth;
@@ -122,4 +129,54 @@ export class ImgTextArtComponent {
     });
   }
 
+  copyTextToClipboard () {
+    if (this.asciiArt == null) {
+      return;
+    }
+    this.clipboard.copy(this.asciiArt);
+  }
+
+  ngAfterViewInit (): void {
+    this.asciiArt = `
+
+                                           %       ..     *%%%#-
+                                       %          ..%;     =%%%%. #.
+                                    %           *-     %%%%%%%%  %.
+                                  *          +.     #%%%%%%%%;  ;.
+                                %          %      %%%%%%%%%  ;;..
+                               ;         %     .%%%%%%%   =-..
+                              %%        .    %%%%+   #%+...
+                           .%%*%%%%%%%%%%%.   %#.......
+                         %+%;=.*=%%%%%%%%%%%%  %..
+                       %+%%%.;.*%         #%%%%  -.
+                      %%=   %#+              %#%  ..
+                     #%     *.   ;%=      %%%%%##*%..
+                     # % .         .      %%%+####%%-.
+                    *% %%.     %  .=  ;   %%%+####%%%..
+                   *%%  =- @  =  # % = @  %%%%##+#* ;%..
+                   *%%#+.%       %*%# %;   ;%%%%%#  ....
+      .    . *+-+   #%%%%% @%%  *%  @*%             *..
+         .; #. ;=-   %@@@@       %%%               =..           ..
+        %-+ .@*=*+#; #     %    .%             ;%#%%%%%-       ;;..
+        --* ;;  =      %  #..              % *.       %  % %
+        +.- %-           %    .    -    .. =
+        +# ;=- - ;  %%   =        *@- %  % .
+        = .;+ ;*     % = %#%#-.#%+* =  -%            .%%.    .
+                      =  -   %    *%%  #          %     *
+                  .% %   =   -    =*#             #..%...
+                    ..; *    .    %%%        %+...-.....*@   %%.
+                      ....=%%. .-+%# +.........*...*......;    %.
+                           ..;.....%%..#+.....;.....#.......   ;.
+                            %...............................% %..
+                           =............+...........;*......;...
+                          -....;.....................;........
+                         %....................................
+                        %.....................................
+                       *....................................#
+                       %...................................@.
+                        @ %%;............................%;
+                          .+%##+......+*#%%%%%%%-.....+*;
+                                                    .
+`;
+  }
 }
