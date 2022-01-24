@@ -29,7 +29,7 @@ export class ImgTextArtComponent implements AfterViewInit{
   setTextStyle () {
     const screenWidth = window.innerWidth;
     const fontSize = Math.round(screenWidth / 60);
-    if (fontSize > 17) {
+    if (fontSize > 6) {
       this.fontSize = '4px';
       return;
     }
