@@ -55,3 +55,8 @@
 .first-item-margin:first-child {
   margin-top: 15px;  /* 원하는 크기에 따라 변경하세요 */
 }
+/* Add this CSS to your component's style file */
+.zoomed {
+  transform: scale(2); /* You can adjust the scale factor as needed */
+  transition: transform 0.3s ease-in-out; /* Adjust the duration and timing function */
+}

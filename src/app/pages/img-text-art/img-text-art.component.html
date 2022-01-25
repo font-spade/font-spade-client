@@ -43,9 +43,10 @@
 
     <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
       <!-- Image Thumbnail -->
-      <div class="absolute top-4 left-4 none md:block">
-        <img class="w-36 rounded-2xl" [src]="imageThumbnailSrc" alt="Image Thumbnail" />
+      <div class="absolute top-10 left-10" [class.zoomed]="isZoomed" (click)="toggleZoom()">
+        <img class="w-12 rounded-2xl" [src]="imageThumbnailSrc" alt="Image Thumbnail" />
       </div>
+
 
       <div class="ascii-art-container flex items-center text-center w-full justify-center">
         <pre class="ascii-art-container overflow-auto" [style.font-size]="fontSize" [innerText]="asciiArt"></pre>

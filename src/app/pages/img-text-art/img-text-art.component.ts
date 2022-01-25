@@ -18,6 +18,9 @@ export class ImgTextArtComponent implements AfterViewInit{
   fontSize: string = '0.1px';
   @ViewChild('captureElement') captureElement!: ElementRef<HTMLDivElement>;
   imageThumbnailSrc: any;
+
+  isZoomed = false;
+
   constructor(private cdr: ChangeDetectorRef,
               private clipboard: Clipboard) {}
 
@@ -26,6 +29,9 @@ export class ImgTextArtComponent implements AfterViewInit{
     this.setTextStyle();
   }
 
+  toggleZoom() {
+    this.isZoomed = !this.isZoomed;
+  }
   setTextStyle () {
     const screenWidth = window.innerWidth;
     const fontSize = Math.round(screenWidth / 60);
