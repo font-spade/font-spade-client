@@ -1,0 +1,24 @@
+<div class="h-[520px] w-44 overflow-auto">
+
+  <div *ngFor="let emojiCodepoint of knownSupportedEmoji">
+    <div (click)="handleClick(emojiCodepoint)">
+      <div
+        [ngStyle]="{
+            'padding': '0.5rem',
+            'border-radius': '2px',
+            'opacity': getOpacity(emojiCodepoint),
+            'background-color': getBackgroundColor(emojiCodepoint),
+            ':hover': { 'background-color': getHoverBackgroundColor(emojiCodepoint) }
+          }"
+      >
+        <img
+          loading="lazy"
+          width="32px"
+          height="32px"
+          [alt]="getEmojiAlt(emojiCodepoint)"
+          [src]="emojiService.getNotoEmojiUrl(emojiCodepoint)"
+        />
+      </div>
+    </div>
+  </div>
+</div>
