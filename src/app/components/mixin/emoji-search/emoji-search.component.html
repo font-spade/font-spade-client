@@ -1,0 +1,12 @@
+<div class="search-container">
+  <input
+    type="text"
+    [(ngModel)]="value"
+    (input)="onSearchChange()"
+    [disabled]="disabled"
+    placeholder="Search Emoji"
+  />
+  <button (click)="value = ''">Clear</button>
+  <button (click)="onRandomize()" [disabled]="disabled || value !== ''">Randomize</button>
+  <!-- Add additional UI elements as needed -->
+</div>
