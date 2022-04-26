@@ -1,0 +1,25 @@
+<!-- left-emoji-list.component.html -->
+
+<div class="h-[520px] w-44 overflow-auto grid grid-cols-3">
+  <div *ngFor="let emojiCodepoint of knownSupportedEmoji">
+    <div (contextmenu)="selectedLeftEmoji === emojiCodepoint ? bulkImageDownloadMenuOpen.emit($event) : ''">
+      <div
+        (click)="handleLeftEmojiClicked(emojiCodepoint)"
+        [ngStyle]="{
+        'padding': '0.5rem',
+        'border-radius': '2px',
+        'background-color': selectedLeftEmoji === emojiCodepoint ? 'gray' : 'white',
+        ':hover': { 'background-color': 'theme.palette.action.hover' }
+      }"
+      >
+        <img
+          loading="lazy"
+          width="32px"
+          height="32px"
+          [alt]="emojiCodepoint"
+          [src]="emojiService.getNotoEmojiUrl(emojiCodepoint)"
+        />
+      </div>
+    </div>
+  </div>
+</div>
