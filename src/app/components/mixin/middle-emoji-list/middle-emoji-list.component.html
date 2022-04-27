@@ -1,0 +1,54 @@
+
+<div class="h-[520px] w-44 overflow-auto">
+  <div [ngStyle]="{ display: showOneCombo ? 'flex' : null, alignItems: showOneCombo ? 'center' : null }">
+    <ng-container *ngIf="!showOneCombo; else singleCombo">
+      <ng-container *ngFor="let combo of middleList">
+        <img
+          loading="lazy"
+          width="32px"
+          height="32px"
+          [alt]="combo.alt"
+          [src]="combo.src"
+        />
+        <div *ngIf="hasClipboardSupport">
+          <button (click)="handleImageCopy(combo)">
+            <div>content_copy2</div>
+          </button>
+        </div>
+        <div *ngIf="!hasClipboardSupport">
+          <button (click)="handleImageDownload(combo)">
+            <div>download2</div>
+          </button>
+        </div>
+      </ng-container>
+    </ng-container>
+    <ng-template #singleCombo>
+      <img
+        *ngIf="showOneCombo"
+        loading="lazy"
+        width="32px"
+        height="32px"
+        [alt]="middleList[0].alt"
+        [src]="middleList[0].src"
+      />
+      <div *ngIf="showOneCombo && hasClipboardSupport">
+        <button (click)="handleImageCopy(null)">
+          <div>content_copy</div>
+        </button>
+      </div>
+      <div *ngIf="showOneCombo && !hasClipboardSupport">
+        <button (click)="handleImageDownload(null)">
+          <div>download</div>
+        </button>
+      </div>
+    </ng-template>
+  </div>
+  <div *ngIf="selectedLeftEmoji !== ''">
+    <button (click)="handleFullEmojiRandomize()">
+      <div>
+        casino
+      </div>
+    </button>
+  </div>
+
+</div>
