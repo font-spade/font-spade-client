@@ -8,10 +8,10 @@ import { EmojiKitchenComponent } from './pages/emoji-kitchen/emoji-kitchen.compo
 
 const routes: Routes = [
   // { path: 'home', component: HomeComponent},
-  { path: '', redirectTo: '/emoji-kitchen', pathMatch: 'full' },
+  { path: '', redirectTo: '/emoji-generator', pathMatch: 'full' },
   { path: 'intro', component: IntroComponent},
-  { path: 'emoji-kitchen', component: EmojiKitchenComponent },
-  { path: 'ascii-emoji-generate' , component: HomeComponent },
+  { path: 'emoji-generator', component: EmojiKitchenComponent },
+  { path: 'emoticon-generate' , component: HomeComponent },
   { path: 'ascii-art', component: TextArtComponent},
   { path: 'image-ascii-art', component: ImgTextArtComponent}
 ];
