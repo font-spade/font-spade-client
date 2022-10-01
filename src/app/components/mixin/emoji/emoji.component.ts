@@ -10,6 +10,7 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { isPlatformBrowser } from '@angular/common';
+import { ClassStyleService } from '../../../style/class-style.service';
 interface GlyphPair {
   left: string;
   right: string;
@@ -41,6 +42,7 @@ export class EmojiComponent implements OnInit {
               private http: HttpClient,
               private clipboard: Clipboard,
               private renderer: Renderer2,
+              public classStyleSvc: ClassStyleService,
               @Inject(PLATFORM_ID) private platformId: string,
               private el: ElementRef) {}
 
