@@ -8,6 +8,7 @@ import { RightEmojiListService } from '../../components/mixin/right-emoji-list/r
 import { ToastService } from '../../components/common/toast/toast.service';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { ClassStyleService } from '../../style/class-style.service';
 @Component({
   selector: 'app-emoji-kitchen',
   templateUrl: './emoji-kitchen.component.html',
@@ -36,6 +37,7 @@ export class EmojiKitchenComponent implements OnInit {
               public emojiKitchenService: EmojiKitchenService,
               private cdr: ChangeDetectorRef,
               private toastService: ToastService,
+              public classStyleSvc: ClassStyleService,
               @Inject(PLATFORM_ID) private platformId: string,
               private httpClient: HttpClient,
               private rightEmojiListService: RightEmojiListService,
