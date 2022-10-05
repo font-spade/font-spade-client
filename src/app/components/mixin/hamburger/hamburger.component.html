@@ -13,14 +13,14 @@
               ng-trigger ng-trigger-showHideAnimation ng-star-inserted z-10"
       *ngIf="isOpen">
     <li class="p-2">
-      <button [routerLink]="'/intro'" (click)="isOpen = !isOpen"  class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Intro
+<!--      <button [routerLink]="'/intro'" (click)="isOpen = !isOpen"  class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">-->
+<!--        Intro-->
+<!--      </button>-->
+      <button [routerLink]="'/emoticon-generate'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Emoticons
       </button>
-      <button [routerLink]="'/ascii-emoji-generate'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Lanny Face
-      </button>
-      <button [routerLink]="'/emoji-kitchen'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Emoji Kitchen
+      <button [routerLink]="'/emoji-generator'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Emoji Generator
       </button>
       <button [routerLink]="'/ascii-art'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
         Text Art
