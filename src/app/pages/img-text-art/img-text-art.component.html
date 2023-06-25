@@ -1,0 +1,6 @@
+<input #fileInput type="file" accept=".png" (change)="handleFileSelect($event)">
+<div>
+  <label for="customIntensityRamp">Custom Intensity Ramp:</label>
+  <input type="text" id="customIntensityRamp" [(ngModel)]="customIntensityRamp" (input)="updateAsciiArt()">
+</div>
+<pre>{{ asciiArt }}</pre>

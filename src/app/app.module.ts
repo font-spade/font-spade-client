@@ -17,6 +17,7 @@ import { DatePickerModule } from './components/common/date-picker/date-picker.mo
 import { AdBannerModule } from './components/common/ad-banner/ad-banner.module';
 import { AdsModule } from './pages/ads/ads.module';
 import { TextArtModule } from './pages/text-art/text-art.module';
+import { ImgTextArtModule } from './pages/img-text-art/img-text-art.module';
 
 // TranslateLoader 초기화 함수
 export function HttpLoaderFactory(http: HttpClient) {
@@ -49,7 +50,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     DatePickerModule,
     AdBannerModule,
     AdsModule,
-    TextArtModule
+    TextArtModule,
+    ImgTextArtModule
   ],
   providers: [ provideClientHydration() ],
   bootstrap: [AppComponent]
