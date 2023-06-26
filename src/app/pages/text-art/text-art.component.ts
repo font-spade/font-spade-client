@@ -337,6 +337,7 @@ export class TextArtComponent implements OnInit{
       if (data == null) {
         return;
       }
+      console.log(data);
       this.fitletText = data;
     })
   }
