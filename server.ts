@@ -13,9 +13,9 @@ export function app(): express.Express {
   const server = express();
   let distFolder = '';
   if(environment.production) {
-    distFolder = join('/var/www/oh-my-baby/browser');
+    distFolder = join('/var/www/font-spade/browser');
   } else {
-    distFolder = join('/Users/doheyonkim/Depot/oh-my-baby/dist/oh-my-baby/browser');
+    distFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
   }
   // const
 
