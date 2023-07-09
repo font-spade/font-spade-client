@@ -17,9 +17,9 @@ interface GlyphMouth {
   changeDetection: ChangeDetectionStrategy.OnPush // Add this line
 })
 export class EmojiComponent implements OnInit {
-  data1!: { glyphset: GlyphPair[] };
-  data2!: { glyphset: GlyphPair[] };
-  data3!: { glyphset: GlyphMouth[] };
+  data1: { glyphset: GlyphPair[] } = { glyphset: [] };
+  data2: { glyphset: GlyphPair[] } = { glyphset: [] };
+  data3: { glyphset: GlyphMouth[] } = { glyphset: [] };
 
   selectedPair1: GlyphPair | null = null;
   selectedPair2: GlyphPair | null = null;
@@ -50,18 +50,21 @@ export class EmojiComponent implements OnInit {
   fetchData1() {
     this.http.get<{ glyphset: GlyphPair[] }>('/assets/data1.json').subscribe(data => {
       this.data1 = data;
+      this.cdRef.detectChanges();
     });
   }
 
   fetchData2() {
     this.http.get<{ glyphset: GlyphPair[] }>('/assets/data2.json').subscribe(data => {
       this.data2 = data;
+      this.cdRef.detectChanges();
     });
   }
 
   fetchData3() {
     this.http.get<{ glyphset: GlyphMouth[] }>('/assets/data3.json').subscribe(data => {
       this.data3 = data;
+      this.cdRef.detectChanges();
     });
   }
 
@@ -85,21 +88,21 @@ export class EmojiComponent implements OnInit {
     return this.emoji;
   }
   get maxPair1Length(): number {
-    if (!this.data1) {
+    if (this.data1.glyphset.length === 0) {
       return 0;
     }
     return Math.max(...this.data1.glyphset.map(pair => pair.left.length));
   }
 
   get maxPair2Length(): number {
-    if (!this.data1) {
+    if (this.data2.glyphset.length === 0) {
       return 0;
     }
     return Math.max(...this.data2.glyphset.map(pair => pair.left.length));
   }
 
   get maxMouthLength(): number {
-    if (!this.data1) {
+    if (this.data3.glyphset.length === 0) {
       return 0;
     }
     return Math.max(...this.data3.glyphset.map(mouth => mouth.mouth.length));
