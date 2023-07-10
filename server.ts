@@ -6,13 +6,19 @@ import * as express from 'express';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { AppServerModule } from './src/main.server';
+import { environment } from './src/environments/environment';
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
-  const brPath = '/var/www/font-spade/browser';
-  const distFolder = join(brPath);
-  // const distFolder = join('/Users/doheyonkim/Depot/oh-my-baby/dist/oh-my-baby/browser');
+  let distFolder = '';
+  if(environment.production) {
+    distFolder = join('/var/www/oh-my-baby/browser');
+  } else {
+    distFolder = join('/Users/doheyonkim/Depot/oh-my-baby/dist/oh-my-baby/browser');
+  }
+  // const
+
   const indexHtml = existsSync(join(distFolder, 'index.original.html')) ? 'index.original.html' : 'index';
 
 
