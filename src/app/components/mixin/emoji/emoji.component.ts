@@ -48,19 +48,19 @@ export class EmojiComponent implements OnInit {
   }
 
   fetchData1() {
-    this.http.get<{ glyphset: GlyphPair[] }>('./assets/data1.json').subscribe(data => {
+    this.http.get<{ glyphset: GlyphPair[] }>('/assets/data1.json').subscribe(data => {
       this.data1 = data;
     });
   }
 
   fetchData2() {
-    this.http.get<{ glyphset: GlyphPair[] }>('./assets/data2.json').subscribe(data => {
+    this.http.get<{ glyphset: GlyphPair[] }>('/assets/data2.json').subscribe(data => {
       this.data2 = data;
     });
   }
 
   fetchData3() {
-    this.http.get<{ glyphset: GlyphMouth[] }>('./assets/data3.json').subscribe(data => {
+    this.http.get<{ glyphset: GlyphMouth[] }>('/assets/data3.json').subscribe(data => {
       this.data3 = data;
     });
   }
