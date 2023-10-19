@@ -1,0 +1,24 @@
+<div [class]="isShow ? 'fixed' : 'hidden'" class="inset-0 z-20 overflow-y-auto" id="headlessui-dialog-65" role="dialog" aria-modal="true">
+  <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-32 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" id="headlessui-dialog-overlay-67" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&ZeroWidthSpace;</span>
+    <div class="inline-block transform overflow-hidden rounded-lg bg-white px-5 pt-5 pb-4 text-left align-middle shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+      <div class="absolute right-5 top-5 h-[32px] w-[32px] rounded-full cursor-pointer border p-[7px] text-center text-sm font-semibold transition-colors border-gray-400 text-sm transition-colors hover:border-white hover:bg-black hover:text-white">
+        <div class="flex items-center h-[16px] w-[16px] text-center justify-center"  (click)="isShow = false">
+          <app-modal-exit-icon></app-modal-exit-icon>
+        </div>
+      </div>
+      <div class="sm:flex sm:items-start pt-10 sm:pt-0">
+        <div class="mt-3 text-center sm:mt-0 sm:text-left">
+          <div class="mt-2">
+            <h1 class="text-lg text-gray-500">정말 나가시겠습니까?</h1>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+        <button type="button" class="inline-flex w-full justify-center rounded-xl border bg-white text-[#CA3A31] px-4 py-2 text-base font-medium shadow-sm hover:bg-gray-100 sm:ml-3 sm:w-auto sm:text-sm border-gray-300" tabindex="0" (click)="isShow = false" >지금 나가기</button>
+        <button type="button" class="mt-2 sm:mt-0 inline-flex w-full justify-center rounded-xl border border-transparent bg-[#F9E468] text-black px-4 py-2 text-base font-medium shadow-sm hover:bg-[#D6C850] sm:ml-3 sm:w-auto sm:text-sm">취소</button>
+      </div>
+    </div>
+  </div>
+</div>

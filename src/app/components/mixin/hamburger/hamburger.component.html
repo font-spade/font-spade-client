@@ -1,0 +1,31 @@
+<div>
+  <div class="z-10 w-auto mx-auto flex items-center ">
+    <div (click)="isOpen = !isOpen" class='rounded-full border px-2.5 py-2.5 text-center text-sm font-semibold transition-colors border-gray-500 text-sm transition-colors active:border-white active:bg-black active:text-white sm:hover:border-white sm:hover:bg-black sm:hover:text-white'>
+      <div class="flex items-center h-[20px] w-[20px] text-center justify-center">
+        <app-menu-icon [isOpen]="isOpen"></app-menu-icon>
+      </div>
+    </div>
+  </div>
+
+  <ul class="absolute min-h-[720px] ml-4 lr-4 right-0 flex w-full
+              flex-col divide-y overflow-hidden rounded-lg
+              bg-white shadow-md focus:ring-black ng-tns-c1097677772-0
+              ng-trigger ng-trigger-showHideAnimation ng-star-inserted z-10"
+      *ngIf="isOpen">
+    <li class="p-2">
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test1
+      </button>
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test2
+      </button>
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test3
+      </button>
+      <app-locale-list-box></app-locale-list-box>
+    </li>
+  </ul>
+  <div
+    *ngIf="isOpen" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity mt-[133px]">
+  </div>
+</div>

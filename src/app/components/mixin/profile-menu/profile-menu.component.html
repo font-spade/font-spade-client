@@ -1,0 +1,22 @@
+<div>
+  <button (click)="toggleUI()">
+    <div class="h-8 w-8 hover:text-gray-700">아이콘</div>
+  </button>
+  <ul class="absolute ml-4 lr-4 right-0 flex w-fit
+              translate-y-20 flex-col divide-y overflow-hidden rounded-lg
+              bg-white shadow-md focus:ring-black ng-tns-c1097677772-0
+              ng-trigger ng-trigger-showHideAnimation ng-star-inserted"
+      *ngIf="isActive">
+    <li class="p-2">
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test1
+      </button>
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test2
+      </button>
+      <button class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
+        Test3
+      </button>
+    </li>
+  </ul>
+</div>

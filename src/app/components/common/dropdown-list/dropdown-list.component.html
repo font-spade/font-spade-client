@@ -1,0 +1,52 @@
+<div class="container mx-auto mt-5">
+  <div class="mb-5 w-64">
+    <label for="dropdown" class="font-bold mb-1 text-gray-700 block">{{dateLabel}}</label>
+    <div class="relative">
+      <input type="hidden" name="date" x-ref="date" />
+      <input
+        id="dropdown"
+        type="text"
+        readonly
+        [(ngModel)]="dropdownValue"
+        (click)="showDropdown = !showDropdown"
+        class="
+                w-full
+                pl-4
+                pr-10
+                py-3
+                leading-none
+                rounded-lg
+                shadow-sm
+                focus:outline-none focus:shadow-outline
+                text-gray-600
+                font-medium
+              "
+        placeholder="임신한 월을 선택해주세요."
+      />
+
+      <div class="absolute top-0 right-0 px-3 py-2">
+        <app-chevron-icon class="ml-1" [type]="showDropdown === false ? ChevronType.DOWN : ChevronType.UP"></app-chevron-icon>
+      </div>
+
+      <!-- <div {{no_of_days.length"></div>
+                      <div {{32 - new Date(year, month, 32).getDate()"></div>
+                      <div {{new Date(year, month).getDay()"></div> -->
+      <div
+        class="bg-pink-50 mt-12 rounded-lg shadow p-4 absolute top-0 left-0 z-20"
+        style="width: 17rem"
+        [hidden]="!showDropdown"
+      >
+        <div class="flex justify-between items-center mb-2 mt-2">
+          <!-- 년도 선택 드롭다운 -->
+          <div class="absolute top-0 left-0 w-full py-2 bg-pink-50 border border-gray-100 shadow-lg">
+            <div class="overflow-y-auto max-h-60"> <!-- 스크롤을 적용할 최대 높이를 지정합니다. -->
+              <div class="cursor-pointer" *ngFor="let y of data">
+                <div class="py-1 px-2 text-gray-700 hover:bg-pink-50" (click)="selectData(y)">{{ y.value }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

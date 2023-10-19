@@ -1,0 +1,25 @@
+<div>
+  <h3>Select Pair 1</h3>
+  <button *ngFor="let pair of data1.glyphset" (click)="selectPair1(pair)">
+    {{pair.left}}...{{pair.right}}
+  </button>
+</div>
+
+<div>
+  <h3>Select Pair 2</h3>
+  <button *ngFor="let pair of data2.glyphset" (click)="selectPair2(pair)">
+    {{pair.left}}...{{pair.right}}
+  </button>
+</div>
+
+<div>
+  <h3>Select Mouth</h3>
+  <button *ngFor="let mouth of data3.glyphset" (click)="selectMouth(mouth)">
+    ...{{mouth.mouth}}...
+  </button>
+</div>
+
+<div *ngIf="generatedEmoji">
+  <h2>Your Emoji:</h2>
+  <p>{{generatedEmoji}}</p>
+</div>
