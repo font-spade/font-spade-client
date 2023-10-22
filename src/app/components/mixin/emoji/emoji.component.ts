@@ -125,6 +125,7 @@ export class EmojiComponent implements OnInit {
   }
 
   randomizeSelection(): void {
+    // initialize data if not yet loaded
     const randomPair1 = this.data1.glyphset[Math.floor(Math.random() * this.data1.glyphset.length)];
     const randomPair2 = this.data2.glyphset[Math.floor(Math.random() * this.data2.glyphset.length)];
     const randomMouth = this.data3.glyphset[Math.floor(Math.random() * this.data3.glyphset.length)];
@@ -139,27 +140,26 @@ export class EmojiComponent implements OnInit {
     this.scrollToElement(randomMouth, 'pair3Container');
 
     this.cdRef.detectChanges();
-  }
-  scrollToElement(element: GlyphPair | GlyphMouth, containerRef: string): void {
-    const container = this.el.nativeElement.querySelector(`.${containerRef}`);
-    let itemId: string;
+  }scrollToElement(element: GlyphPair | GlyphMouth, containerRef: string): void {
+    setTimeout(() => {
+      const container = this.el.nativeElement.querySelector(`.${containerRef}`);
+      let itemId: string;
 
-    if ('left' in element) {
-      itemId = element.left;
-    } else {
-      itemId = element.mouth;
-    }
+      if ('left' in element) {
+        itemId = element.left;
+      } else {
+        itemId = element.mouth;
+      }
 
-    const item = this.el.nativeElement.querySelector(`[data-id='${itemId}']`);
+      const item = this.el.nativeElement.querySelector(`[data-id='${itemId}']`);
 
-    console.log(`Scrolling for ${containerRef}. Container found:`, !!container, ". Item found:", !!item);
+      if (container && item) {
+        const itemPositionRelativeToContainer = item.offsetTop - container.offsetTop;
+        const scrollToPosition = itemPositionRelativeToContainer - (container.clientHeight / 2) + (item.clientHeight / 2);
 
-    if (container && item) {
-      const itemPositionRelativeToContainer = item.getBoundingClientRect().top - container.getBoundingClientRect().top;
-      const scrollToPosition = itemPositionRelativeToContainer - (container.clientHeight / 2) + (item.clientHeight / 2);
-
-      this.renderer.setProperty(container, 'scrollTop', scrollToPosition);
-    }
+        container.scrollTop = scrollToPosition;
+      }
+    }, 0);
   }
 
 
