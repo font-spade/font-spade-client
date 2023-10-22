@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HamburgerComponent } from './hamburger.component';
 import { MenuIconModule } from '../../vector/menu-icon/menu-icon.module';
 import { LocaleListBoxModule } from '../locale-list-box/locale-list-box.module';
+import { RouterLink } from '@angular/router';
 
 
 
@@ -13,7 +14,8 @@ import { LocaleListBoxModule } from '../locale-list-box/locale-list-box.module';
   imports: [
     CommonModule,
     MenuIconModule,
-    LocaleListBoxModule
+    LocaleListBoxModule,
+    RouterLink
   ],
   exports: [
     HamburgerComponent

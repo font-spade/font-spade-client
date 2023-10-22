@@ -26,6 +26,7 @@ export class EmojiComponent implements OnInit {
   selectedMouth: GlyphMouth | null = null;
 
   buttonText: string = "Copy to Clipboard";
+  private emoji: string = '';
 
   constructor(private cdRef: ChangeDetectorRef,
               private http: HttpClient,
@@ -41,8 +42,9 @@ export class EmojiComponent implements OnInit {
   }
 
   copyToClipboard(): void {
-    this.clipboard.copy('The text you want to copy');
+    this.clipboard.copy(this.emoji);
     this.buttonText = "Copied";
+    setTimeout(() => {this.buttonText = "Copy to Clipboard"; this.cdRef.detectChanges();}, 2000);
   }
 
   fetchData1() {
@@ -70,17 +72,36 @@ export class EmojiComponent implements OnInit {
     let middleRight = this.selectedPair2?.right || (this.selectedPair1 ? this.generateSpaces(this.maxPair2Length) : "");
     let rightSide = this.selectedPair1?.right || this.generateSpaces(this.maxPair1Length);
 
-    return leftSide + middleLeft + middle + middleRight + rightSide;
+    if(this.selectedPair2 === null && this.selectedMouth === null) {
+      middle = "ㅤㅤㅤ";
+    }
+    if(this.selectedPair1 === null && this.selectedMouth === null) {
+      middle = "ㅤ";
+    }
+    if(this.selectedMouth === null) {
+      middle = "ㅤ";
+    }
+    this.emoji = `${leftSide}${middleLeft}${middle}${middleRight}${rightSide}`;
+    return this.emoji;
   }
   get maxPair1Length(): number {
+    if (!this.data1) {
+      return 0;
+    }
     return Math.max(...this.data1.glyphset.map(pair => pair.left.length));
   }
 
   get maxPair2Length(): number {
+    if (!this.data1) {
+      return 0;
+    }
     return Math.max(...this.data2.glyphset.map(pair => pair.left.length));
   }
 
   get maxMouthLength(): number {
+    if (!this.data1) {
+      return 0;
+    }
     return Math.max(...this.data3.glyphset.map(mouth => mouth.mouth.length));
   }
 

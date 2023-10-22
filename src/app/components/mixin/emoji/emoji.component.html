@@ -1,13 +1,13 @@
-<div class="flex flex-col w-screen xl:w-auto">
-  <div class="flex justify-center items-center text-5xl mb-5">
+<div class="flex flex-col w-screen p-5 md:p-0 md:w-auto">
+  <div class="flex justify-center items-center text-4xl md:text-5xl mb-5">
     Lenny Face Generator
   </div>
-  <div class="flex justify-center items-center text-1xl mb-5">
+  <div class="flex justify-center items-center md:text-1xl mb-5">
     A free copy and paste generator for lenny face emoticons, emoji, and kaomoji. Build your own lenny face with 238,260 combinations.
   </div>
   <div class="flex w-full items-center rounded-3xl
               drop-shadow-md shadow-md bg-gray-100 mb-5">
-    <div class="flex items-center text-7xl h-28 text-center w-full justify-center">
+    <div class="flex items-center text-5xl md:text-7xl h-28 text-center w-full justify-center font-sans" (click)="copyToClipboard()">
       <p  *ngIf="generatedEmoji">
         {{generatedEmoji}}
       </p>
@@ -24,13 +24,13 @@
     (click)="randomizeSelection()">Randomize</button>
   </div>
 
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-3 gap-4 mt-5">
     <div>
-      <h3 class="text-xl font-bold flex items-center justify-center">Ears and Arms</h3>
+      <h3 class="text-md md:text-xl font-bold flex items-center justify-center">Ears and Arms</h3>
 
-      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair1Container" style="max-height: 450px;">
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair1Container" style="max-height: 450px;">
         <button
-          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          class="text-sm md:text-2xl w-auto outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
           [ngClass]="{'bg-gray-200': selectedPair1 === pair, '': selectedPair1 !== pair}"
           *ngFor="let pair of data1.glyphset"
           [attr.data-id]="pair.left"
@@ -42,11 +42,11 @@
     </div>
 
     <div>
-      <h3 class="text-xl font-bold flex items-center justify-center">Eyes</h3>
+      <h3 class="text-md md:text-xl font-bold flex items-center justify-center">Eyes</h3>
 
-      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair2Container" style="max-height: 450px;">
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair2Container" style="max-height: 450px;">
         <button
-          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          class="text-sm md:text-2xl w-auto outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
           [ngClass]="{'bg-gray-200': selectedPair2 === pair, '': selectedPair2 !== pair}"
           *ngFor="let pair of data2.glyphset"
           [attr.data-id]="pair.left"
@@ -57,10 +57,10 @@
     </div>
 
     <div>
-      <h3 class="text-xl font-bold flex items-center justify-center">Mouth</h3>
-      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair3Container" style="max-height: 450px;">
+      <h3 class="text-md md:text-xl font-bold flex items-center justify-center">Mouth</h3>
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair3Container" style="max-height: 450px;">
         <button
-          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          class="text-sm md:text-2xl w-auto outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
           [ngClass]="{'bg-gray-200': selectedMouth === mouth, '': selectedMouth !== mouth}"
           *ngFor="let mouth of data3.glyphset"
           [attr.data-id]="mouth.mouth"
