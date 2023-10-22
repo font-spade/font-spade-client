@@ -1,25 +1,75 @@
-<div>
-  <h3>Select Pair 1</h3>
-  <button *ngFor="let pair of data1.glyphset" (click)="selectPair1(pair)">
-    {{pair.left}}...{{pair.right}}
-  </button>
-</div>
+<div class="flex flex-col w-screen xl:w-auto">
+  <div class="flex justify-center items-center text-5xl mb-5">
+    Lenny Face Generator
+  </div>
+  <div class="flex justify-center items-center text-1xl mb-5">
+    A free copy and paste generator for lenny face emoticons, emoji, and kaomoji. Build your own lenny face with 238,260 combinations.
+  </div>
+  <div class="flex w-full items-center rounded-3xl
+              drop-shadow-md shadow-md bg-gray-100 mb-5">
+    <div class="flex items-center text-7xl h-28 text-center w-full justify-center">
+      <p  *ngIf="generatedEmoji">
+        {{generatedEmoji}}
+      </p>
+    </div>
+  </div>
+  <div class="text-center">
+    <button
+      class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"
+      (click)="copyToClipboard()"
+    >
+      {{ buttonText }}
+    </button>
+    <button class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 bg-black text-white"
+    (click)="randomizeSelection()">Randomize</button>
+  </div>
 
-<div>
-  <h3>Select Pair 2</h3>
-  <button *ngFor="let pair of data2.glyphset" (click)="selectPair2(pair)">
-    {{pair.left}}...{{pair.right}}
-  </button>
-</div>
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <h3 class="text-xl font-bold flex items-center justify-center">Ears and Arms</h3>
 
-<div>
-  <h3>Select Mouth</h3>
-  <button *ngFor="let mouth of data3.glyphset" (click)="selectMouth(mouth)">
-    ...{{mouth.mouth}}...
-  </button>
-</div>
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair1Container" style="max-height: 450px;">
+        <button
+          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          [ngClass]="{'bg-gray-200': selectedPair1 === pair, '': selectedPair1 !== pair}"
+          *ngFor="let pair of data1.glyphset"
+          [attr.data-id]="pair.left"
+          (click)="selectPair1(pair)">
+          {{pair.left}}ㅤㅤ{{pair.right}}
+        </button>
+      </div>
 
-<div *ngIf="generatedEmoji">
-  <h2>Your Emoji:</h2>
-  <p>{{generatedEmoji}}</p>
+    </div>
+
+    <div>
+      <h3 class="text-xl font-bold flex items-center justify-center">Eyes</h3>
+
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair2Container" style="max-height: 450px;">
+        <button
+          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          [ngClass]="{'bg-gray-200': selectedPair2 === pair, '': selectedPair2 !== pair}"
+          *ngFor="let pair of data2.glyphset"
+          [attr.data-id]="pair.left"
+          (click)="selectPair2(pair)">
+          {{pair.left}}ㅤ{{pair.right}}
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-xl font-bold flex items-center justify-center">Mouth</h3>
+      <div class="flex flex-col space-y-2 overflow-y-auto gap-1 pl-5 pr-5 pair3Container" style="max-height: 450px;">
+        <button
+          class="w-auto outline-shadow min-h-[40px] text-2xl rounded-2xl transition duration-300 ease-in-out hover:bg-gray-300 hover:shadow-lg first-item-margin"
+          [ngClass]="{'bg-gray-200': selectedMouth === mouth, '': selectedMouth !== mouth}"
+          *ngFor="let mouth of data3.glyphset"
+          [attr.data-id]="mouth.mouth"
+          (click)="selectMouth(mouth)">
+          {{mouth.mouth}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+
 </div>

@@ -24,3 +24,34 @@
   color: #888;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+/* 웹킷 브라우저 전용 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 10px; /* 스크롤바의 너비 */
+  height: 10px; /* 스크롤바의 높이, 가로 스크롤의 경우에 사용 */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* 스크롤바의 전체 배경색 */
+  border-radius: 10px; /* 둥근 모서리 지정 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bbbbbb; /* 스크롤바의 색상 */
+  border-radius: 10px; /* 둥근 모서리 지정 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #939393; /* 스크롤바 위에 마우스를 올렸을 때 색상 */
+}
+
+.custom-shadow {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+}
+
+.outline-shadow {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.first-item-margin:first-child {
+  margin-top: 15px;  /* 원하는 크기에 따라 변경하세요 */
+}
