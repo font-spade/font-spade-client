@@ -1,0 +1,67 @@
+<section class="w-full flex justify-center mt-10 min-h-[720px] mx-auto max-w-5xl">
+  <div class="flex flex-col w-screen p-5 md:p-0 md:w-auto">
+    <div class="flex justify-center items-center text-4xl md:text-5xl mb-5">
+      Awsome Text Generator
+    </div>
+    <div class="flex justify-center items-center md:text-1xl mb-5">
+      If you're looking for a similar text generator using awesome text and ASCII, you can create a variety of stylized text using different fonts and characters.
+    </div>
+    <div class="flex justify-center items-center md:text-1xl mb-5">
+      Here's a simple example using ASCII characters:
+    </div>
+    <div class="flex w-full items-center justify-center drop-shadow-md">
+      <div class="ascii-art-container w-full flex justify-center items-center min-h-[25px]">
+        {{HelloWorld}}
+      </div>
+    </div>
+    <div class="flex justify-center items-center md:text-1xl mb-5">
+      Feel free to customize or enhance this example based on your preferences. You can explore different ASCII art generators or text styling tools available online to create more intricate designs.
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-5 md:flex">
+      <div class="md:col-span-1 w-full">
+        <h3 class="text-md md:text-xl font-bold flex items-center justify-center mb-1">Select Styles</h3>
+        <div class="md:pl-5 md:pr-5 pl-1 pr-1" style="max-height: 60px;">
+          <select
+            class="text-sm md:text-2xl text-center w-full outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-50 hover:shadow-lg first-item-margin"
+            [(ngModel)]="selectedPair1"
+            (change)="selectPair1($event.target)">
+            <option
+              *ngFor="let pair of textStyls"
+              [value]="pair"
+              [ngClass]="{'bg-gray-200': selectedPair1 === pair, '': selectedPair1 !== pair}">
+              {{ pair }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+
+      <div class="md:col-span-4 md:ml-5 w-full ">
+        <h3 class="text-md md:text-xl font-bold flex items-center justify-center mb-2">Input Text</h3>
+        <input
+          class="text-sm md:text-2xl w-full outline-shadow min-h-[40px] rounded-2xl transition duration-300 ease-in-out hover:bg-gray-50 hover:shadow-lg first-item-margin mt-3 text-center"
+          placeholder="No Data!"
+          (input)="onChange($event)"
+          type="text">
+      </div>
+    </div>
+
+
+    <div class="flex w-full items-center justify-center drop-shadow-md mb-5">
+
+    </div>
+<!--    <div class="text-center">-->
+<!--      <button-->
+<!--        class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"-->
+<!--      >-->
+<!--        실행하기-->
+<!--      </button>-->
+<!--    </div>-->
+    <div #captureElement  class="flex w-full items-center rounded-3xl drop-shadow-md shadow-md bg-gray-100 overflow-hidden min-h-[384px]">
+      <div class="ascii-art-container flex items-center text-center w-full justify-center" (click)="copyToClipboard()">
+        <pre>{{fitletText}}</pre>
+      </div>
+    </div>
+  </div>
+
+</section>
