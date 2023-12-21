@@ -1,19 +1,20 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import html2canvas from 'html2canvas';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { fontSize } from 'html2canvas/dist/types/css/property-descriptors/font-size';
 
 @Component({
   selector: 'app-img-text-art',
   templateUrl: './img-text-art.component.html',
   styleUrls: ['./img-text-art.component.css']
 })
-export class ImgTextArtComponent implements AfterViewInit{
+export class ImgTextArtComponent implements AfterViewInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   asciiArt: string | undefined = '';
   maxCanvasWidth = 400;
   asciiArtWidth = 80;
-  customIntensityRamp: string = "@%#*+=-;.·";
+  customIntensityRamp: string[] = [
+    '⠀', '⣀', '⣤', '⣶', '⣿', '⣿', '⣿', '⣿',
+  ];
   imageData: ImageData | undefined;
   fontSize: string = '0.1px';
   @ViewChild('captureElement') captureElement!: ElementRef<HTMLDivElement>;
@@ -32,7 +33,8 @@ export class ImgTextArtComponent implements AfterViewInit{
   toggleZoom() {
     this.isZoomed = !this.isZoomed;
   }
-  setTextStyle () {
+
+  setTextStyle() {
     const screenWidth = window.innerWidth;
     const fontSize = Math.round(screenWidth / 60);
     if (fontSize > 6) {
@@ -54,7 +56,7 @@ export class ImgTextArtComponent implements AfterViewInit{
     const aspectRatio = imgData.width / imgData.height;
 
     // asciiArtWidth 값을 증가시켜서 aspectRatio를 낮춤
-    this.asciiArtWidth = 150; // 예시 값, 필요에 따라 조절
+    this.asciiArtWidth = 31; // 예시 값, 필요에 따라 조절
     const asciiArtHeight = Math.floor(this.asciiArtWidth / aspectRatio);
 
     const scaleFactorX = imgData.width / this.asciiArtWidth;
@@ -67,8 +69,8 @@ export class ImgTextArtComponent implements AfterViewInit{
 
         const index = (y * imgData.width + x) * 4;
         const pixel = imgData.data.subarray(index, index + 3);
-        const intensityRampIdx = (this.getMostIntenseColor(pixel) / 256) * this.customIntensityRamp.length;
-        output += this.customIntensityRamp.charAt(intensityRampIdx);
+        const intensityRampIdx = Math.round((this.getMostIntenseColor(pixel) / 256) * (this.customIntensityRamp.length - 1));
+        output += this.customIntensityRamp[intensityRampIdx];
       }
       output += '\n';
     }
@@ -86,7 +88,7 @@ export class ImgTextArtComponent implements AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  onFileSelected ($event: File) {
+  onFileSelected($event: File) {
     if ($event) {
       const file = $event;
 
@@ -123,7 +125,8 @@ export class ImgTextArtComponent implements AfterViewInit{
       reader.readAsDataURL(file);
     }
   }
-  downloadImage () {
+
+  downloadImage() {
     if (this.captureElement == null) {
       return;
     }
@@ -136,7 +139,7 @@ export class ImgTextArtComponent implements AfterViewInit{
     });
   }
 
-  copyTextToClipboard () {
+  copyTextToClipboard() {
     if (this.asciiArt == null) {
       return;
     }
