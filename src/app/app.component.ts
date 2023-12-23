@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
+import { EmojiKitchenService } from './pages/emoji-kitchen/emoji-kitchen.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ export class AppComponent implements OnInit{
   public testBrowser  : boolean | undefined;
   public data         : any;
   constructor(private translateService: TranslateService,
+              private emojiService: EmojiKitchenService,
               private http: HttpClient, @Inject(PLATFORM_ID) platformId: string) {
     // 초기 언어 설정
     translateService.setDefaultLang('ko'); // 한국어로 설정
@@ -26,10 +28,6 @@ export class AppComponent implements OnInit{
     this.translateService.use(locale);
   }
 
-  ngOnInit (): void {
-    if (this.testBrowser) {
-      //avoid server NETWORK error
-      this.data = this.http.get('/api');
-    }
+  async ngOnInit () {
   }
 }
