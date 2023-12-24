@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { AppRoutingModule } from './app-routing.module';
@@ -18,6 +18,12 @@ import { AdBannerModule } from './components/common/ad-banner/ad-banner.module';
 import { AdsModule } from './pages/ads/ads.module';
 import { TextArtModule } from './pages/text-art/text-art.module';
 import { ImgTextArtModule } from './pages/img-text-art/img-text-art.module';
+import { EmojiKitchenModule } from './pages/emoji-kitchen/emoji-kitchen.module';
+import { EmojiKitchenService } from './pages/emoji-kitchen/emoji-kitchen.service';
+//
+// export function initializeApp(emojiService: EmojiKitchenService) {
+//   return () => emojiService;
+// }
 
 // TranslateLoader 초기화 함수
 export function HttpLoaderFactory(http: HttpClient) {
@@ -51,9 +57,18 @@ export function HttpLoaderFactory(http: HttpClient) {
     AdBannerModule,
     AdsModule,
     TextArtModule,
-    ImgTextArtModule
+    ImgTextArtModule,
+    EmojiKitchenModule
   ],
-  providers: [ provideClientHydration() ],
+  providers: [ provideClientHydration() ,
+    EmojiKitchenService,
+    // {
+    //   provide: APP_INITIALIZER,
+    //   useFactory: initializeApp,
+    //   deps: [EmojiKitchenService],
+    //   multi: true,
+    // }
+    ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
