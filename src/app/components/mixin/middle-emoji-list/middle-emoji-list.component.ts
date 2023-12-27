@@ -17,18 +17,21 @@ export class MiddleEmojiListComponent {
   @Output() bulkImageDownload = new EventEmitter<void>();
   @Output() imageDownload = new EventEmitter<any>();
   @Output() imageCopy = new EventEmitter<any>();
+  @Output() clickEmoji = new EventEmitter<any>();
 
   handleFullEmojiRandomize(): void {
     this.fullEmojiRandomize.emit();
   }
+  onClick(obj) {
+    this.selectedLeftEmoji = obj.alt;
+    this.clickEmoji.emit(obj);
+  }
 
   handleImageCopy(url: any | undefined): void {
-    debugger
     this.imageCopy.emit(url);
   }
 
   handleImageDownload(url: any | undefined): void {
-    debugger
     this.imageDownload.emit(url);
   }
 

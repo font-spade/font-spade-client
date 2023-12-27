@@ -5,6 +5,7 @@
 <!--<h1>sadgasdgd</h1>-->
 <!--<button (click)="switchLocale('en')">English</button>-->
 <!--<button (click)="switchLocale('ko')">Ko</button>-->
+<app-toast *ngIf="toastMessage" [message]="toastMessage"></app-toast>
 <app-alert-modal></app-alert-modal>
 <app-header></app-header>
 <router-outlet></router-outlet>

@@ -20,6 +20,7 @@ import { TextArtModule } from './pages/text-art/text-art.module';
 import { ImgTextArtModule } from './pages/img-text-art/img-text-art.module';
 import { EmojiKitchenModule } from './pages/emoji-kitchen/emoji-kitchen.module';
 import { EmojiKitchenService } from './pages/emoji-kitchen/emoji-kitchen.service';
+import { ToastModule } from './components/common/toast/toast.module';
 //
 // export function initializeApp(emojiService: EmojiKitchenService) {
 //   return () => emojiService;
@@ -58,7 +59,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     AdsModule,
     TextArtModule,
     ImgTextArtModule,
-    EmojiKitchenModule
+    EmojiKitchenModule,
+    ToastModule
   ],
   providers: [ provideClientHydration() ,
     EmojiKitchenService,

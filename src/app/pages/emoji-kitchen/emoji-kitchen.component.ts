@@ -5,6 +5,7 @@ import saveAs from "file-saver";
 import { Clipboard } from '@angular/cdk/clipboard';
 import { LeftEmojiListService } from '../../components/mixin/left-emoji-list/left-emoji-list.service';
 import { RightEmojiListService } from '../../components/mixin/right-emoji-list/right-emoji-list.service';
+import { ToastService } from '../../components/common/toast/toast.service';
 @Component({
   selector: 'app-emoji-kitchen',
   templateUrl: './emoji-kitchen.component.html',
@@ -23,10 +24,12 @@ export class EmojiKitchenComponent implements OnInit {
   rightUuid: string = uuid.v4();
   showOneCombo: boolean = false;
   hasClipboardSupport: boolean = false;
+  selectedEmoji: string = '';
 
   constructor(private clipboard: Clipboard,
               public emojiKitchenService: EmojiKitchenService,
               private cdr: ChangeDetectorRef,
+              private toastService: ToastService,
               private rightEmojiListService: RightEmojiListService,
               private leftEmojiListService: LeftEmojiListService) {
     this.hasClipboardSupport = 'write' in navigator.clipboard
@@ -146,13 +149,13 @@ export class EmojiKitchenComponent implements OnInit {
   }
 
   async handleImageCopy($event): Promise<void> {
-    debugger;
     let combination = null;
     if($event == null) {
       combination = this.emojiKitchenService.findValidEmojiCombo(this.selectedLeftEmoji, this.selectedRightEmoji).gStaticUrl
     } else {
       combination = $event.src;
     }
+    this.toastService.showToast('Copied to clipboard');
 
     const fetchImage = async () => {
       const image = await fetch(combination);
@@ -184,5 +187,9 @@ export class EmojiKitchenComponent implements OnInit {
       const combo = this.emojiKitchenService.findValidEmojiCombo(this.selectedLeftEmoji, this.selectedRightEmoji);
       return [{ alt: combo.alt, src: combo.gStaticUrl }];
     }
+  }
+
+  onClickEmoji ($event: any) {
+    this.selectedEmoji = $event;
   }
 }

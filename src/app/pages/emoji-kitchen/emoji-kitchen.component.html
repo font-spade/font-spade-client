@@ -1,107 +1,50 @@
-<!--<div class="flex flex-col w-screen p-5 md:p-0 md:w-auto">-->
-<!--  <div class="flex justify-center items-center text-4xl md:text-5xl mb-5">-->
-<!--    Lenny Face Generator-->
-<!--  </div>-->
-<!--  <div class="flex justify-center items-center md:text-1xl mb-5">-->
-<!--    A free copy and paste generator for lenny face emoticons, emoji, and kaomoji. Build your own lenny face with 238,260 combinations.-->
-<!--  </div>-->
-<!--  <div class="flex w-full items-center rounded-3xl-->
-<!--              drop-shadow-md shadow-md bg-gray-100 mb-5">-->
-<!--    <div class="flex items-center text-5xl md:text-7xl h-28 text-center w-full justify-center font-sans whitespace-pre" (click)="copyToClipboard()">-->
-<!--      <p  *ngIf="generatedEmoji">-->
-<!--        {{generatedEmoji}}-->
-<!--      </p>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--  <div class="text-center">-->
-<!--    <button-->
-<!--      class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"-->
-<!--      (click)="copyToClipboard()"-->
-<!--    >-->
-<!--      {{ buttonText }}-->
-<!--    </button>-->
-<!--    <button class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 bg-black text-white"-->
-<!--            (click)="randomizeSelection()">Randomize</button>-->
-<!--  </div>-->
+<section class="w-full flex justify-center md:mt-10 min-h-[720px] mx-auto max-w-5xl">
+  <div class="flex flex-col w-screen p-5 md:p-0">
+    <div class="flex justify-center items-center text-4xl md:text-5xl mb-5">
+      Emoji kitchen
+    </div>
+    <div class="flex justify-center items-center md:text-1xl mb-5">
+      A free copy and paste generator for combined emoji. Build your own emoji with 18,260 combinations.
+    </div>
+    <div class="flex w-full items-center rounded-3xl max-w-5xl
+              drop-shadow-md shadow-md bg-gray-100 mb-5">
 
-<!--  <div class="grid md:grid-cols-3 md:gap-4 md:mt-5">-->
-<!--    <div class="min-w-[280px] md:min-w-full max-w-full">-->
-<!--      <h3 class="text-md md:text-xl font-bold flex items-center md:justify-center truncate">Ears and Arms</h3>-->
-<!--      <div class="flex pt-1 pb-1 md:pt-0 md:pb-0 space-x-4 md:space-x-0 md:flex-col md:space-y-2 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair1Container" style="max-height: 450px;">-->
-<!--        <button-->
-<!--          class="text-sm min-w-[7rem] md:text-2xl md:w-auto outline-shadow min-h-[40px]-->
-<!--      rounded-2xl transition duration-300 ease-in-out-->
-<!--      hover:bg-gray-300 hover:shadow-lg md:first:mt-15 whitespace-pre"-->
-<!--          [ngClass]="{'bg-gray-200': selectedPair1 === pair, '': selectedPair1 !== pair}"-->
-<!--          *ngFor="let pair of data1.glyphset"-->
-<!--          [attr.data-id]="pair.left"-->
-<!--          (click)="selectPair1(pair)" [innerHTML]="renderArms(pair)">-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
+      <app-middle-emoji-list
+        class="w-full"
+        [middleList]="middleList()"
+        [showOneCombo]="showOneCombo"
+        [hasClipboardSupport]="hasClipboardSupport"
+        (fullEmojiRandomize)="handleFullEmojiRandomize()"
+        (clickEmoji)="onClickEmoji($event)"
 
+      ></app-middle-emoji-list>
 
-<!--    <div class="min-w-[280px] md:min-w-full max-w-full">-->
-<!--      <h3 class="text-md md:text-xl font-bold flex items-center md:justify-center">Eyes</h3>-->
+    </div>
+    <div class="text-center">
+      <button
+        class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 inline-flex relative bg-gradient-to-r from-blue-400 to-pink-500 z-10 text-white items-center text-shadow-md h-12 bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"
+        (click)="handleImageCopy(selectedEmoji)"
+      >
+        {{ 'Copy Emoji' }}
+      </button>
+      <button class="m-1 font-semibold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl text-base rounded-2xl px-6 h-12 bg-black text-white"
+              (click)="handleImageDownload(selectedEmoji)">Download Emoji</button>
+    </div>
 
-<!--      <div class="flex pt-1 pb-1 md:pt-0 md:pb-0 overflow-x-auto space-x-4 md:space-x-0 md:flex-col md:space-y-2 md:overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair2Container" style="max-height: 450px;">-->
-<!--        <button-->
-<!--          class="text-sm min-w-[7rem] md:text-2xl md:w-auto outline-shadow min-h-[40px]-->
-<!--          rounded-2xl transition duration-300 ease-in-out-->
-<!--          hover:bg-gray-300 hover:shadow-lg md:first:mt-15 whitespace-pre"-->
-<!--          [ngClass]="{'bg-gray-200': selectedPair2 === pair, '': selectedPair2 !== pair}"-->
-<!--          *ngFor="let pair of data2.glyphset"-->
-<!--          [attr.data-id]="pair.left"-->
-<!--          (click)="selectPair2(pair)" [innerHTML]="renderEyes(pair)">-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="grid md:grid-cols-2 md:gap-4 md:mt-5">
 
-<!--    <div class="min-w-[280px] md:min-w-full max-w-full">-->
-<!--      <h3 class="text-md md:text-xl font-bold flex items-center md:justify-center">Mouth</h3>-->
-<!--      <div class="flex pt-1 pb-1 md:pt-0 md:pb-0 overflow-x-auto  space-x-4 md:space-x-0 md:flex-col md:space-y-2 md:overflow-y-auto gap-1 md:pl-5 md:pr-5 pl-1 pr-1 pair3Container" style="max-height: 450px;">-->
-<!--        <button-->
-<!--          class="text-sm min-w-[7rem] md:text-2xl md:w-auto outline-shadow min-h-[40px]-->
-<!--          rounded-2xl transition duration-300 ease-in-out-->
-<!--          hover:bg-gray-300 hover:shadow-lg md:first:mt-15"-->
-<!--          [ngClass]="{'bg-gray-200': selectedMouth === mouth, '': selectedMouth !== mouth}"-->
-<!--          *ngFor="let mouth of data3.glyphset"-->
-<!--          [attr.data-id]="mouth.mouth"-->
-<!--          (click)="selectMouth(mouth)">-->
-<!--          {{mouth.mouth}}-->
-<!--        </button>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</div>-->
+      <app-left-emoji-list
+        [leftSearchResults]="leftSearchResults"
+        (bulkImageDownloadMenuOpen)="handleBulkImageDownloadMenuOpen($event)"
+      ></app-left-emoji-list>
 
-<div class="grid grid-cols-3">
-  <!-- Left Emoji Column -->
-  <app-left-emoji-list
-    [leftSearchResults]="leftSearchResults"
-    (bulkImageDownloadMenuOpen)="handleBulkImageDownloadMenuOpen($event)"
-  ></app-left-emoji-list>
-<!--  (leftEmojiRandomize)="handleLeftEmojiRandomize()"-->
-
-  <!-- Right Emoji Column -->
-  <app-right-emoji-list
-    [rightSearchResults]="rightSearchResults"
-    [selectedLeftEmoji]="selectedLeftEmoji"
-    [selectedRightEmoji]="selectedRightEmoji"
-  ></app-right-emoji-list>
+      <app-right-emoji-list
+        [rightSearchResults]="rightSearchResults"
+        [selectedLeftEmoji]="selectedLeftEmoji"
+        [selectedRightEmoji]="selectedRightEmoji"
+      ></app-right-emoji-list>
+    </div>
+  </div>
 
 
-  <!-- Middle Emoji Column -->
-  <app-middle-emoji-list
-    [middleList]="middleList()"
-    [showOneCombo]="showOneCombo"
-    [hasClipboardSupport]="hasClipboardSupport"
-    (fullEmojiRandomize)="handleFullEmojiRandomize()"
-    (imageDownload)="handleImageDownload($event)"
-    (imageCopy)="handleImageCopy($event)"
-
-  ></app-middle-emoji-list>
-  <!--  [hasClipboardSupport]="hasClipboardSupport"-->
-
-<!--  (rightEmojiRandomize)="handleRightEmojiRandomize()"-->
-</div>
+</section>
