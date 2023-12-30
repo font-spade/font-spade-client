@@ -20,7 +20,7 @@ export function app(): express.Express {
   let serverFolder = '';
   if(environment.production) {
     clientFolder = join('/var/www/font-spade/browser');
-    clientFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
+    // clientFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
   } else {
     clientFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
   }
