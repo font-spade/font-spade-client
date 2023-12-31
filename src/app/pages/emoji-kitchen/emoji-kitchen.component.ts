@@ -40,13 +40,11 @@ export class EmojiKitchenComponent implements OnInit {
               private httpClient: HttpClient,
               private rightEmojiListService: RightEmojiListService,
               private leftEmojiListService: LeftEmojiListService) {
-    if (isPlatformBrowser(this.platformId)) {
-      this.hasClipboardSupport = 'write' in navigator.clipboard
-    }
   }
 
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
+      this.hasClipboardSupport = 'write' in navigator.clipboard
       const data = await this.httpClient.get<any>('/api?path=knownSupportedEmoji').toPromise();
       this.emojiKitchenService.knownSupportedEmoji = data;
       this.knownSupportedEmoji = data;
@@ -241,16 +239,18 @@ export class EmojiKitchenComponent implements OnInit {
       return await image.blob();
     };
 
-    navigator.clipboard
-      .write([
-        new ClipboardItem({
-          "image/png": fetchImage(),
-        }),
-      ])
-      .then(function () {})
-      .catch(function (error) {
-        console.log(error);
-      });
+    if (isPlatformBrowser(this.platformId)) {
+      navigator.clipboard
+        .write([
+          new ClipboardItem({
+            "image/png": fetchImage(),
+          }),
+        ])
+        .then(function () {})
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
   }
   onClickEmoji ($event: any) {
     this.selectedEmoji = $event;

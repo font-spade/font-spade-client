@@ -17,7 +17,6 @@ export function app(): express.Express {
 // 파일 읽기
 
   let clientFolder = '';
-  let serverFolder = '';
   if(environment.production) {
     clientFolder = join('/var/www/font-spade/browser');
     // clientFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
