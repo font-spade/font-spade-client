@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { EmojiKitchenService, MouseCoordinates } from './emoji-kitchen.service';
 import * as uuid from 'uuid';
 import saveAs from "file-saver";
@@ -6,6 +6,8 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { LeftEmojiListService } from '../../components/mixin/left-emoji-list/left-emoji-list.service';
 import { RightEmojiListService } from '../../components/mixin/right-emoji-list/right-emoji-list.service';
 import { ToastService } from '../../components/common/toast/toast.service';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-emoji-kitchen',
   templateUrl: './emoji-kitchen.component.html',
@@ -17,7 +19,7 @@ export class EmojiKitchenComponent implements OnInit {
   bulkDownloadMenu?: MouseCoordinates;
   isBulkDownloading: boolean = false;
   leftSearchResults: Array<string> = [];
-  rightSearchResults: Array<string> = [];
+  // rightSearchResults: Array<string> = [];
   leftMobileSearchIsOpen: boolean = false;
   rightMobileSearchIsOpen: boolean = false;
   leftUuid: string = uuid.v4();
@@ -25,23 +27,100 @@ export class EmojiKitchenComponent implements OnInit {
   showOneCombo: boolean = false;
   hasClipboardSupport: boolean = false;
   selectedEmoji: string = '';
+  middleList: any[];
+  knownSupportedEmoji: Array<string>;
+  hasSelectedLeftEmoji: boolean;
+  possibleEmoji: Array<{ left: string; right: string }>;
 
   constructor(private clipboard: Clipboard,
               public emojiKitchenService: EmojiKitchenService,
               private cdr: ChangeDetectorRef,
               private toastService: ToastService,
+              @Inject(PLATFORM_ID) private platformId: string,
+              private httpClient: HttpClient,
               private rightEmojiListService: RightEmojiListService,
               private leftEmojiListService: LeftEmojiListService) {
-    this.hasClipboardSupport = 'write' in navigator.clipboard
+    if (isPlatformBrowser(this.platformId)) {
+      this.hasClipboardSupport = 'write' in navigator.clipboard
+    }
   }
 
-  ngOnInit(): void {
-    this.leftEmojiListService.leftEmojiClicked.subscribe(p => {
-      this.handleLeftEmojiClicked(p);
-    })
-    this.rightEmojiListService.rightEmojiClicked.subscribe(p => {
-      this.handleRightEmojiClicked(p);
-    })
+  async ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      const data = await this.httpClient.get<any>('/api?path=knownSupportedEmoji').toPromise();
+      this.emojiKitchenService.knownSupportedEmoji = data;
+      this.knownSupportedEmoji = data;
+
+      this.leftEmojiListService.leftEmojiClicked.subscribe(async (p) => {
+        this.handleLeftEmojiClicked(p);
+        this.hasSelectedLeftEmoji = p !== '';
+        if (this.hasSelectedLeftEmoji) {
+          this.selectedLeftEmoji = p;
+          const data = await this.emojiKitchenService.getEmojiData(this.selectedLeftEmoji);
+          this.possibleEmoji = data.combinations.map(combination => ({
+            left: combination.leftEmojiCodepoint,
+            right: combination.rightEmojiCodepoint
+          }));
+        }
+        this.middleList = await this.middleListChange();
+      })
+
+      this.rightEmojiListService.rightEmojiClicked.subscribe(async (p) => {
+        this.handleRightEmojiClicked(p);
+        this.middleList = await this.middleListChange();
+      })
+    }
+
+
+  }
+
+  async middleListChange() {
+    if (this.selectedLeftEmoji === '' && this.selectedRightEmoji === '') {
+      return [];
+    } else if (this.selectedLeftEmoji !== '' && this.selectedRightEmoji === '') {
+      this.showOneCombo = false;
+      const combinations = this.emojiKitchenService.emojiData;
+      const allOfItem  = {};
+      for (let i = 0; i < combinations.combinations.length; i++) {
+        allOfItem[combinations.combinations[i].rightEmojiCodepoint +'-'+ combinations.combinations[i].leftEmojiCodepoint] = combinations.combinations[i];
+      }
+      for (let i = 0; i < combinations.combinations.length; i++) {
+        allOfItem[combinations.combinations[i].leftEmojiCodepoint +'-'+ combinations.combinations[i].rightEmojiCodepoint] = combinations.combinations[i];
+      }
+      // interations allOfItem
+      const result = []
+      for (const key in allOfItem) {
+        if (allOfItem.hasOwnProperty(key)) {
+          const element = allOfItem[key];
+          if (key.split('-')[0] === this.selectedLeftEmoji) {
+            result.push({
+              alt: element.alt,
+              src: element.gStaticUrl,
+              date: element.date
+            });
+          }
+        }
+      }
+      // sort by date
+      result.sort((a, b) => (a.date > b.date ? -1 : 1))
+      return result
+
+    } else {
+      this.showOneCombo = true;
+      const combinations = this.emojiKitchenService.emojiData;
+      let result = combinations.combinations
+        .filter(combination => combination.leftEmojiCodepoint === this.selectedLeftEmoji && combination.rightEmojiCodepoint === this.selectedRightEmoji)
+        .map(combination => ({ alt: combination.alt, src: combination.gStaticUrl }))
+        .pop();
+      if (result) {
+        return [result];
+      }
+      result = combinations.combinations
+        .filter(combination => combination.leftEmojiCodepoint === this.selectedRightEmoji && combination.rightEmojiCodepoint === this.selectedLeftEmoji)
+        .map(combination => ({ alt: combination.alt, src: combination.gStaticUrl }))
+        .pop();
+      return [result];
+    }
   }
 
   handleLeftEmojiClicked(clickedEmoji: string): void {
@@ -67,41 +146,40 @@ export class EmojiKitchenComponent implements OnInit {
   handleRightEmojiClicked(clickedEmoji: string): void {
     this.selectedRightEmoji = (clickedEmoji === this.selectedRightEmoji) ? '' : clickedEmoji;
   }
+  // handleRightEmojiRandomize(): void {
+  //   const data = this.emojiKitchenService.getEmojiData(this.selectedLeftEmoji);
+  //   const possibleEmoji = data.combinations
+  //     .flatMap(combination => [combination.leftEmojiCodepoint, combination.rightEmojiCodepoint])
+  //     .filter(codepoint => codepoint !== this.selectedLeftEmoji && codepoint !== this.selectedRightEmoji);
+  //
+  //   const randomEmoji = possibleEmoji[Math.floor(Math.random() * possibleEmoji.length)];
+  //   this.selectedRightEmoji = randomEmoji;
 
-  handleRightEmojiRandomize(): void {
-    const data = this.emojiKitchenService.getEmojiData(this.selectedLeftEmoji);
-    const possibleEmoji = data.combinations
-      .flatMap(combination => [combination.leftEmojiCodepoint, combination.rightEmojiCodepoint])
-      .filter(codepoint => codepoint !== this.selectedLeftEmoji && codepoint !== this.selectedRightEmoji);
+  // }
+  // handleFullEmojiRandomize(): void {
+  //   const knownSupportedEmoji = this.emojiKitchenService.getSupportedEmoji();
+  //   const randomLeftEmoji = knownSupportedEmoji[Math.floor(Math.random() * knownSupportedEmoji.length)];
+  //
+  //   const data = this.emojiKitchenService.getEmojiData(randomLeftEmoji);
+  //   const possibleRightEmoji = data.combinations
+  //     .flatMap(combination => [combination.leftEmojiCodepoint, combination.rightEmojiCodepoint])
+  //     .filter(codepoint => codepoint !== randomLeftEmoji);
+  //
+  //   const randomRightEmoji = possibleRightEmoji[Math.floor(Math.random() * possibleRightEmoji.length)];
+  //
+  //   this.selectedLeftEmoji = randomLeftEmoji;
+  //   this.leftUuid = uuid.v4();
+  //   this.leftSearchResults = [];
+  //   this.selectedRightEmoji = randomRightEmoji;
+  //   this.rightUuid = uuid.v4();
+  //   this.rightSearchResults = [];
 
-    const randomEmoji = possibleEmoji[Math.floor(Math.random() * possibleEmoji.length)];
-    this.selectedRightEmoji = randomEmoji;
-  }
-
-  handleFullEmojiRandomize(): void {
-    const knownSupportedEmoji = this.emojiKitchenService.getSupportedEmoji();
-    const randomLeftEmoji = knownSupportedEmoji[Math.floor(Math.random() * knownSupportedEmoji.length)];
-
-    const data = this.emojiKitchenService.getEmojiData(randomLeftEmoji);
-    const possibleRightEmoji = data.combinations
-      .flatMap(combination => [combination.leftEmojiCodepoint, combination.rightEmojiCodepoint])
-      .filter(codepoint => codepoint !== randomLeftEmoji);
-
-    const randomRightEmoji = possibleRightEmoji[Math.floor(Math.random() * possibleRightEmoji.length)];
-
-    this.selectedLeftEmoji = randomLeftEmoji;
-    this.leftUuid = uuid.v4();
-    this.leftSearchResults = [];
-    this.selectedRightEmoji = randomRightEmoji;
-    this.rightUuid = uuid.v4();
-    this.rightSearchResults = [];
-  }
+  // }
 
   handleBulkImageDownloadMenuOpen(event: MouseEvent): void {
     event.preventDefault();
     this.bulkDownloadMenu = (this.bulkDownloadMenu === undefined) ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 } : undefined;
   }
-
   // async handleBulkImageDownload(): Promise<void> {
   //   try {
   //     const currentDate = new Date();
@@ -151,7 +229,8 @@ export class EmojiKitchenComponent implements OnInit {
   async handleImageCopy($event): Promise<void> {
     let combination = null;
     if($event == null) {
-      combination = this.emojiKitchenService.findValidEmojiCombo(this.selectedLeftEmoji, this.selectedRightEmoji).gStaticUrl
+      const comb = await this.emojiKitchenService.findValidEmojiCombo(this.selectedLeftEmoji, this.selectedRightEmoji);
+      combination = comb.gStaticUrl;
     } else {
       combination = $event.src;
     }
@@ -173,22 +252,6 @@ export class EmojiKitchenComponent implements OnInit {
         console.log(error);
       });
   }
-  middleList() {
-    if (this.selectedLeftEmoji === '' && this.selectedRightEmoji === '') {
-      return [];
-    } else if (this.selectedLeftEmoji !== '' && this.selectedRightEmoji === '') {
-      this.showOneCombo = false;
-      return this.emojiKitchenService.getEmojiData(this.selectedLeftEmoji)
-        .combinations.map(combination => this.emojiKitchenService.findValidEmojiCombo(combination.leftEmojiCodepoint, combination.rightEmojiCodepoint))
-        .filter((combo, index, self) => self.indexOf(combo) === index)
-        .map(combination => ({ alt: combination.alt, src: combination.gStaticUrl }));
-    } else {
-      this.showOneCombo = true;
-      const combo = this.emojiKitchenService.findValidEmojiCombo(this.selectedLeftEmoji, this.selectedRightEmoji);
-      return [{ alt: combo.alt, src: combo.gStaticUrl }];
-    }
-  }
-
   onClickEmoji ($event: any) {
     this.selectedEmoji = $event;
   }

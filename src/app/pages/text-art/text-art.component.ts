@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Inject, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import * as figlet from 'figlet';
 import { Clipboard } from '@angular/cdk/clipboard';
 import html2canvas from 'html2canvas';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-text-art',
@@ -310,7 +311,7 @@ export class TextArtComponent implements OnInit{
 
 
   constructor (
-    private clipboard: Clipboard,) {
+    private clipboard: Clipboard,@Inject(PLATFORM_ID) private platformId: string,) {
   }
 
   @HostListener('window:resize', ['$event'])
@@ -319,13 +320,15 @@ export class TextArtComponent implements OnInit{
   }
 
   setTextStyle () {
-    const screenWidth = window.innerWidth;
-    const fontSize = Math.round(screenWidth / 55);
-    if (fontSize > 17) {
-      this.fontSize = '17px';
-      return;
+    if (isPlatformBrowser(this.platformId)) {
+      const screenWidth = window.innerWidth;
+      const fontSize = Math.round(screenWidth / 55);
+      if (fontSize > 17) {
+        this.fontSize = '17px';
+        return;
+      }
+      this.fontSize = `${fontSize}px`;
     }
-    this.fontSize = `${fontSize}px`;
   }
 
   ngOnInit (): void {
@@ -340,30 +343,31 @@ export class TextArtComponent implements OnInit{
   }
 
   renderText(inputTxt: string): void {
-    if (inputTxt == null || inputTxt === '') {
-      inputTxt = 'No Data!';
+    if (isPlatformBrowser(this.platformId)) {
+      if (inputTxt == null || inputTxt === '') {
+        inputTxt = 'No Data!';
+      }
+      const assets: any = `/figlet/${this.selectedPair1}`;
+
+      figlet.text(inputTxt, {
+        font: assets,
+        horizontalLayout: 'default',
+        verticalLayout: 'default',
+        width: 102,
+        whitespaceBreak: true,
+      }, (err, data) => {
+        if (err) {
+          console.log('Something went wrong...');
+          console.dir(err);
+          return;
+        }
+        if (data == null) {
+          return;
+        }
+        console.log(data);
+        this.fitletText = data;
+      });
     }
-    const assets: any = `/figlet/${this.selectedPair1}`;
-
-
-    figlet.text(inputTxt, {
-      font: assets,
-      horizontalLayout: 'default',
-      verticalLayout: 'default',
-      width: 102,
-      whitespaceBreak: true,
-    }, (err, data) => {
-      if (err) {
-        console.log('Something went wrong...');
-        console.dir(err);
-        return;
-      }
-      if (data == null) {
-        return;
-      }
-      console.log(data);
-      this.fitletText = data;
-    });
   }
 
   onChange ($event: Event) {

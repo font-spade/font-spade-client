@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { EmojiKitchenService } from '../../../pages/emoji-kitchen/emoji-kitchen.service';
 import { LeftEmojiListService } from './left-emoji-list.service';
 
@@ -13,14 +12,13 @@ export class LeftEmojiListComponent implements OnInit {
   @Input() selectedLeftEmoji: string;
   @Output() bulkImageDownloadMenuOpen = new EventEmitter<MouseEvent>();
 
+  @Input()
   knownSupportedEmoji: Array<string>;
   constructor (public emojiService: EmojiKitchenService,
-               private leftEmojiListService: LeftEmojiListService,
-               private http: HttpClient) {
+               private leftEmojiListService: LeftEmojiListService) {
   }
 
   ngOnInit() {
-    this.knownSupportedEmoji = this.emojiService.getSupportedEmoji();
     if(this.leftSearchResults == null) {
       return;
     }

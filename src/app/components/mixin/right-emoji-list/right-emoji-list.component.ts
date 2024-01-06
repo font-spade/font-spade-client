@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Inject, Input, OnInit, Output, PLATFORM_ID } from '@angular/core';
 import { EmojiKitchenService } from '../../../pages/emoji-kitchen/emoji-kitchen.service';
 import { LeftEmojiListService } from '../left-emoji-list/left-emoji-list.service';
 import { RightEmojiListService } from './right-emoji-list.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-right-emoji-list',
@@ -12,32 +13,24 @@ export class RightEmojiListComponent implements OnInit, AfterViewInit  {
   @Input() rightSearchResults: Array<string>;
   @Input() selectedLeftEmoji: string = '';
   @Input() selectedRightEmoji: string = '';
+  @Input() knownSupportedEmoji: Array<string> = [];
 
-  knownSupportedEmoji: Array<string> = this.emojiService.getSupportedEmoji();
+  @Input()
   hasSelectedLeftEmoji: boolean = this.selectedLeftEmoji !== '';
+  @Input()
   possibleEmoji: Array<{ left: string; right: string }> = [];
 
   constructor(public emojiService: EmojiKitchenService,
               private leftEmojiListService: LeftEmojiListService,
+              @Inject(PLATFORM_ID) private platformId: string,
               private rightEmojiListService: RightEmojiListService) {
-    this.leftEmojiListService.leftEmojiClicked.subscribe(p => {
-      this.hasSelectedLeftEmoji = this.leftEmojiListService.selectedLeftEmoji !== '';
-      if (this.hasSelectedLeftEmoji) {
-        this.selectedLeftEmoji = p;
-        const data = this.emojiService.getEmojiData(this.selectedLeftEmoji);
-        this.possibleEmoji = data.combinations.map(combination => ({
-          left: combination.leftEmojiCodepoint,
-          right: combination.rightEmojiCodepoint
-        }));
-      }
-    })
   }
 
   ngAfterViewInit(): void {
   }
 
   ngOnInit(): void {
-    }
+  }
 
   handleClick(emojiCodepoint: string): void {
     if (this.hasSelectedLeftEmoji && this.isValidCombo(emojiCodepoint)) {
@@ -46,10 +39,13 @@ export class RightEmojiListComponent implements OnInit, AfterViewInit  {
     }
   }
 
-  getEmojiAlt(emojiCodepoint: string): string {
-    const data = this.emojiService.getEmojiData(emojiCodepoint);
-    return data.alt;
-  }
+  // async getEmojiAlt(emojiCodepoint: string) {
+  //   if (!this.hasSelectedLeftEmoji) {
+  //     return '';
+  //   }
+  //   const data = await this.emojiService.getEmojiData(emojiCodepoint);
+  //   return data.alt;
+  // }
 
 
   getOpacity(emojiCodepoint: string): number {
@@ -69,6 +65,9 @@ export class RightEmojiListComponent implements OnInit, AfterViewInit  {
   }
 
   private isValidCombo(emojiCodepoint: string): boolean {
+    if(!this.possibleEmoji) {
+      return false;
+    }
     return this.possibleEmoji.some(combination => {
       if (emojiCodepoint === this.selectedLeftEmoji) {
         return emojiCodepoint === combination.left && emojiCodepoint === combination.right;

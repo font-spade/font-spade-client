@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
-import metaData from './metadata.json';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
 export class EmojiKitchenService {
-  private emojiMetadata: EmojiMetadata = metaData as unknown as EmojiMetadata;
+  emojiMetadata: EmojiData = {} as unknown as EmojiData;
+  knownSupportedEmoji: Array<string> = [];
+  emojiData: EmojiData = {} as unknown as EmojiData;
 
-  constructor () {
+  constructor (private httpClient: HttpClient,
+               @Inject(PLATFORM_ID) private platformId: string) {
   }
 
   getNotoEmojiUrl(emojiCodepoint: string): string {
@@ -15,11 +18,11 @@ export class EmojiKitchenService {
       .filter((x) => x !== "fe0f")
       .map((x) => x.padStart(4, "0"))
       .join("_")}.svg`;
+
   }
 
-  findValidEmojiCombo(leftEmojiCodepoint: string, rightEmojiCodepoint: string): EmojiCombination | undefined {
-    const combinations = this.getEmojiData(leftEmojiCodepoint).combinations;
-
+  findValidEmojiCombo(leftEmojiCodepoint: string, rightEmojiCodepoint: string): any {
+    const combinations = this.emojiData.combinations;
     let res = combinations
       .filter(
         (combination) =>
@@ -44,32 +47,30 @@ export class EmojiKitchenService {
 
     return res;
   }
-  getEmojiData(emojiCodepoint: string): EmojiData {
+  async getEmojiData(emojiCodepoint: string) {
+    const data = await this.httpClient.get<any>(`/api?path=data.${emojiCodepoint}`).toPromise();
+    this.emojiData = data;
     if (this.emojiMetadata == null) {
       throw new Error("Emoji metadata not loaded");
     }
-    return this.emojiMetadata.data[emojiCodepoint];
+    return data;
   }
 
   getSupportedEmoji(): string[] {
-    if (this.emojiMetadata == null) {
-      throw new Error("Emoji metadata not loaded");
+    if (this.knownSupportedEmoji == null) {
+      throw new Error("knownSupportedEmoji metadata not loaded");
     }
-    return this.emojiMetadata.knownSupportedEmoji;
+    return this.knownSupportedEmoji;
   }
 }
-export interface EmojiMetadata {
-  knownSupportedEmoji: Array<string>;
-  data: {
-    [emojiCodepoint: string]: EmojiData;
-  };
-}
-
 export interface EmojiData {
   alt: string;
   keywords: Array<string>;
+  emoji: string;
   emojiCodepoint: string;
   gBoardOrder: number;
+  category: string;
+  subcategory: string;
   combinations: Array<EmojiCombination>;
 }
 

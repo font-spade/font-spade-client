@@ -34,7 +34,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/fonts"
+              "src/fonts",
+              "src/data"
             ],
             "styles": [
               "src/styles.css"

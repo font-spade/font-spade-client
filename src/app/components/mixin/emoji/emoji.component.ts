@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Inject,
+  OnInit, PLATFORM_ID,
+  Renderer2
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { isPlatformBrowser } from '@angular/common';
 interface GlyphPair {
   left: string;
   right: string;
@@ -32,13 +41,14 @@ export class EmojiComponent implements OnInit {
               private http: HttpClient,
               private clipboard: Clipboard,
               private renderer: Renderer2,
+              @Inject(PLATFORM_ID) private platformId: string,
               private el: ElementRef) {}
 
 
   ngOnInit() {
-    this.fetchData1();
-    this.fetchData2();
-    this.fetchData3();
+      this.fetchData1();
+      this.fetchData2();
+      this.fetchData3();
   }
 
   copyToClipboard(): void {
@@ -48,24 +58,30 @@ export class EmojiComponent implements OnInit {
   }
 
   fetchData1() {
+    if (isPlatformBrowser(this.platformId)) {
     this.http.get<{ glyphset: GlyphPair[] }>('/assets/data1.json').subscribe(data => {
       this.data1 = data;
       this.cdRef.detectChanges();
     });
+    }
   }
 
   fetchData2() {
-    this.http.get<{ glyphset: GlyphPair[] }>('/assets/data2.json').subscribe(data => {
-      this.data2 = data;
-      this.cdRef.detectChanges();
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.http.get<{ glyphset: GlyphPair[] }>('/assets/data2.json').subscribe(data => {
+        this.data2 = data;
+        this.cdRef.detectChanges();
+      });
+    }
   }
 
   fetchData3() {
-    this.http.get<{ glyphset: GlyphMouth[] }>('/assets/data3.json').subscribe(data => {
-      this.data3 = data;
-      this.cdRef.detectChanges();
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.http.get<{ glyphset: GlyphMouth[] }>('/assets/data3.json').subscribe(data => {
+        this.data3 = data;
+        this.cdRef.detectChanges();
+      });
+    }
   }
 
   get generatedEmoji(): string {

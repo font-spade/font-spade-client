@@ -11,13 +11,12 @@
 
       <app-middle-emoji-list
         class="w-full"
-        [middleList]="middleList()"
+        [middleList]="middleList"
         [showOneCombo]="showOneCombo"
         [hasClipboardSupport]="hasClipboardSupport"
-        (fullEmojiRandomize)="handleFullEmojiRandomize()"
         (clickEmoji)="onClickEmoji($event)"
-
       ></app-middle-emoji-list>
+<!--      (fullEmojiRandomize)="handleFullEmojiRandomize()"-->
 
     </div>
     <div class="text-center">
@@ -34,15 +33,19 @@
     <div class="grid md:grid-cols-2 md:gap-4 md:mt-5">
 
       <app-left-emoji-list
+        [knownSupportedEmoji]="knownSupportedEmoji"
         [leftSearchResults]="leftSearchResults"
         (bulkImageDownloadMenuOpen)="handleBulkImageDownloadMenuOpen($event)"
       ></app-left-emoji-list>
 
       <app-right-emoji-list
-        [rightSearchResults]="rightSearchResults"
+        [knownSupportedEmoji]="knownSupportedEmoji"
         [selectedLeftEmoji]="selectedLeftEmoji"
+        [hasSelectedLeftEmoji]="hasSelectedLeftEmoji"
         [selectedRightEmoji]="selectedRightEmoji"
+        [possibleEmoji]="possibleEmoji"
       ></app-right-emoji-list>
+<!--      [rightSearchResults]="rightSearchResults"-->
     </div>
   </div>
 

@@ -8,10 +8,11 @@
         gap-1 md:pl-5 md:pr-5 pl-1 pr-1"
         style="max-height: 450px;"
       >
+<!--        [alt]="getEmojiAlt(emojiCodepoint)"-->
         <img
+          loading="lazy"
           *ngFor="let emojiCodepoint of knownSupportedEmoji"
           (click)="handleClick(emojiCodepoint)"
-          [alt]="getEmojiAlt(emojiCodepoint)"
           [src]="emojiService.getNotoEmojiUrl(emojiCodepoint)"
           [ngStyle]="{
             'padding': '0.5rem',

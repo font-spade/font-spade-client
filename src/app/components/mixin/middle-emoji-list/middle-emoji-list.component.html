@@ -3,24 +3,14 @@
       <ng-container *ngIf="!showOneCombo; else singleCombo">
         <ng-container *ngFor="let combo of middleList">
           <img
+            loading="lazy"
             class="w-[130px] h-[130px]"
             style="border: none !important;"
-            loading="lazy"
             (click)="onClick(combo);"
             [ngClass]="{'bg-gray-200': combo.alt === selectedLeftEmoji, 'gray': 'white'}"
             [alt]="combo.alt"
             [src]="combo.src"
           />
-            <!--              <div *ngIf="hasClipboardSupport">-->
-            <!--                <button (click)="handleImageCopy(combo)">-->
-            <!--                  <div>content_copy2</div>-->
-            <!--                </button>-->
-            <!--              </div>-->
-            <!--              <div *ngIf="!hasClipboardSupport">-->
-            <!--                <button (click)="handleImageDownload(combo)">-->
-            <!--                  <div>download2</div>-->
-            <!--                </button>-->
-            <!--              </div>-->
         </ng-container>
       </ng-container>
       <ng-template #singleCombo>
