@@ -44,7 +44,9 @@ export class EmojiKitchenComponent implements OnInit {
 
   async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.hasClipboardSupport = 'write' in navigator.clipboard
+      if (navigator.clipboard !== undefined) {
+        this.hasClipboardSupport = 'write' in navigator.clipboard
+      }
       const data = await this.httpClient.get<any>('/api?path=knownSupportedEmoji').toPromise();
       this.emojiKitchenService.knownSupportedEmoji = data;
       this.knownSupportedEmoji = data;
