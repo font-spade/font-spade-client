@@ -76,6 +76,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private fireworkInterval = 4000; // 6초마다 불꽃 발사
   private lastTime = 0;
 
+  // 이모지 동적 관리
+  private lastEmojiUpdateTime = 0;
+  private emojiUpdateInterval = 7000; // 7초마다 이모지 업데이트
+
   visibleMessages: Array<{
     id: string;
     nickname: string;
@@ -1011,6 +1015,141 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // 이모지 동적 업데이트 (사라짐/등장)
+  private checkEmojiUpdate(currentTime: number): void {
+    if (currentTime - this.lastEmojiUpdateTime > this.emojiUpdateInterval) {
+      this.lastEmojiUpdateTime = currentTime;
+      
+      // 5~10초 간격 랜덤화
+      this.emojiUpdateInterval = 5000 + Math.random() * 5000;
+      
+      // 현재 이모지 중 몇개를 제거할지 결정 (1-3개)
+      const removeCount = Math.min(Math.floor(Math.random() * 3) + 1, this.emojis.length);
+      
+      if (this.emojis.length > 0) {
+        // 랜덤하게 이모지 선택해서 제거
+        for (let i = 0; i < removeCount; i++) {
+          const randomIndex = Math.floor(Math.random() * this.emojis.length);
+          const emojiToRemove = this.emojis[randomIndex];
+          
+          // 사라지는 애니메이션
+          this.animateEmojiExit(emojiToRemove.mesh, () => {
+            this.emojiScene.remove(emojiToRemove.mesh);
+            this.emojis.splice(this.emojis.indexOf(emojiToRemove), 1);
+          });
+        }
+        
+        // 새로운 이모지 추가 (제거한 만큼)
+        setTimeout(() => {
+          for (let i = 0; i < removeCount; i++) {
+            this.addRandomEmoji();
+          }
+        }, 1000); // 1초 후 새로운 이모지 추가
+      }
+    }
+  }
+
+  // 이모지 사라지는 애니메이션
+  private animateEmojiExit(mesh: THREE.Mesh, onComplete: () => void): void {
+    const duration = 800;
+    const startTime = Date.now();
+    const initialScale = mesh.scale.x;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // 스케일이 줄어들면서 투명해짐
+      const scale = initialScale * (1 - progress);
+      mesh.scale.set(scale, scale, scale);
+      
+      if (mesh.material instanceof THREE.MeshBasicMaterial) {
+        mesh.material.opacity = 1 - progress;
+      }
+      
+      if (progress >= 1) {
+        onComplete();
+      } else {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    animate();
+  }
+
+  // 랜덤 이모지 추가
+  private addRandomEmoji(): void {
+    const emojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
+    const nicknames = ['산타', '루돌프', '눈사람', '요정', '천사', '크리스마스'];
+    const messages = [
+      '메리 크리스마스!', 
+      '새해 복 많이 받으세요!', 
+      '행복한 연말 되세요!',
+      '따뜻한 크리스마스 보내요',
+      '사랑하는 사람들과 함께',
+      '모두 건강하고 행복하게!'
+    ];
+    
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const nickname = nicknames[Math.floor(Math.random() * nicknames.length)];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    
+    // 랜덤 위치 (트리 주변)
+    const isFieldType = Math.random() > 0.7; // 30% 확률로 필드 타입
+    
+    if (isFieldType) {
+      // 필드 배치
+      const x = (Math.random() - 0.5) * 25;
+      const z = (Math.random() - 0.5) * 25;
+      const y = Math.random() * 3 + 1;
+      
+      const mesh = this.createTypographyMesh('( ͡° ͜ʖ ͡°)', x, y, z);
+      this.emojiScene.add(mesh);
+      this.animateEmojiEntry(mesh);
+      
+      mesh.userData['originalY'] = y;
+      mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003;
+      mesh.userData['moveAngle'] = Math.random() * Math.PI * 2;
+      mesh.userData['isTypography'] = true;
+      
+      this.emojis.push({
+        mesh,
+        emoji: '( ͡° ͜ʖ ͡°)',
+        nickname,
+        message,
+        x,
+        y,
+        z,
+        nextMessageTime: Date.now() + 3000 + Math.random() * 5000
+      });
+    } else {
+      // 트리 배치 - 기존과 동일하게 트리 표면에 붙이기
+      const angle = Math.random() * Math.PI * 2;
+      const height = Math.random() * 12 + 3;
+      
+      // 트리 표면에 정확히 부착
+      const treePosition = this.attachEmojiToTreeSurface(angle, height);
+      const mesh = this.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z);
+      
+      this.emojiScene.add(mesh);
+      this.animateEmojiEntry(mesh);
+      
+      mesh.userData['originalY'] = treePosition.y;
+      mesh.userData['nearTree'] = true;
+      
+      this.emojis.push({
+        mesh,
+        emoji,
+        nickname,
+        message,
+        x: treePosition.x,
+        y: treePosition.y,
+        z: treePosition.z,
+        nextMessageTime: Date.now() + 3000 + Math.random() * 5000
+      });
+    }
+  }
+
   private addTextDecoration(treeGroup: THREE.Group, text: string, y: number, angle: number): void {
     // 텍스트를 위한 캔버스 텍스처 생성
     const canvas = document.createElement('canvas');
@@ -1558,8 +1697,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           emoji: msg.emoji,
           x: msg.x,
           y: msg.y,
-          z: msg.z,
-          nextMessageTime: Date.now() + Math.random() * 5000 + 3000
+          z: msg.z
+          // nextMessageTime을 설정하지 않음으로써 메시지 표시 비활성화
         });
 
         this.animateEmojiEntry(mesh);
@@ -1585,8 +1724,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           emoji: msg.emoji,
           x: treePosition.x,
           y: treePosition.y,
-          z: treePosition.z,
-          nextMessageTime: Date.now() + Math.random() * 5000 + 5000
+          z: treePosition.z
+          // nextMessageTime을 설정하지 않음으로써 메시지 표시 비활성화
         });
 
         this.animateEmojiEntry(mesh);
@@ -1651,6 +1790,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     this.updateFireworks(currentTime - (this.lastTime || currentTime));
     this.lastTime = currentTime;
 
+    // 이모지 동적 업데이트
+    this.checkEmojiUpdate(currentTime);
+
     this.emojis.forEach((emojiData, index) => {
       if (emojiData.mesh.userData['originalY'] !== undefined) {
         // 타이포그래피 이모지 움직임 애니메이션
@@ -1686,8 +1828,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           emojiData.mesh.position.z + cameraDirection.z
         );
 
-        // 메시지 표시 체크 (빈도 제한 적용)
-        if (emojiData.nextMessageTime && currentTime >= emojiData.nextMessageTime) {
+        // 메시지 표시 체크 (드래그 중이 아닐 때만, 빈도 제한 적용)
+        if (!this.isDragging && emojiData.nextMessageTime && currentTime >= emojiData.nextMessageTime) {
           const secondNow = Math.floor(currentTime / 1000);
 
           // 새로운 초가 시작되면 카운터 리셋
@@ -1836,7 +1978,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       this.hasMouseMoved = true;
     }
 
-    this.cameraAngleY -= deltaMove.x * 0.001; // 감도를 1/5로 줄임
+    this.cameraAngleY += deltaMove.x * 0.001; // 감도를 1/5로 줄임
     this.cameraAngleX -= deltaMove.y * 0.001; // 감도를 1/5로 줄임
 
     // 수직 각도 제한 (위에서 아래로 더 제한적으로)
@@ -1907,7 +2049,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         this.hasMouseMoved = true;
       }
 
-      this.cameraAngleY -= deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
+      this.cameraAngleY += deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
       this.cameraAngleX -= deltaMove.y * 0.001; // 터치 감도를 1/5로 줄임
 
       // 수직 각도 제한 (위에서 아래로 더 제한적으로)

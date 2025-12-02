@@ -4,6 +4,10 @@
   position: relative;
   background: linear-gradient(135deg, #3F51B5 0%, #5C6BC0 50%, #3F51B5 100%); /* 카툰 브라이트 블루 하늘 그라데이션 */
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .christmas-header {
