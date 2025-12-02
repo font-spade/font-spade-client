@@ -21,10 +21,10 @@ export class MessageWriteComponent implements OnInit {
   nickname: string = '';
   message: string = '';
   selectedEmoji: string = '';
-  
+
   // 배치 방식 선택
   placementType: 'tree' | 'field' = 'tree';
-  
+
   emojiCategories = [
     {
       name: '크리스마스',
@@ -69,6 +69,66 @@ export class MessageWriteComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchTypographyData();
+    this.initializeRandomValues();
+  }
+
+  // 고유 사용자 닉네임 생성
+  generateUserNickname(): string {
+    // 세션 스토리지에서 기존 닉네임 확인
+    let nickname = sessionStorage.getItem('userNickname');
+    
+    if (!nickname) {
+      const adjectives = [
+        '똑똑한', '활발한', '친절한', '유쾌한', '신비한',
+        '용감한', '따뜻한', '밝은', '빠른', '차분한', '열정적인', '상냥한', '쿨한',
+        '귀여운', '화려한', '우아한', '강한', '깔끔한', '시원한', '포근한', '달콤한', '상큼한',
+        '행복한', '즐거운', '고요한', '활기찬',
+        '영리한', '성실한', '정직한', '겸손한', '당당한', '씩씩한',
+        '꼼꼼한', '세심한', '신중한', '대담한', '독특한', '특별한',
+        '소중한', '훌륭한', '놀라운'
+      ];
+      
+      const nouns = [
+        '사자', '호랑이', '토끼', '고양이', '강아지', '독수리', '돌고래',
+        '판다', '펭귄', '코알라', '여우', '늑대', '사슴', '다람쥐', '햄스터',
+        '기린', '코끼리', '하마', '원숭이', '침팬지', '고릴라', '캥거루',
+        '알파카', '라마', '염소', '당나귀',
+        '돼지', '오리', '거위', '백조', '까마귀', '참새',
+        '앵무새', '부엉이', '독수리', '펠리컨',
+        '거북이', '다람쥐', '청설모', '족제비', '수달', '비버', '두더지', '물개',
+        '얼룩말', '치타', '표범', '재규어', '퓨마', '나비'
+      ];
+      
+      const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+      
+      nickname = `${randomAdjective}${randomNoun}`;
+      sessionStorage.setItem('userNickname', nickname);
+    }
+    
+    return nickname;
+  }
+
+  // 초기값들을 랜덤으로 설정
+  initializeRandomValues(): void {
+    // 닉네임 설정
+    this.nickname = this.generateUserNickname();
+
+    // 배치 방식 랜덤 선택
+    this.placementType = Math.random() > 0.5 ? 'tree' : 'field';
+
+    // 이모지 랜덤 선택
+    if (this.placementType === 'tree') {
+      // 트리 배치 시 일반 이모지 랜덤 선택
+      const allEmojis = this.emojiCategories.flatMap(category => category.emojis);
+      this.selectedEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+    } else {
+      // 필드 배치 시 타이포그래피 이모지 랜덤 생성
+      // 데이터 로드 후 실행되도록 지연
+      setTimeout(() => {
+        this.randomizeAndSelectTypographyEmoji();
+      }, 100);
+    }
   }
 
   selectEmoji(emoji: string): void {
@@ -86,26 +146,44 @@ export class MessageWriteComponent implements OnInit {
 
   onSubmit(): void {
     if (this.isFormValid()) {
-      console.log('메시지 등록:', {
+      const messageData = {
         nickname: this.nickname,
         message: this.message,
-        emoji: this.selectedEmoji
+        emoji: this.selectedEmoji,
+        placementType: this.placementType
+      };
+
+      console.log('메시지 등록:', messageData);
+
+      // 서버로 전송 (임시로 로그만 출력, 실제 API 엔드포인트로 교체 필요)
+      this.http.post('/api/messages', messageData).subscribe({
+        next: (response) => {
+          console.log('메시지 전송 성공:', response);
+          this.router.navigate(['/merry-christmas']);
+        },
+        error: (error) => {
+          console.error('메시지 전송 실패:', error);
+          // 임시로 실패해도 페이지 이동 (개발 단계)
+          this.router.navigate(['/merry-christmas']);
+        }
       });
-      
-      alert('메시지가 등록되었습니다!');
-      this.router.navigate(['/merry-christmas']);
     } else {
       alert('모든 필드를 입력해주세요.');
     }
   }
 
   isFormValid(): boolean {
-    const hasValidEmoji = this.placementType === 'tree' 
-      ? this.selectedEmoji !== '' 
-      : this.generatedTypographyEmoji.trim() !== '';
-      
-    return this.nickname.trim() !== '' && 
-           this.message.trim() !== '' && 
+    let hasValidEmoji = false;
+    
+    if (this.placementType === 'tree') {
+      hasValidEmoji = this.selectedEmoji !== '';
+    } else {
+      // field 타입인 경우 selectedEmoji가 타이포그래피 이모지여야 함
+      hasValidEmoji = this.selectedEmoji !== '' && this.generatedTypographyEmoji.trim() !== '';
+    }
+
+    return this.nickname.trim() !== '' &&
+           this.message.trim() !== '' &&
            hasValidEmoji;
   }
 
@@ -153,7 +231,7 @@ export class MessageWriteComponent implements OnInit {
     if(this.selectedMouth === null) {
       middle = "ㅤ";
     }
-    
+
     return `${leftSide}${middleLeft}${middle}${middleRight}${rightSide}`;
   }
 
@@ -236,5 +314,17 @@ export class MessageWriteComponent implements OnInit {
     this.placementType = type;
     this.selectedEmoji = '';
     this.showEmojiPicker = false;
+    
+    // 배치 방식에 따라 적절한 이모지를 자동 선택
+    if (type === 'tree') {
+      // 트리 배치 시 일반 이모지 랜덤 선택
+      const allEmojis = this.emojiCategories.flatMap(category => category.emojis);
+      this.selectedEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+    } else if (type === 'field') {
+      // 필드 배치 시 타이포그래피 이모지 랜덤 생성
+      setTimeout(() => {
+        this.randomizeAndSelectTypographyEmoji();
+      }, 100);
+    }
   }
 }
