@@ -217,16 +217,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
     groundGeometry.computeVertexNormals();
 
-    // 카툰 스타일 재질 적용
-    const groundMaterial = new THREE.MeshToonMaterial({
-      color: 0xC5E0DE, // 지정된 바닥 색상
+    // 눈 덮인 바닥 재질
+    const groundMaterial = new THREE.MeshBasicMaterial({
+      color: 0xFCF9FC, // 눈 덮인 흰색 바닥
       transparent: false
     });
 
     // OutlineEffect 파라미터 설정
     groundMaterial.userData['outlineParameters'] = {
       thickness: 0.002,
-      color: [0, 0, 0],
+      color: [0.17, 0.24, 0.29], // 하늘과 같은 색의 외곽선
       alpha: 0.6,
       visible: true
     };
@@ -243,36 +243,20 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 하늘 돔 생성
     const skyGeometry = new THREE.SphereGeometry(80, 32, 32);
 
-    // 그라데이션 하늘 텍스처 생성
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const context = canvas.getContext('2d')!;
-
-    // 수직 그라데이션 (위쪽은 어두운 보라, 아래쪽은 연한 보라)
-    const gradient = context.createLinearGradient(0, 0, 0, 512);
-    gradient.addColorStop(0, '#0a0a2e'); // 상단 - 진한 보라
-    gradient.addColorStop(0.4, '#16213e'); // 중간 상단
-    gradient.addColorStop(0.7, '#2d1b69'); // 중간 하단
-    gradient.addColorStop(1, '#4a1c5c'); // 하단 - 연한 보라
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 512, 512);
-
-    // 별들 추가
-    context.fillStyle = '#ffffff';
-    for (let i = 0; i < 100; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 300; // 상단 부분에만 별 배치
-      const size = Math.random() * 2 + 1;
-      context.fillRect(x, y, size, size);
-    }
-
-    const skyTexture = new THREE.CanvasTexture(canvas);
+    // 직접 색상 지정 (텍스처 없이)
     const skyMaterial = new THREE.MeshBasicMaterial({
-      map: skyTexture,
-      side: THREE.BackSide // 돔 안쪽에서 보이도록
+      color: 0x05001C, // #05001C 색상 직접 적용
+      side: THREE.BackSide, // 돔 안쪽에서 보이도록
+      transparent: false
     });
+
+    // OutlineEffect 파라미터 설정
+    skyMaterial.userData['outlineParameters'] = {
+      thickness: 0.001,
+      color: [0.17, 0.24, 0.29], // #2C3E4A 색상에 맞는 외곽선
+      alpha: 0.4,
+      visible: true
+    };
 
     const skyDome = new THREE.Mesh(skyGeometry, skyMaterial);
     skyDome.position.set(0, 0, 0);
@@ -282,7 +266,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private createChristmasBackground(): void {
     this.createChristmasTree();
     this.createSnowflakes();
-    this.createBackgroundTrees();
+    // 배경 트리들 제거 - 메인 트리만 사용
+    // this.createBackgroundTrees();
   }
 
   private createChristmasTree(): void {
@@ -418,11 +403,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     this.snowflakes = [];
 
     for (let i = 0; i < 200; i++) {
-      const snowflakeGeometry = new THREE.SphereGeometry(0.04, 6, 6);
+      // 다양한 크기의 눈송이 (0.02 ~ 0.08)
+      const size = Math.random() * 0.06 + 0.02;
+      const snowflakeGeometry = new THREE.SphereGeometry(size, 6, 6);
       const snowflakeMaterial = new THREE.MeshBasicMaterial({
         color: 0xFCF9FC, // 지정된 눈 색상
         transparent: true,
-        opacity: 0.8
+        opacity: Math.random() * 0.4 + 0.6 // 투명도도 다양하게 (0.6~1.0)
       });
       const snowflake = new THREE.Mesh(snowflakeGeometry, snowflakeMaterial);
 
@@ -676,17 +663,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     context.globalCompositeOperation = 'source-over';
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 타이포그래피 이모지를 흰색으로 그리기
+    // 타이포그래피 이모지를 검정색으로 그리기
     context.font = 'bold 48px monospace';
-    context.fillStyle = '#FFFFFF'; // 흰색
-    context.strokeStyle = '#000000'; // 검은색 외곽선
-    context.lineWidth = 2; // 얇은 외곽선
+    context.fillStyle = '#000000'; // 검정색
     context.textAlign = 'center';
     context.textBaseline = 'middle';
 
-    // 외곽선 먼저 그리기 (가독성을 위해)
-    context.strokeText(typographyEmoji, canvas.width / 2, canvas.height / 2);
-    // 흰색 채우기
+    // 검정색 채우기
     context.fillText(typographyEmoji, canvas.width / 2, canvas.height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
