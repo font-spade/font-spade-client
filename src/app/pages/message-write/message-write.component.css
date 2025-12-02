@@ -1,0 +1,568 @@
+.message-write-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a1f0a 0%, #1a3d1a 50%, #0a1f0a 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 20px 100px 20px;
+  overflow-y: auto;
+}
+
+.write-form-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  height: 100vh;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.form-header {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+}
+
+.form-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.message-form {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.char-count {
+  font-weight: normal;
+  color: #7f8c8d;
+  font-size: 0.85rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 배치 방식 선택 탭 */
+.placement-tabs {
+  display: flex;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.placement-tab {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: #f8f9fa;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.placement-tab:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.placement-tab.active {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  font-weight: bold;
+}
+
+.placement-tab:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+.placement-tab:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+.emoji-selector {
+  position: relative;
+}
+
+.selected-emoji-display {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  gap: 10px;
+}
+
+.selected-emoji-display:hover {
+  border-color: #3498db;
+}
+
+.selected-emoji {
+  font-size: 1.5rem;
+}
+
+.select-text {
+  flex: 1;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.dropdown-arrow {
+  color: #bdc3c7;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.emoji-picker.show .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.emoji-picker {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+  max-height: 500px;
+  overflow: hidden;
+}
+
+.emoji-picker.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.emoji-categories {
+  display: flex;
+  border-bottom: 1px solid #ecf0f1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.emoji-categories::-webkit-scrollbar {
+  display: none;
+}
+
+.category-btn {
+  padding: 10px 15px;
+  border: none;
+  background: white;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.category-btn:hover {
+  background: #f8f9fa;
+  color: #2c3e50;
+}
+
+.category-btn.active {
+  color: #e74c3c;
+  border-bottom-color: #e74c3c;
+  background: #fff5f5;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  padding: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Typography Emoji Generator Styles */
+.typography-generator {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.typography-preview {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid #ecf0f1;
+  margin-bottom: 15px;
+}
+
+.generated-emoji {
+  font-size: 2rem;
+  font-family: monospace;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.generated-emoji:hover {
+  background: #e9ecef;
+  border-color: #3498db;
+}
+
+.typography-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.randomize-btn,
+.select-typography-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.randomize-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.randomize-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.select-typography-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.select-typography-btn:hover {
+  background: linear-gradient(135deg, #218838, #1e9c82);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.typography-controls {
+  max-height: none;
+  overflow: visible;
+}
+
+.control-section {
+  margin-bottom: 15px;
+}
+
+.control-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: bold;
+  text-align: left;
+}
+
+.glyph-horizontal-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 transparent;
+}
+
+.glyph-horizontal-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.glyph-horizontal-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 2px;
+}
+
+.glyph-horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 2px;
+}
+
+.glyph-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.glyph-btn-horizontal {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-family: monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 35px;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: pre;
+  flex-shrink: 0;
+}
+
+.glyph-btn-horizontal:hover {
+  background: #f8fafc;
+  border-color: #3498db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+}
+
+.glyph-btn-horizontal.selected {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.emoji-btn {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+}
+
+.emoji-btn:hover {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  transform: scale(1.1);
+}
+
+.emoji-btn.selected {
+  background: #fff5f5;
+  border-color: #e74c3c;
+  transform: scale(1.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.cancel-btn,
+.submit-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #7f8c8d;
+  transform: translateY(-2px);
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.submit-btn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.submit-btn.disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .message-write-container {
+    padding: 20px 10px 150px 10px;
+    align-items: flex-start;
+  }
+
+  .write-form-card {
+    max-width: 100%;
+  }
+
+  .message-form {
+    padding: 20px;
+  }
+
+  .emoji-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .emoji-btn {
+    font-size: 1.2rem;
+    min-height: 35px;
+  }
+
+  .emoji-categories {
+    padding: 0 10px;
+  }
+
+  .category-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .placement-tab {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  .typography-generator {
+    padding: 15px;
+  }
+
+  .typography-controls {
+    max-height: 200px;
+  }
+
+  .glyph-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-height: 100px;
+  }
+
+  .glyph-btn {
+    padding: 6px;
+    font-size: 0.8rem;
+    min-height: 30px;
+  }
+
+  .generated-emoji {
+    font-size: 1.5rem;
+    padding: 10px;
+  }
+
+  .typography-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .randomize-btn,
+  .select-typography-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}

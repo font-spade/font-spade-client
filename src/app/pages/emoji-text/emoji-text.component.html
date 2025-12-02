@@ -1,0 +1,207 @@
+<!-- generator.component.html -->
+<!-- result.component.html -->
+<div>
+  <canvas #c id="c" width="200" height="200" class="text-gray-800"></canvas>
+</div>
+<div class="Result">
+  <div class="result-inner" *ngIf="visibleResult">
+    <!-- Title -->
+    <h2>{{ 'Result.title'  }}</h2>
+
+    <!-- Preview -->
+    <div class="preview">
+      <div class="preview-inner">
+        <div class="image">
+          <img [src]="emojiUrl" alt="" *ngIf="emojiUrl">
+        </div>
+        <div class="image dark">
+          <img [src]="emojiUrl" alt="" *ngIf="emojiUrl">
+        </div>
+        <div class="detail">
+          <ul>
+            <li class="text">
+              <h3>{{ 'Result.preview_text_label'  }}</h3>
+              <span class="user-input">{{ formattedText }}</span>
+            </li>
+            <li class="font">
+              <h3>{{ 'Result.preview_font_label'  }}</h3>
+              <span class="user-input">{{ fontName }}</span>
+            </li>
+            <li class="color">
+              <h3>{{ 'Result.preview_color_label'  }}</h3>
+              <span class="user-input">
+                <span class="color-square" [style.backgroundColor]="cssColor"></span>
+                {{ cssColor }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menus -->
+    <div class="menus">
+      <div class="menus-inner">
+        <div class="download">
+          <a [href]="emojiDownloadUrl" (click)="download()">{{ 'Result.menus_download_label'  }}</a>
+        </div>
+        <div class="register" (click)="toggleRegister()" *ngIf="visibleRegisterButton">
+          {{ 'Result.menus_register_label'  }}
+        </div>
+        <div class="share" (click)="toggleShare()">{{ 'Result.menus_share_label'  }}</div>
+      </div>
+    </div>
+
+    <!-- Register -->
+<!--    <app-register *ngIf="visibleRegister" [visible]="visibleRegister" [browser]="browser"-->
+<!--                  [browser-extension-enabled]="browserExtensionEnabled" [emoji-url]="emojiDownloadUrl"></app-register>-->
+
+    <!-- Share -->
+<!--    <app-share *ngIf="visibleShare" [visible]="visibleShare" [emoji-url]="emojiDownloadUrl"></app-share>-->
+  </div>
+</div>
+
+<div class="Generator">
+  <!-- Title -->
+  <div class="Generator">
+    <h2>이모지 만들기</h2>
+    <div class="h-screen flex flex-col">
+      <h2 class="text-2xl font-bold mb-4">이미지 리스트</h2>
+      <div id="target-element">
+        이 텍스트에 폰트가 적용됩니다.
+      </div>
+      <button (click)="loadFontAndApplyStyle()">폰트 로드 및 적용</button>
+      <div class="flex-1 overflow-y-auto">
+        <div class="space-y-2">
+          <div
+            *ngFor="let image of fonts"
+            #fontItem
+            [attr.data-family-id]="image.familyID"
+            (click)="selectImage(image.familyID)"
+            class="flex items-center space-x-4 p-2 rounded-lg cursor-pointer transition duration-200 ease-in-out"
+            [ngClass]="{'bg-blue-100': selectedImageId + '' === image.familyID + ''}"
+          >
+            <img
+              [src]="image.imageUrl || 'path/to/placeholder-image.png'"
+              [alt]="image.familyName"
+              class="h-16 object-cover rounded-full"
+            >
+            <div class="text-base leading-tight font-custom">{{ image.familyName }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="execution">
+    <!-- Button -->
+    <button type="button" class="m-1 font-semi bold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl h-12 inline-flex relative  z-10 text-white items-center text-shadow-md bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500" (click)="generate">
+      생성 버튼
+    </button>
+
+    <!-- Public flag -->
+<!--    <p class="public-fg" [title]="'생성버튼 설명'">-->
+<!--      <label>-->
+<!--        <input type="checkbox" [(ngModel)]="publicFg">-->
+<!--        라벨-->
+<!--      </label>-->
+<!--    </p>-->
+    <app-check-box [labelName]="'라벨'"></app-check-box>
+  </div>
+
+  <!-- Parameters -->
+  <div class="parameters">
+    <!-- Parameter : Text -->
+    <div class="parameter text">
+      <h3 class="text-md mb-2 text-gray-800">파라미터 텍스트 라벨</h3>
+      <textarea rows="2" cols="10" class="w-full p-2 border border-gray-300 rounded-md" [(ngModel)]="text"></textarea>
+
+
+      <!-- Your HTML code with custom-styled button toggle for text alignment -->
+      <h4 class="text-lg font-bold mb-2 text-gray-800">텍스트 정렬</h4>
+
+      <div class="aligns">
+        <button class="align left" [class.active]="align === 'left'" (click)="align = 'left'">
+          <i class="fa-solid fa-align-left"></i>
+        </button>
+        <button class="align center" [class.active]="align === 'center'" (click)="align = 'center'">
+          <i class="fa-solid fa-align-center"></i>
+        </button>
+        <button class="align right" [class.active]="align === 'right'" (click)="align = 'right'">
+          <i class="fa-solid fa-align-right"></i>
+        </button>
+      </div>
+
+      <h4>라벨 사이즈</h4>
+
+      <app-check-box [labelName]="'파라미터 사이즈 고정 라벨'"></app-check-box>
+
+      <app-check-box [labelName]="'파라미터 사이즈 늘어짐 없는 라벨'"></app-check-box>
+    </div>
+
+    <!-- Parameter : Font -->
+<!--    <div class="parameter font">-->
+<!--      폰트 라벨-->
+<!--      <ul>-->
+<!--        <li *ngFor="let font of fonts; let i = index">-->
+<!--          <input type="radio" name="Generator__font" [value]="font.key" [id]="'Generator__font&#45;&#45;' + font.key" [(ngModel)]="fontKey">-->
+<!--          <label [for]="'Generator__font&#45;&#45;' + font.key">{{ font.name }}</label>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--    </div>-->
+
+    <!-- Parameter : Color -->
+    <div class="parameter color flex items-center">
+
+      <!-- Your HTML code with custom-styled button toggle for text alignment -->
+      <div>
+        <h4 class="text-lg font-bold mb-2 text-gray-800">배경 설정</h4>
+        <div class="flex items-center">
+          <div class="aligns">
+            <button class="align left" [class.active]="foreBackState === 'foreground'"
+                    (change)="emitChange()" (click)="foreBackState = 'foreground'; colorKind = 'foreground'">
+              foreground
+            </button>
+            <button class="align right" [class.active]="foreBackState === 'background'"
+                    (change)="emitChange()"
+                    (click)="foreBackState = 'background'; colorKind = 'background'">
+              background
+            </button>
+          </div>
+
+          <div class="flex items-center">
+            <div class="pickers">
+              <div class="picker-wrapper" *ngIf="colorKind == 'foreground'">
+                <input #ignoredInput
+                       class="w-6 rounded-3xl border border-gray-400"
+                       [style.background]="colors"
+                       [cpOKButton]="true"
+                       [(cpToggle)]="toggle"
+                       [cpSaveClickOutside]="true"
+                       [cpIgnoredElements]="[ignoredButton, ignoredInput]"
+                       [cpOKButtonClass]="'btn btn-primary btn-xs'"
+                       [(colorPicker)]="colors"/>
+              </div>
+
+              <div class="picker-wrapper" *ngIf="colorKind != 'foreground'">
+                <input #ignoredInput2
+                       class="w-6 rounded-3xl border border-gray-400"
+                       [(colorPicker)]="colors"
+                       [cpOKButton]="true"
+                       [(cpToggle)]="toggle"
+                       [cpSaveClickOutside]="true"
+                       [cpIgnoredElements]="[ignoredButton, ignoredInput2]"
+                       [cpOKButtonClass]="'btn btn-primary btn-xs'"
+                       [style.background]="colors"/>
+              </div>
+            </div>
+            <button #ignoredButton type="button" class="m-1 font-semi bold cursor-pointer text-center whitespace-nowrap align-middle select-none uppercase tracking-wider text-xs px-5 py-1.5 border-0 bg-gray-300 transition-all duration-200 ease-in-out rounded-xl h-12 inline-flex relative  z-10 text-white items-center text-shadow-md bg-gradient-to-tr from-blue-400 via-pink-400 to-pink-500"  (click)="toggle=!toggle">
+              {{ toggle ? '색상표 닫기' : '색상표 열기' }}
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>

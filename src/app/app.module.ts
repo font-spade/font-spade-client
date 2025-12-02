@@ -21,6 +21,9 @@ import { ImgTextArtModule } from './pages/img-text-art/img-text-art.module';
 import { EmojiKitchenModule } from './pages/emoji-kitchen/emoji-kitchen.module';
 import { EmojiKitchenService } from './pages/emoji-kitchen/emoji-kitchen.service';
 import { ToastModule } from './components/common/toast/toast.module';
+import { EmojiTextModule } from './pages/emoji-text/emoji-text.module';
+import { MerryChristmasModule } from './pages/merry-christmas/merry-christmas.module';
+import { MessageWriteModule } from './pages/message-write/message-write.module';
 //
 // export function initializeApp(emojiService: EmojiKitchenService) {
 //   return () => emojiService;
@@ -60,7 +63,10 @@ export function HttpLoaderFactory(http: HttpClient) {
     TextArtModule,
     ImgTextArtModule,
     EmojiKitchenModule,
-    ToastModule
+    EmojiTextModule,
+    MerryChristmasModule,
+    MessageWriteModule,
+    ToastModule,
   ],
   providers: [ provideClientHydration() ,
     EmojiKitchenService,

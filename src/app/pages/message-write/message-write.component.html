@@ -1,0 +1,168 @@
+<div class="message-write-container">
+  <div class="write-form-card">
+    <header class="form-header">
+      <h2>메시지 남기기</h2>
+      <button class="close-btn" (click)="onCancel()">×</button>
+    </header>
+
+    <form class="message-form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nickname">닉네임</label>
+        <input 
+          type="text" 
+          id="nickname" 
+          [(ngModel)]="nickname" 
+          name="nickname"
+          maxlength="10"
+          placeholder="닉네임을 입력하세요"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="message">메시지 <span class="char-count">({{getMessageLength()}}/50)</span></label>
+        <textarea 
+          id="message" 
+          [(ngModel)]="message" 
+          name="message"
+          maxlength="50"
+          placeholder="메리 크리스마스!"
+          rows="3"
+          required></textarea>
+      </div>
+
+      <!-- 배치 방식 선택 -->
+      <div class="form-group">
+        <label>배치 방식 선택</label>
+        <div class="placement-tabs">
+          <button 
+            type="button"
+            class="placement-tab"
+            [class.active]="placementType === 'tree'"
+            (click)="setPlacementType('tree')">
+            🎄 트리 꾸미기
+          </button>
+          <button 
+            type="button"
+            class="placement-tab"
+            [class.active]="placementType === 'field'"
+            (click)="setPlacementType('field')">
+            ✨ 필드 배치
+          </button>
+        </div>
+      </div>
+
+      <!-- 이모티콘/타이포그래피 선택 -->
+      <div class="form-group">
+        <label>
+          <span *ngIf="placementType === 'tree'">이모티콘 선택</span>
+          <span *ngIf="placementType === 'field'">타이포그래피 이모지 생성</span>
+        </label>
+        
+        <!-- 트리 꾸미기: 이모티콘 선택 -->
+        <div *ngIf="placementType === 'tree'" class="emoji-selector">
+          <div class="selected-emoji-display" (click)="toggleEmojiPicker()">
+            <span class="selected-emoji">{{selectedEmoji || '🎄'}}</span>
+            <span class="select-text">{{selectedEmoji ? '선택됨' : '이모티콘을 선택하세요'}}</span>
+            <span class="dropdown-arrow">▼</span>
+          </div>
+          
+          <div class="emoji-picker" [class.show]="showEmojiPicker">
+            <div class="emoji-categories">
+              <button 
+                type="button"
+                *ngFor="let category of emojiCategories"
+                class="category-btn"
+                [class.active]="selectedCategory === category"
+                (click)="selectCategory(category)">
+                {{category.name}}
+              </button>
+            </div>
+            
+            <div class="emoji-grid">
+              <button 
+                type="button"
+                *ngFor="let emoji of selectedCategory.emojis" 
+                class="emoji-btn"
+                [class.selected]="selectedEmoji === emoji"
+                (click)="selectEmoji(emoji)">
+                {{emoji}}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 필드 배치: 타이포그래피 생성기 -->
+        <div *ngIf="placementType === 'field'" class="typography-generator">
+          <div class="typography-preview">
+            <div class="generated-emoji" (click)="selectTypographyEmoji()">
+              {{generatedTypographyEmoji || '( ͡° ͜ʖ ͡°)'}}
+            </div>
+            <div class="typography-actions">
+              <button type="button" class="randomize-btn" (click)="randomizeTypographySelection()">
+                🎲 랜덤 생성
+              </button>
+              <button type="button" class="select-typography-btn" (click)="selectTypographyEmoji()">
+                ✓ 선택하기
+              </button>
+            </div>
+          </div>
+
+          <div class="typography-controls">
+            <div class="control-section">
+              <h4>팔/귀</h4>
+              <div class="glyph-horizontal-scroll">
+                <button
+                  type="button"
+                  *ngFor="let pair of data1.glyphset"
+                  class="glyph-btn-horizontal"
+                  [class.selected]="selectedPair1 === pair"
+                  (click)="selectPair1(pair)"
+                  [innerHTML]="renderArms(pair)">
+                </button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h4>눈</h4>
+              <div class="glyph-horizontal-scroll">
+                <button
+                  type="button"
+                  *ngFor="let pair of data2.glyphset"
+                  class="glyph-btn-horizontal"
+                  [class.selected]="selectedPair2 === pair"
+                  (click)="selectPair2(pair)"
+                  [innerHTML]="renderEyes(pair)">
+                </button>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h4>입</h4>
+              <div class="glyph-horizontal-scroll">
+                <button
+                  type="button"
+                  *ngFor="let mouth of data3.glyphset"
+                  class="glyph-btn-horizontal"
+                  [class.selected]="selectedMouth === mouth"
+                  (click)="selectMouth(mouth)">
+                  {{mouth.mouth}}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="onCancel()">취소</button>
+        <button 
+          type="submit" 
+          class="submit-btn" 
+          [disabled]="!isFormValid()"
+          [class.disabled]="!isFormValid()">
+          등록하기
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

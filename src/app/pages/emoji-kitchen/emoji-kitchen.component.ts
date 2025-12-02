@@ -9,6 +9,8 @@ import { ToastService } from '../../components/common/toast/toast.service';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ClassStyleService } from '../../style/class-style.service';
+import { environment } from '../../../environments/environment';
+import { AppSeoService, SeoData } from '../../seo/app-seo.service';
 @Component({
   selector: 'app-emoji-kitchen',
   templateUrl: './emoji-kitchen.component.html',
@@ -40,11 +42,24 @@ export class EmojiKitchenComponent implements OnInit {
               public classStyleSvc: ClassStyleService,
               @Inject(PLATFORM_ID) private platformId: string,
               private httpClient: HttpClient,
+              private appSeoService: AppSeoService,
               private rightEmojiListService: RightEmojiListService,
               private leftEmojiListService: LeftEmojiListService) {
   }
 
   async ngOnInit() {
+    const seoData: SeoData = {
+      author: 'emoji world',
+      keywords: `emoji kitchen, emoji maker, emoji generator, emoji combinations, emoji combination`,
+      lang: 'en',
+      title: `emoji kitchen | emoji generate | emoji combinations | emoji combination`,
+      description: `영문명을 영문 축약어로 쉽게 만들 수 있습니다. 변수명, 컬럼명, 필드명, 영어 약어, 영문약어 등.`,
+      site_name: '영문 축약어 Wordic',
+      site_url: environment.basePath + '/eng-abbreviate',
+      src: environment.basePath + '/eng-abbreviate'
+    }
+    this.appSeoService.setSeoData(seoData)
+
     if (isPlatformBrowser(this.platformId)) {
       if (navigator.clipboard !== undefined) {
         this.hasClipboardSupport = 'write' in navigator.clipboard

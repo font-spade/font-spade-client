@@ -1,0 +1,54 @@
+<div class="christmas-container">
+  <header class="christmas-header">
+    <h1>🎄 {{ownerName}}님의 트리</h1>
+    <div class="message-count">
+      {{emojis.length}}개의 메시지가 도착했어요!
+    </div>
+    <div class="header-buttons">
+      <button class="tree-decorate-btn" (click)="onWriteMessage()">트리 꿈여주기</button>
+      <button class="star-btn" (click)="onShare()">⭐</button>
+    </div>
+  </header>
+
+  <div class="canvas-container">
+    <canvas #threeCanvas></canvas>
+    
+    <!-- 뒤 배경 트리들의 이름 라벨 -->
+    <div class="tree-label" *ngFor="let treeName of backgroundTreeNames; let i = index" 
+         [style.left.px]="getBackgroundTreePosition(i).x - 40" 
+         [style.top.px]="getBackgroundTreePosition(i).y - 20">
+      <div class="tree-name-tag">{{treeName}}</div>
+    </div>
+    
+    <!-- HTML 메시지 오버레이 -->
+    <div class="message-overlay" *ngFor="let message of visibleMessages" 
+         [style.left.px]="message.screenX" 
+         [style.top.px]="message.screenY"
+         [class.visible]="message.visible"
+         [class.hiding]="message.hiding">
+      <div class="message-bubble">
+        <div class="message-nickname">{{message.nickname}}</div>
+        <div class="message-text">{{message.text}}</div>
+        <div class="message-arrow"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="christmas-footer">
+    <div class="page-indicator">
+      1/355
+    </div>
+  </footer>
+
+  <!-- Emoji Popup -->
+  <div class="emoji-popup" [class.visible]="isEmojiPopupVisible" *ngIf="selectedEmoji">
+    <div class="popup-content" (click)="$event.stopPropagation()">
+      <div class="emoji-large">{{selectedEmoji.emoji}}</div>
+      <div class="message-content">
+        <div class="nickname">{{selectedEmoji.nickname}}</div>
+        <div class="message">{{selectedEmoji.message}}</div>
+      </div>
+      <button class="close-btn" (click)="hideEmojiPopup()">×</button>
+    </div>
+  </div>
+</div>

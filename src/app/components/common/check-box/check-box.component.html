@@ -1,0 +1,11 @@
+<div class="flex items-center text-base">
+  <input type="checkbox" id="customCheckbox" [(ngModel)]="isChecked" (change)="checkEvt.emit(isChecked)" class="hidden" />
+  <label for="customCheckbox" class="flex items-center cursor-pointer">
+    <span class="w-4 h-4 bg-gray-50 border border-gray-500 block relative rounded">
+      <svg *ngIf="isChecked" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 6L9 17L4 12"></path>
+      </svg>
+    </span>
+    <span class="ml-2">{{labelName}}</span>
+  </label>
+</div>

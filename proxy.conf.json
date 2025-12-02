@@ -1,0 +1,18 @@
+{
+  "/sdclound": {
+    "target": "https://dev-wfbiz.sandollcloud.com",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/sdclound": ""
+    }
+  },
+  "/django": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/django": ""
+    }
+  }
+}
