@@ -40,10 +40,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // 메시지 표시 제어
   private lastMessageTime = 0;
-  private messageInterval = 1000; // 1초 간격
-  private maxMessagesPerSecond = 2;
+  private messageInterval = 3000; // 3초 간격으로 늘림
+  private maxMessagesPerSecond = 1; // 한번에 1개만
   private messagesThisSecond = 0;
   private currentSecond = 0;
+  private maxVisibleMessages = 2; // 최대 2개까지만 동시 표시
 
   // GLB 모델 로더
   private gltfLoader: any = null;
@@ -57,6 +58,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private cameraRadius = 15; // 조금 더 가까이
   private cameraAngleX = 0.4; // 트리를 위에서 바라보는 각도 (더 위에서)
   private cameraAngleY = 0; // 수평 각도 (정면)
+
+  // 줌 컨트롤
+  private minCameraRadius = 8; // 최대 줌인
+  private maxCameraRadius = 25; // 최대 줌아웃
+  private zoomSpeed = 0.8; // 줌 속도
+  private lastTouchDistance = 0; // 이전 터치 거리
+  private isZooming = false; // 줌 중인지 확인
 
   // 등록 이펙트
   private registrationEffect: THREE.Mesh | null = null;
@@ -128,7 +136,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       alpha: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x2d1b69, 1); // 하늘 돔과 어울리는 보라색
+    this.renderer.setClearColor(0x05001C, 1); // 하늘색과 같은 색상
     // 그림자 비활성화
     this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -169,10 +177,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   private setupLighting(): void {
     // 자연스러운 안개 효과 (연한 보라색)
-    this.scene.fog = new THREE.Fog(0x2d1b69, 15, 50);
+    this.scene.fog = new THREE.Fog(0x05001C, 25, 60); // 안개 시작 거리를 늘려서 별/달이 보이도록
 
-    // 카툰 렌더링에 맞는 밝은 주변 조명
-    const ambientLight = new THREE.AmbientLight(0x404080, 0.8);
+    // 어두운 밤하늘에 맞는 주변 조명
+    const ambientLight = new THREE.AmbientLight(0x202040, 0.8);
     this.scene.add(ambientLight);
 
     // 메인 조명 - 카툰 스타일에 맞게 더 밝게
@@ -217,8 +225,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
     groundGeometry.computeVertexNormals();
 
-    // 눈 덮인 바닥 재질
-    const groundMaterial = new THREE.MeshBasicMaterial({
+    // 눈 덮인 바닥 재질 (카툰 렌더링)
+    const groundMaterial = new THREE.MeshToonMaterial({
       color: 0xFCF9FC, // 눈 덮인 흰색 바닥
       transparent: false
     });
@@ -226,8 +234,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // OutlineEffect 파라미터 설정
     groundMaterial.userData['outlineParameters'] = {
       thickness: 0.002,
-      color: [0.17, 0.24, 0.29], // 하늘과 같은 색의 외곽선
-      alpha: 0.6,
+      color: [0.9, 0.95, 0.98], // 눈색에 맞는 밝은 외곽선
+      alpha: 0.7,
       visible: true
     };
 
@@ -237,14 +245,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 하늘 돔 추가
     this.createSkyDome();
+    
+    // 눈덩이들 추가
+    this.createSnowballs();
+    
+    // 눈사람 추가
+    this.createSnowman();
+    
+    // 귀여운 오브젝트들 추가
+    this.createCuteObjects();
   }
 
   private createSkyDome(): void {
     // 하늘 돔 생성
     const skyGeometry = new THREE.SphereGeometry(80, 32, 32);
 
-    // 직접 색상 지정 (텍스처 없이)
-    const skyMaterial = new THREE.MeshBasicMaterial({
+    // 카툰 렌더링 적용
+    const skyMaterial = new THREE.MeshToonMaterial({
       color: 0x05001C, // #05001C 색상 직접 적용
       side: THREE.BackSide, // 돔 안쪽에서 보이도록
       transparent: false
@@ -253,7 +270,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // OutlineEffect 파라미터 설정
     skyMaterial.userData['outlineParameters'] = {
       thickness: 0.001,
-      color: [0.17, 0.24, 0.29], // #2C3E4A 색상에 맞는 외곽선
+      color: [0.02, 0.0, 0.11], // #05001C에 맞는 어두운 외곽선
       alpha: 0.4,
       visible: true
     };
@@ -261,6 +278,441 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const skyDome = new THREE.Mesh(skyGeometry, skyMaterial);
     skyDome.position.set(0, 0, 0);
     this.scene.add(skyDome);
+
+    // 별들 추가
+    this.createStars();
+    
+    // 초승달 추가
+    this.createCrescentMoon();
+  }
+
+  private createStars(): void {
+    // 별들을 트리 정면 뒤쪽 배경에 집중 배치 (더 가깝게)
+    for (let i = 0; i < 30; i++) {
+      const starGeometry = new THREE.SphereGeometry(0.2, 8, 8); // 크기 증가
+      const starMaterial = new THREE.MeshBasicMaterial({
+        color: 0xFFFF00, // 노란색으로 변경
+        transparent: false
+      });
+      
+      const star = new THREE.Mesh(starGeometry, starMaterial);
+      
+      // 배경에 배치 (적당한 거리)
+      const x = (Math.random() - 0.5) * 60; // 좌우 넓게 분포
+      const y = Math.random() * 40 + 20; // 위쪽에 배치
+      const z = -22 - Math.random() * 3; // 뒤쪽에 배치 (-22 ~ -25)
+      
+      star.position.set(x, y, z);
+      this.scene.add(star);
+    }
+  }
+
+  private createCrescentMoon(): void {
+    // 초승달 생성 (두 개의 구를 사용)
+    const moonGroup = new THREE.Group();
+    
+    // 메인 달 (더 크고 밝게)
+    const moonGeometry = new THREE.SphereGeometry(6, 16, 16);
+    const moonMaterial = new THREE.MeshBasicMaterial({
+      color: 0xFFFF00 // 밝은 노란색
+    });
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    
+    // 그림자 부분 (검은 구로 일부를 가림) - 더 날카로운 초승달을 위해
+    const shadowGeometry = new THREE.SphereGeometry(6.5, 16, 16);
+    const shadowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x05001C // 하늘색과 같은 색으로 가림
+    });
+    const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+    shadow.position.x = 4.5; // 더 많이 오른쪽으로 이동하여 날카로운 초승달 모양 만들기
+    
+    moonGroup.add(moon);
+    moonGroup.add(shadow);
+    
+    // 달 위치 설정 (배경에 적당한 거리로)
+    moonGroup.position.set(18, 25, -23);
+    
+    this.scene.add(moonGroup);
+  }
+
+  private createSnowballs(): void {
+    // 바닥 주변에 눈덩이들 생성
+    for (let i = 0; i < 15; i++) {
+      // 다양한 크기의 눈덩이
+      const size = Math.random() * 0.8 + 0.3; // 0.3~1.1 크기
+      const snowballGeometry = new THREE.SphereGeometry(size, 12, 12);
+      const snowballMaterial = new THREE.MeshToonMaterial({
+        color: 0xFCF9FC, // 눈색과 같은 색상
+        transparent: false
+      });
+
+      // OutlineEffect 파라미터 설정
+      snowballMaterial.userData['outlineParameters'] = {
+        thickness: 0.003,
+        color: [0.9, 0.95, 0.98], // 밝은 외곽선
+        alpha: 0.7,
+        visible: true
+      };
+
+      const snowball = new THREE.Mesh(snowballGeometry, snowballMaterial);
+      
+      // 트리 주변에 랜덤 배치 (트리에서 일정 거리 유지)
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 8 + 6; // 트리에서 6-14 거리
+      const x = Math.cos(angle) * distance;
+      const z = Math.sin(angle) * distance;
+      
+      // 바닥 위에 배치 (지형 높이 고려)
+      const height = Math.sin(Math.sqrt(x * x + z * z) * 0.1) * 2 +
+                    Math.sin(x * 0.05) * Math.sin(z * 0.05) * 1.5;
+      
+      snowball.position.set(x, height - 5 + size, z); // 바닥에 닿게 배치
+      
+      this.scene.add(snowball);
+    }
+  }
+
+  private createSnowman(): void {
+    const snowmanGroup = new THREE.Group();
+
+    // 눈사람 몸체 재질
+    const snowMaterial = new THREE.MeshToonMaterial({
+      color: 0xFCF9FC // 눈색
+    });
+    snowMaterial.userData['outlineParameters'] = {
+      thickness: 0.004,
+      color: [0.9, 0.95, 0.98],
+      alpha: 0.8,
+      visible: true
+    };
+
+    // 하단 몸체 (가장 큰 구)
+    const bodyBottomGeometry = new THREE.SphereGeometry(1.5, 16, 16);
+    const bodyBottom = new THREE.Mesh(bodyBottomGeometry, snowMaterial);
+    bodyBottom.position.y = -4.5; // 바닥에 닿게
+    snowmanGroup.add(bodyBottom);
+
+    // 중간 몸체
+    const bodyMiddleGeometry = new THREE.SphereGeometry(1.2, 16, 16);
+    const bodyMiddle = new THREE.Mesh(bodyMiddleGeometry, snowMaterial);
+    bodyMiddle.position.y = -2.5;
+    snowmanGroup.add(bodyMiddle);
+
+    // 머리 (가장 작은 구)
+    const headGeometry = new THREE.SphereGeometry(0.9, 16, 16);
+    const head = new THREE.Mesh(headGeometry, snowMaterial);
+    head.position.y = -0.8;
+    snowmanGroup.add(head);
+
+    // 눈 (검은 구)
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const eyeGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+    
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.3, -0.6, 0.8);
+    snowmanGroup.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.3, -0.6, 0.8);
+    snowmanGroup.add(rightEye);
+
+    // 코 (주황색 원뿔)
+    const noseGeometry = new THREE.ConeGeometry(0.08, 0.4, 8);
+    const noseMaterial = new THREE.MeshBasicMaterial({ color: 0xFF6600 });
+    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+    nose.position.set(0, -0.8, 0.85);
+    nose.rotation.x = Math.PI / 2;
+    snowmanGroup.add(nose);
+
+    // 모자 (검은 실린더)
+    const hatGeometry = new THREE.CylinderGeometry(0.7, 0.7, 0.8);
+    const hatMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
+    hatMaterial.userData['outlineParameters'] = {
+      thickness: 0.003,
+      color: [0.1, 0.1, 0.1],
+      alpha: 0.8,
+      visible: true
+    };
+    const hat = new THREE.Mesh(hatGeometry, hatMaterial);
+    hat.position.y = 0.2;
+    snowmanGroup.add(hat);
+
+    // 모자 챙
+    const brimGeometry = new THREE.CylinderGeometry(1.0, 1.0, 0.1);
+    const brim = new THREE.Mesh(brimGeometry, hatMaterial);
+    brim.position.y = -0.25;
+    snowmanGroup.add(brim);
+
+    // 단추들 (검은 구)
+    const buttonGeometry = new THREE.SphereGeometry(0.06, 8, 8);
+    for (let i = 0; i < 3; i++) {
+      const button = new THREE.Mesh(buttonGeometry, eyeMaterial);
+      button.position.set(0, -1.8 + i * 0.3, 1.15);
+      snowmanGroup.add(button);
+    }
+
+    // 팔 (갈색 원뿔)
+    const armMaterial = new THREE.MeshToonMaterial({ color: 0x8B4513 });
+    armMaterial.userData['outlineParameters'] = {
+      thickness: 0.002,
+      color: [0.3, 0.2, 0.1],
+      alpha: 0.6,
+      visible: true
+    };
+    
+    const armGeometry = new THREE.ConeGeometry(0.05, 1.2, 6);
+    
+    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+    leftArm.position.set(-1.5, -2.3, 0);
+    leftArm.rotation.z = Math.PI / 3;
+    snowmanGroup.add(leftArm);
+    
+    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+    rightArm.position.set(1.5, -2.3, 0);
+    rightArm.rotation.z = -Math.PI / 3;
+    snowmanGroup.add(rightArm);
+
+    // 눈사람 위치 설정 (트리 옆)
+    snowmanGroup.position.set(-8, 0, 5);
+    
+    this.scene.add(snowmanGroup);
+  }
+
+  private createCuteObjects(): void {
+    // 선물 상자들
+    this.createGiftBoxes();
+    
+    // 귀여운 동물들
+    this.createCuteAnimals();
+    
+    // 작은 크리스마스 장식들
+    this.createChristmasDecorations();
+  }
+
+  private createGiftBoxes(): void {
+    // 여러 개의 선물 상자 생성
+    const giftPositions = [
+      { x: 6, z: 8 },
+      { x: -5, z: -8 },
+      { x: 10, z: -3 }
+    ];
+
+    giftPositions.forEach((pos, index) => {
+      const giftGroup = new THREE.Group();
+      
+      // 선물 상자 본체
+      const boxSize = 0.8 + Math.random() * 0.4; // 0.8~1.2 크기
+      const boxGeometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+      const boxColors = [0xFF6B6B, 0x4ECDC4, 0x45B7D1, 0x96CEB4, 0xFECA57];
+      const boxMaterial = new THREE.MeshToonMaterial({
+        color: boxColors[index % boxColors.length]
+      });
+      boxMaterial.userData['outlineParameters'] = {
+        thickness: 0.003,
+        color: [0.1, 0.1, 0.1],
+        alpha: 0.7,
+        visible: true
+      };
+
+      const box = new THREE.Mesh(boxGeometry, boxMaterial);
+      
+      // 리본 (세로)
+      const ribbonVGeometry = new THREE.BoxGeometry(0.1, boxSize + 0.1, boxSize + 0.1);
+      const ribbonMaterial = new THREE.MeshToonMaterial({ color: 0xFFD93D });
+      ribbonMaterial.userData['outlineParameters'] = {
+        thickness: 0.002,
+        color: [0.8, 0.7, 0.0],
+        alpha: 0.6,
+        visible: true
+      };
+      const ribbonV = new THREE.Mesh(ribbonVGeometry, ribbonMaterial);
+      
+      // 리본 (가로)
+      const ribbonHGeometry = new THREE.BoxGeometry(boxSize + 0.1, 0.1, boxSize + 0.1);
+      const ribbonH = new THREE.Mesh(ribbonHGeometry, ribbonMaterial);
+
+      giftGroup.add(box);
+      giftGroup.add(ribbonV);
+      giftGroup.add(ribbonH);
+
+      // 바닥 위치 계산
+      const height = Math.sin(Math.sqrt(pos.x * pos.x + pos.z * pos.z) * 0.1) * 2 +
+                    Math.sin(pos.x * 0.05) * Math.sin(pos.z * 0.05) * 1.5;
+      
+      giftGroup.position.set(pos.x, height - 5 + boxSize/2, pos.z);
+      this.scene.add(giftGroup);
+    });
+  }
+
+  private createCuteAnimals(): void {
+    // 토끼 만들기
+    const rabbitGroup = new THREE.Group();
+    
+    // 토끼 몸체
+    const bodyGeometry = new THREE.SphereGeometry(0.6, 12, 12);
+    const furMaterial = new THREE.MeshToonMaterial({ color: 0xFFF8F0 });
+    furMaterial.userData['outlineParameters'] = {
+      thickness: 0.003,
+      color: [0.9, 0.9, 0.85],
+      alpha: 0.7,
+      visible: true
+    };
+    const body = new THREE.Mesh(bodyGeometry, furMaterial);
+    body.position.y = -4.5;
+    rabbitGroup.add(body);
+
+    // 토끼 머리
+    const headGeometry = new THREE.SphereGeometry(0.5, 12, 12);
+    const head = new THREE.Mesh(headGeometry, furMaterial);
+    head.position.y = -3.6;
+    rabbitGroup.add(head);
+
+    // 토끼 귀
+    const earGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+    earGeometry.scale(1, 2, 0.3); // 길쭉하게
+    const leftEar = new THREE.Mesh(earGeometry, furMaterial);
+    leftEar.position.set(-0.2, -3.0, 0);
+    rabbitGroup.add(leftEar);
+    
+    const rightEar = new THREE.Mesh(earGeometry, furMaterial);
+    rightEar.position.set(0.2, -3.0, 0);
+    rabbitGroup.add(rightEar);
+
+    // 토끼 눈
+    const eyeGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.15, -3.5, 0.45);
+    rabbitGroup.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.15, -3.5, 0.45);
+    rabbitGroup.add(rightEye);
+
+    // 토끼 코
+    const noseGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+    const noseMaterial = new THREE.MeshBasicMaterial({ color: 0xFF69B4 });
+    const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+    nose.position.set(0, -3.65, 0.48);
+    rabbitGroup.add(nose);
+
+    rabbitGroup.position.set(4, 0, -6);
+    this.scene.add(rabbitGroup);
+
+    // 펭귄 만들기
+    const penguinGroup = new THREE.Group();
+    
+    // 펭귄 몸체 (검은색)
+    const penguinBodyGeometry = new THREE.SphereGeometry(0.7, 12, 12);
+    penguinBodyGeometry.scale(1, 1.3, 1); // 세로로 늘림
+    const blackMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
+    blackMaterial.userData['outlineParameters'] = {
+      thickness: 0.003,
+      color: [0.1, 0.1, 0.1],
+      alpha: 0.7,
+      visible: true
+    };
+    const penguinBody = new THREE.Mesh(penguinBodyGeometry, blackMaterial);
+    penguinBody.position.y = -4.3;
+    penguinGroup.add(penguinBody);
+
+    // 펭귄 배 (흰색)
+    const bellyGeometry = new THREE.SphereGeometry(0.5, 12, 12);
+    bellyGeometry.scale(1, 1.2, 0.8);
+    const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
+    whiteMaterial.userData['outlineParameters'] = {
+      thickness: 0.002,
+      color: [0.9, 0.9, 0.9],
+      alpha: 0.6,
+      visible: true
+    };
+    const belly = new THREE.Mesh(bellyGeometry, whiteMaterial);
+    belly.position.set(0, -4.2, 0.3);
+    penguinGroup.add(belly);
+
+    // 펭귄 부리
+    const beakGeometry = new THREE.ConeGeometry(0.08, 0.2, 8);
+    const beakMaterial = new THREE.MeshBasicMaterial({ color: 0xFFA500 });
+    const beak = new THREE.Mesh(beakGeometry, beakMaterial);
+    beak.position.set(0, -3.4, 0.6);
+    beak.rotation.x = Math.PI / 2;
+    penguinGroup.add(beak);
+
+    penguinGroup.position.set(-10, 0, -4);
+    this.scene.add(penguinGroup);
+  }
+
+  private createChristmasDecorations(): void {
+    // 캔디케인들
+    for (let i = 0; i < 5; i++) {
+      const candyCaneGroup = new THREE.Group();
+      
+      // 캔디케인 막대
+      const stickGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.5);
+      const stickMaterial = new THREE.MeshToonMaterial({ color: 0xFF0000 });
+      stickMaterial.userData['outlineParameters'] = {
+        thickness: 0.002,
+        color: [0.5, 0.0, 0.0],
+        alpha: 0.6,
+        visible: true
+      };
+      const stick = new THREE.Mesh(stickGeometry, stickMaterial);
+      stick.position.y = -4.5;
+      candyCaneGroup.add(stick);
+
+      // 캔디케인 곡선 부분
+      const curve = new THREE.TorusGeometry(0.3, 0.05, 8, 16, Math.PI);
+      const curvedPart = new THREE.Mesh(curve, stickMaterial);
+      curvedPart.position.set(0, -3.7, 0);
+      curvedPart.rotation.z = Math.PI / 2;
+      candyCaneGroup.add(curvedPart);
+
+      const angle = (i / 5) * Math.PI * 2;
+      const radius = 12 + Math.random() * 3;
+      candyCaneGroup.position.set(
+        Math.cos(angle) * radius,
+        0,
+        Math.sin(angle) * radius
+      );
+      
+      this.scene.add(candyCaneGroup);
+    }
+
+    // 작은 크리스마스 트리들
+    for (let i = 0; i < 3; i++) {
+      const miniTreeGroup = new THREE.Group();
+      
+      const treeGeometry = new THREE.ConeGeometry(0.4, 0.8, 8);
+      const treeMaterial = new THREE.MeshToonMaterial({ color: 0x228B22 });
+      treeMaterial.userData['outlineParameters'] = {
+        thickness: 0.002,
+        color: [0.0, 0.3, 0.0],
+        alpha: 0.6,
+        visible: true
+      };
+      const miniTree = new THREE.Mesh(treeGeometry, treeMaterial);
+      miniTree.position.y = -4.2;
+      miniTreeGroup.add(miniTree);
+
+      const trunkGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.2);
+      const trunkMaterial = new THREE.MeshToonMaterial({ color: 0x8B4513 });
+      const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+      trunk.position.y = -4.7;
+      miniTreeGroup.add(trunk);
+
+      const positions = [
+        { x: -12, z: 6 },
+        { x: 8, z: -10 },
+        { x: -6, z: 10 }
+      ];
+      
+      const pos = positions[i];
+      const height = Math.sin(Math.sqrt(pos.x * pos.x + pos.z * pos.z) * 0.1) * 2 +
+                    Math.sin(pos.x * 0.05) * Math.sin(pos.z * 0.05) * 1.5;
+      miniTreeGroup.position.set(pos.x, height, pos.z);
+      
+      this.scene.add(miniTreeGroup);
+    }
   }
 
   private createChristmasBackground(): void {
@@ -693,6 +1145,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private worldToScreen(position: THREE.Vector3): { x: number, y: number } {
+    // 카메라나 renderer가 없으면 기본값 반환
+    if (!this.camera || !this.renderer) {
+      return { x: 0, y: 0 };
+    }
+
     const vector = position.clone();
     vector.project(this.camera);
 
@@ -700,7 +1157,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const heightHalf = window.innerHeight / 2;
 
     vector.x = (vector.x * widthHalf) + widthHalf;
-    vector.y = -(vector.y * heightHalf) + heightHalf + 56; // 헤더 높이 보정
+    vector.y = -(vector.y * heightHalf) + heightHalf;
 
     return { x: vector.x, y: vector.y };
   }
@@ -708,19 +1165,24 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private showRandomMessage(emojiData: any): void {
     const messagePosition = new THREE.Vector3(
       emojiData.mesh.position.x,
-      emojiData.mesh.position.y + 1.0,
+      emojiData.mesh.position.y + 2.5, // 이모지 바로 위에 더 가깝게 배치
       emojiData.mesh.position.z
     );
 
     const screenPos = this.worldToScreen(messagePosition);
+
+    // 화면 좌표가 유효한지 확인
+    if (isNaN(screenPos.x) || isNaN(screenPos.y)) {
+      return; // 유효하지 않은 좌표면 메시지를 생성하지 않음
+    }
 
     const messageId = `msg_${Date.now()}_${Math.random()}`;
     const htmlMessage = {
       id: messageId,
       nickname: emojiData.nickname,
       text: emojiData.message,
-      screenX: screenPos.x - 125,
-      screenY: screenPos.y - 100,
+      screenX: screenPos.x - 125, // 메시지 박스 중앙 정렬
+      screenY: screenPos.y - 80,  // 이모지 위쪽에 배치
       visible: false,
       hiding: false
     };
@@ -735,22 +1197,22 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       }
     }, 150);
 
-    // 3-5초 후 메시지 숨기기 (더 짧은 시간으로)
+    // 4-6초 후 메시지 숨기기 (적당한 시간으로)
     setTimeout(() => {
       const msg = this.visibleMessages.find(m => m.id === messageId);
       if (msg) {
         msg.hiding = true;
-        // 애니메이션 완료 후 제거 (더 긴 애니메이션 시간)
+        // 애니메이션 완료 후 제거
         setTimeout(() => {
           const index = this.visibleMessages.findIndex(m => m.id === messageId);
           if (index > -1) {
             this.visibleMessages.splice(index, 1);
           }
-        }, 500); // 더 긴 애니메이션 시간
+        }, 500);
       }
-      // 다음 메시지 표시 시간 설정 (5-10초 후로 짧게)
-      emojiData.nextMessageTime = Date.now() + Math.random() * 5000 + 5000;
-    }, Math.random() * 1000 + 3000); // 3-4초로 짧게
+      // 다음 메시지 표시 시간 설정 (8-15초 후로 길게)
+      emojiData.nextMessageTime = Date.now() + Math.random() * 7000 + 8000;
+    }, Math.random() * 2000 + 4000); // 4-6초로 조정
   }
 
 
@@ -999,6 +1461,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
           // Y축은 지형 위로 부유하는 효과 (더 높게)
           emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 2 + index) * 0.3 + 0.5;
+        } else {
+          // 일반 이모지도 부유하는 효과 추가
+          if (emojiData.mesh.userData['nearTree']) {
+            emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 1.5 + index) * 0.2;
+          }
         }
 
         // 이모지가 항상 카메라를 정면으로 바라보도록 설정 (빌보드 효과)
@@ -1020,9 +1487,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
             this.messagesThisSecond = 0;
           }
 
-          // 이번 초에 표시할 수 있는 메시지 수를 확인
+          // 이번 초에 표시할 수 있는 메시지 수와 최대 동시 표시 개수 확인
           if (this.messagesThisSecond < this.maxMessagesPerSecond &&
-              currentTime - this.lastMessageTime >= this.messageInterval / this.maxMessagesPerSecond) {
+              currentTime - this.lastMessageTime >= this.messageInterval / this.maxMessagesPerSecond &&
+              this.visibleMessages.length < this.maxVisibleMessages) {
 
             // 해당 이모지의 기존 메시지가 있는지 확인
             const hasMessage = this.visibleMessages.some(msg =>
@@ -1048,13 +1516,27 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       if (emojiData) {
         const messagePosition = new THREE.Vector3(
           emojiData.mesh.position.x,
-          emojiData.mesh.position.y + 1.0,
+          emojiData.mesh.position.y + 2.5, // 이모지 바로 위에 더 가깝게 배치
           emojiData.mesh.position.z
         );
 
         const screenPos = this.worldToScreen(messagePosition);
-        message.screenX = screenPos.x - 125; // 메시지 박스 중앙 정렬 (박스 너비의 절반)
-        message.screenY = screenPos.y - 100;  // 메시지 박스를 이모지 위쪽에 배치
+        
+        // 화면 좌표가 유효한지 확인
+        if (isNaN(screenPos.x) || isNaN(screenPos.y)) {
+          return; // 유효하지 않은 좌표면 업데이트하지 않음
+        }
+        
+        // 이모지가 화면에 보이는 범위에 있는지 확인
+        if (screenPos.x < -200 || screenPos.x > window.innerWidth + 200 ||
+            screenPos.y < -200 || screenPos.y > window.innerHeight + 200) {
+          message.visible = false; // 화면 밖에 있으면 숨김
+          return;
+        }
+        
+        // 메시지 위치를 이모지 바로 위에 배치
+        message.screenX = screenPos.x - 125; // 메시지 박스 중앙 정렬
+        message.screenY = screenPos.y - 80;  // 이모지 위쪽에 배치
       }
     });
 
@@ -1159,12 +1641,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   private onPointerUp(): void {
     this.isDragging = false;
+    this.isZooming = false;
+    this.lastTouchDistance = 0;
   }
 
   private onTouchStart(event: TouchEvent): void {
     event.preventDefault();
+    
     if (event.touches.length === 1) {
+      // 단일 터치 - 회전 컨트롤
       this.isDragging = true;
+      this.isZooming = false;
       this.hasMouseMoved = false;
       this.mouseStartPosition = {
         x: event.touches[0].clientX,
@@ -1174,38 +1661,79 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         x: event.touches[0].clientX,
         y: event.touches[0].clientY
       };
+    } else if (event.touches.length === 2) {
+      // 두 손가락 터치 - 줌 컨트롤
+      this.isDragging = false;
+      this.isZooming = true;
+      this.hasMouseMoved = false;
+      
+      // 두 터치 포인트 간의 거리 계산
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      this.lastTouchDistance = distance;
     }
   }
 
   private onTouchMove(event: TouchEvent): void {
     event.preventDefault();
-    if (!this.isDragging || event.touches.length !== 1) return;
+    
+    if (event.touches.length === 1 && this.isDragging) {
+      // 단일 터치 - 회전 컨트롤
+      const deltaMove = {
+        x: event.touches[0].clientX - this.previousMousePosition.x,
+        y: event.touches[0].clientY - this.previousMousePosition.y
+      };
 
-    const deltaMove = {
-      x: event.touches[0].clientX - this.previousMousePosition.x,
-      y: event.touches[0].clientY - this.previousMousePosition.y
-    };
+      // 터치가 움직였는지 체크 (5px 이상 움직이면 드래그로 간주)
+      const distanceFromStart = Math.sqrt(
+        Math.pow(event.touches[0].clientX - this.mouseStartPosition.x, 2) +
+        Math.pow(event.touches[0].clientY - this.mouseStartPosition.y, 2)
+      );
 
-    // 터치가 움직였는지 체크 (5px 이상 움직이면 드래그로 간주)
-    const distanceFromStart = Math.sqrt(
-      Math.pow(event.touches[0].clientX - this.mouseStartPosition.x, 2) +
-      Math.pow(event.touches[0].clientY - this.mouseStartPosition.y, 2)
-    );
+      if (distanceFromStart > 5) {
+        this.hasMouseMoved = true;
+      }
 
-    if (distanceFromStart > 5) {
-      this.hasMouseMoved = true;
+      this.cameraAngleY -= deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
+      this.cameraAngleX -= deltaMove.y * 0.001; // 터치 감도를 1/5로 줄임
+
+      // 수직 각도 제한 (위에서 아래로 더 제한적으로)
+      this.cameraAngleX = Math.max(0.1, Math.min(Math.PI * 0.6, this.cameraAngleX));
+
+      this.previousMousePosition = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY
+      };
+      
+    } else if (event.touches.length === 2 && this.isZooming) {
+      // 두 손가락 터치 - 줌 컨트롤
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      const currentDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      if (this.lastTouchDistance > 0) {
+        const distanceDelta = currentDistance - this.lastTouchDistance;
+        const zoomDelta = distanceDelta * this.zoomSpeed * 0.01; // 줌 속도 조절
+        
+        // 줌 인/아웃
+        this.cameraRadius -= zoomDelta;
+        
+        // 줌 한계 설정
+        this.cameraRadius = Math.max(this.minCameraRadius, 
+                                   Math.min(this.maxCameraRadius, this.cameraRadius));
+        
+        this.hasMouseMoved = true; // 줌도 움직임으로 간주
+      }
+      
+      this.lastTouchDistance = currentDistance;
     }
-
-    this.cameraAngleY -= deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
-    this.cameraAngleX -= deltaMove.y * 0.001; // 터치 감도를 1/5로 줄임
-
-    // 수직 각도 제한 (위에서 아래로 더 제한적으로)
-    this.cameraAngleX = Math.max(0.1, Math.min(Math.PI * 0.6, this.cameraAngleX));
-
-    this.previousMousePosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY
-    };
   }
 
   private updateCameraPosition(): void {
