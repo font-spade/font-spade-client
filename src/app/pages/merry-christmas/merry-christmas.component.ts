@@ -51,7 +51,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private mainTreeGroup: any = null; // 메인 트리 참조 저장
 
   // 터치/마우스 컨트롤
-  private isDragging = false;
+  public isDragging = false;
   private hasMouseMoved = false; // 마우스가 움직였는지 추적
   private mouseStartPosition = { x: 0, y: 0 }; // 마우스 시작 위치
   private previousMousePosition = { x: 0, y: 0 };
@@ -996,13 +996,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // 1-3개의 불꽃을 발사 (시간차 적용)
       const fireworkCount = Math.floor(Math.random() * 3) + 1; // 1, 2, 또는 3개
-      
+
       for (let i = 0; i < fireworkCount; i++) {
         // 트리 뒤쪽 랜덤 위치에서 불꽃 발사
         const x = (Math.random() - 0.5) * 25; // 좀 더 넓은 범위
         const y = Math.random() * 12 + 5; // 높이도 다양하게
         const z = -12 - Math.random() * 8;
-        
+
         // 첫 번째는 즉시, 나머지는 시간차를 두어 발사
         const delay = i === 0 ? 0 : 300 + Math.random() * 400; // 0.3~0.7초 랜덤 시간차
         setTimeout(() => {
@@ -1019,26 +1019,26 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private checkEmojiUpdate(currentTime: number): void {
     if (currentTime - this.lastEmojiUpdateTime > this.emojiUpdateInterval) {
       this.lastEmojiUpdateTime = currentTime;
-      
+
       // 5~10초 간격 랜덤화
       this.emojiUpdateInterval = 5000 + Math.random() * 5000;
-      
+
       // 현재 이모지 중 몇개를 제거할지 결정 (1-3개)
       const removeCount = Math.min(Math.floor(Math.random() * 3) + 1, this.emojis.length);
-      
+
       if (this.emojis.length > 0) {
         // 랜덤하게 이모지 선택해서 제거
         for (let i = 0; i < removeCount; i++) {
           const randomIndex = Math.floor(Math.random() * this.emojis.length);
           const emojiToRemove = this.emojis[randomIndex];
-          
+
           // 사라지는 애니메이션
           this.animateEmojiExit(emojiToRemove.mesh, () => {
             this.emojiScene.remove(emojiToRemove.mesh);
             this.emojis.splice(this.emojis.indexOf(emojiToRemove), 1);
           });
         }
-        
+
         // 새로운 이모지 추가 (제거한 만큼)
         setTimeout(() => {
           for (let i = 0; i < removeCount; i++) {
@@ -1054,26 +1054,26 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const duration = 800;
     const startTime = Date.now();
     const initialScale = mesh.scale.x;
-    
+
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // 스케일이 줄어들면서 투명해짐
       const scale = initialScale * (1 - progress);
       mesh.scale.set(scale, scale, scale);
-      
+
       if (mesh.material instanceof THREE.MeshBasicMaterial) {
         mesh.material.opacity = 1 - progress;
       }
-      
+
       if (progress >= 1) {
         onComplete();
       } else {
         requestAnimationFrame(animate);
       }
     };
-    
+
     animate();
   }
 
@@ -1082,36 +1082,36 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const emojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
     const nicknames = ['산타', '루돌프', '눈사람', '요정', '천사', '크리스마스'];
     const messages = [
-      '메리 크리스마스!', 
-      '새해 복 많이 받으세요!', 
+      '메리 크리스마스!',
+      '새해 복 많이 받으세요!',
       '행복한 연말 되세요!',
       '따뜻한 크리스마스 보내요',
       '사랑하는 사람들과 함께',
       '모두 건강하고 행복하게!'
     ];
-    
+
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
     const nickname = nicknames[Math.floor(Math.random() * nicknames.length)];
     const message = messages[Math.floor(Math.random() * messages.length)];
-    
+
     // 랜덤 위치 (트리 주변)
     const isFieldType = Math.random() > 0.7; // 30% 확률로 필드 타입
-    
+
     if (isFieldType) {
       // 필드 배치
       const x = (Math.random() - 0.5) * 25;
       const z = (Math.random() - 0.5) * 25;
       const y = Math.random() * 3 + 1;
-      
+
       const mesh = this.createTypographyMesh('( ͡° ͜ʖ ͡°)', x, y, z);
       this.emojiScene.add(mesh);
       this.animateEmojiEntry(mesh);
-      
+
       mesh.userData['originalY'] = y;
       mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003;
       mesh.userData['moveAngle'] = Math.random() * Math.PI * 2;
       mesh.userData['isTypography'] = true;
-      
+
       this.emojis.push({
         mesh,
         emoji: '( ͡° ͜ʖ ͡°)',
@@ -1126,17 +1126,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       // 트리 배치 - 기존과 동일하게 트리 표면에 붙이기
       const angle = Math.random() * Math.PI * 2;
       const height = Math.random() * 12 + 3;
-      
+
       // 트리 표면에 정확히 부착
       const treePosition = this.attachEmojiToTreeSurface(angle, height);
       const mesh = this.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z);
-      
+
       this.emojiScene.add(mesh);
       this.animateEmojiEntry(mesh);
-      
+
       mesh.userData['originalY'] = treePosition.y;
       mesh.userData['nearTree'] = true;
-      
+
       this.emojis.push({
         mesh,
         emoji,
@@ -1601,6 +1601,35 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // 바닥 높이 계산 (Raycast 사용)
+  private getGroundHeight(x: number, z: number): number {
+    // 위에서 아래로 레이를 쏴서 지면 높이 계산
+    const rayOrigin = new THREE.Vector3(x, 10, z); // 위쪽에서 시작
+    const rayDirection = new THREE.Vector3(0, -1, 0); // 아래쪽으로
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.set(rayOrigin, rayDirection);
+
+    // 지면과 교차점 찾기 (지면 mesh만 대상으로)
+    const groundObjects = this.scene.children.filter(child => 
+      child instanceof THREE.Mesh && 
+      child.geometry instanceof THREE.PlaneGeometry
+    );
+
+    if (groundObjects.length > 0) {
+      const intersects = raycaster.intersectObjects(groundObjects);
+      if (intersects.length > 0) {
+        return intersects[0].point.y;
+      }
+    }
+
+    // 폴백: 수식으로 계산 (createGround에서 사용한 공식과 동일)
+    const distanceFromCenter = Math.sqrt(x * x + z * z);
+    const height = Math.sin(distanceFromCenter * 0.1) * 2 +
+                   Math.sin(x * 0.05) * Math.sin(z * 0.05) * 1.5;
+    return height - 5; // 바닥 위치
+  }
+
   // 이모지의 화면 위치 계산
   getEmojiScreenPosition(emojiData: any): { x: number, y: number } {
     if (!emojiData.mesh) return { x: 0, y: 0 };
@@ -1655,14 +1684,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadMessages(), 500);
       return;
     }
-    // 타이포그래피 이모지 예시들 (지형 위에 떠서 배치)
+    // 타이포그래피 이모지 예시들 (바닥에 배치)
     const typographyEmojis = [
-      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)', x: -6, y: -2.5, z: 2 },
-      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ( ゜-゜ノ)', x: 4, y: -2.3, z: 1 },
-      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯', x: -3, y: -2.4, z: 4 },
-      { nickname: '슬기', message: '새해 복 많이 받으세요', emoji: 'ಠ( ಠ ͜ʖ ಠ )ಠ', x: 5, y: -2.2, z: 3 },
-      { nickname: '예은', message: '모두 건강하고 행복하게!', emoji: '(•̀_•́)', x: -1, y: -2.6, z: 6 },
-      { nickname: '준호', message: '크리스마스 대박!', emoji: 'ლ(•́ o •̀)ლ', x: 2, y: -2.1, z: 5 }
+      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)', x: -6, y: -4.8, z: 2 },
+      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ(  ゚- ゚ノ)', x: 4, y: -4.8, z: 1 },
+      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯', x: -3, y: -4.8, z: 4 },
+      { nickname: '슬기', message: '새해 복 많이 받으세요', emoji: 'ಠ( ಠ ͜ʖ ಠ )ಠ', x: 5, y: -4.8, z: 3 },
+      { nickname: '예은', message: '모두 건강하고 행복하게!', emoji: '(•̀_•́)', x: -1, y: -4.8, z: 6 },
+      { nickname: '준호', message: '크리스마스 대박!', emoji: 'ლ(•́ o •̀)ლ', x: 2, y: -4.8, z: 5 }
     ];
 
     // 트리 이모티콘들 (트리에 실제로 붙여서 배치)
@@ -1734,32 +1763,81 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private animateEmojiEntry(mesh: THREE.Mesh): void {
-    const startScale = 0;
-    const endScale = 1;
-    const duration = 500;
-    let startTime = Date.now();
+    // 1단계: 노란 빛 구체 생성
+    const glowGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    const glowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xFFEB3B,
+      transparent: true,
+      opacity: 0.8
+    });
+    const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+    glowSphere.position.copy(mesh.position);
+    this.emojiScene.add(glowSphere);
+
+    // 이모지는 처음에 투명하게 설정
+    if (mesh.material instanceof THREE.MeshBasicMaterial) {
+      mesh.material.transparent = true;
+      mesh.material.opacity = 0;
+    }
+    mesh.scale.set(0, 0, 0);
+
+    const totalDuration = 1000;
+    const startTime = Date.now();
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min(elapsed / totalDuration, 1);
 
-      const easeOutBounce = (t: number) => {
-        if (t < 1 / 2.75) {
-          return 7.5625 * t * t;
-        } else if (t < 2 / 2.75) {
-          return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
-        } else if (t < 2.5 / 2.75) {
-          return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
-        } else {
-          return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+      if (progress < 0.4) {
+        // 전반부 40%: 노란 빛이 커짐
+        const glowProgress = progress / 0.4;
+        const glowScale = 0.1 + glowProgress * 1.5;
+        glowSphere.scale.set(glowScale, glowScale, glowScale);
+        glowMaterial.opacity = 0.8 * (1 - glowProgress * 0.3);
+      } else {
+        // 후반부 60%: 이모지 등장, 빛 사라짐
+        const emojiProgress = (progress - 0.4) / 0.6;
+
+        // 빛 사라지기
+        if (emojiProgress < 0.5) {
+          glowMaterial.opacity = 0.5 * (1 - emojiProgress * 2);
+          const shrinkScale = 1.6 * (1 - emojiProgress);
+          glowSphere.scale.set(shrinkScale, shrinkScale, shrinkScale);
+        } else if (glowSphere.parent) {
+          this.emojiScene.remove(glowSphere);
         }
-      };
 
-      const scale = startScale + (endScale - startScale) * easeOutBounce(progress);
-      mesh.scale.set(scale, scale, scale);
+        // 이모지 등장 (바운스 효과)
+        const easeOutBounce = (t: number) => {
+          if (t < 1 / 2.75) {
+            return 7.5625 * t * t;
+          } else if (t < 2 / 2.75) {
+            return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
+          } else if (t < 2.5 / 2.75) {
+            return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
+          } else {
+            return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+          }
+        };
+
+        const scale = easeOutBounce(emojiProgress);
+        mesh.scale.set(scale, scale, scale);
+
+        if (mesh.material instanceof THREE.MeshBasicMaterial) {
+          mesh.material.opacity = Math.min(emojiProgress * 1.5, 1);
+        }
+      }
 
       if (progress < 1) {
         requestAnimationFrame(animate);
+      } else {
+        // 정리
+        if (glowSphere.parent) {
+          this.emojiScene.remove(glowSphere);
+        }
+        if (mesh.material instanceof THREE.MeshBasicMaterial) {
+          mesh.material.opacity = 1;
+        }
       }
     };
 
@@ -1807,11 +1885,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           // 기준점에서 작은 원을 그리며 이동 (반지름 1.5)
           const baseX = emojiData.x;
           const baseZ = emojiData.z || 0;
-          emojiData.mesh.position.x = baseX + Math.cos(currentAngle) * 1.5;
-          emojiData.mesh.position.z = baseZ + Math.sin(currentAngle) * 1.5;
+          const newX = baseX + Math.cos(currentAngle) * 1.5;
+          const newZ = baseZ + Math.sin(currentAngle) * 1.5;
+          
+          emojiData.mesh.position.x = newX;
+          emojiData.mesh.position.z = newZ;
 
-          // Y축은 지형 위로 부유하는 효과 (더 높게)
-          emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 2 + index) * 0.3 + 0.5;
+          // Raycast로 바닥 높이 계산
+          const groundHeight = this.getGroundHeight(newX, newZ);
+          
+          // 바닥에서 약간 떠서 부유하는 효과
+          const floatHeight = 0.5 + Math.sin(time * 2 + index) * 0.2;
+          emojiData.mesh.position.y = groundHeight + floatHeight;
         } else {
           // 일반 이모지도 부유하는 효과 추가
           if (emojiData.mesh.userData['nearTree']) {

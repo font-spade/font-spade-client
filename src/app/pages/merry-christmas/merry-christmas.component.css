@@ -19,6 +19,7 @@
   text-align: center;
   width: 90%;
   max-width: 600px;
+  pointer-events: none; /* 헤더 영역의 드래그 방해 방지 */
 }
 
 .christmas-header h1 {
@@ -51,6 +52,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: auto; /* 버튼만 클릭 가능 */
 }
 
 .tree-decorate-btn {
@@ -103,12 +105,17 @@
 /* HTML 메시지 오버레이 스타일 */
 .message-overlay {
   position: absolute;
-  pointer-events: auto;
+  pointer-events: none; /* 기본적으로 이벤트 무시 */
   z-index: 100;
   opacity: 0;
   transform: scale(0.8);
   transition: opacity 0.3s ease, transform 0.3s ease;
   cursor: pointer;
+}
+
+/* 드래그 중이 아닐 때만 클릭 가능 */
+.message-overlay.clickable {
+  pointer-events: auto;
 }
 
 .message-overlay.visible {
@@ -165,6 +172,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+  pointer-events: none; /* 푸터 영역의 드래그 방해 방지 */
 }
 
 .page-indicator {

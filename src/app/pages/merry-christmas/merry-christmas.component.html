@@ -26,6 +26,7 @@
          [style.top.px]="message.screenY"
          [class.visible]="message.visible"
          [class.hiding]="message.hiding"
+         [class.clickable]="!isDragging"
          (click)="onMessageClick(message)">
       <div class="message-bubble">
         <div class="message-nickname">{{message.nickname}}</div>
