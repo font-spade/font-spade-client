@@ -2,7 +2,7 @@
   width: 100%;
   height: 100vh;
   position: relative;
-  background: linear-gradient(135deg, #2A1A3D 0%, #3D2A50 50%, #2A1A3D 100%); /* 파스텔 보라 밤하늘 그라데이션 */
+  background: linear-gradient(135deg, #3F51B5 0%, #5C6BC0 50%, #3F51B5 100%); /* 카툰 브라이트 블루 하늘 그라데이션 */
   overflow: hidden;
 }
 

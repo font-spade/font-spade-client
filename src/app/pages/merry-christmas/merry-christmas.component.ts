@@ -227,13 +227,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 눈 덮인 바닥 재질 (카툰 렌더링)
     const groundMaterial = new THREE.MeshToonMaterial({
-      color: 0xF8E8E8, // 파스텔 핑크-화이트 바닥
+      color: 0xFFFFFF, // 카툰 순백 바닥
       transparent: false
     });
 
     // OutlineEffect 파라미터 설정
     groundMaterial.userData['outlineParameters'] = {
-      thickness: 0.002,
+      thickness: 0.003,
       color: [0.9, 0.95, 0.98], // 눈색에 맞는 밝은 외곽선
       alpha: 0.7,
       visible: true
@@ -262,15 +262,15 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 카툰 렌더링 적용
     const skyMaterial = new THREE.MeshToonMaterial({
-      color: 0x2A1A3D, // 파스텔 보라 하늘
+      color: 0x3F51B5, // 카툰 브라이트 블루 하늘
       side: THREE.BackSide, // 돔 안쪽에서 보이도록
       transparent: false
     });
 
     // OutlineEffect 파라미터 설정
     skyMaterial.userData['outlineParameters'] = {
-      thickness: 0.001,
-      color: [0.16, 0.10, 0.24], // 부드러운 파스텔 보라 외곽선
+      thickness: 0.002,
+      color: [0.1, 0.2, 0.6], // 카툰 브라이트 블루 외곽선
       alpha: 0.4,
       visible: true
     };
@@ -291,7 +291,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < 30; i++) {
       const starGeometry = new THREE.SphereGeometry(0.2, 8, 8); // 크기 증가
       const starMaterial = new THREE.MeshBasicMaterial({
-        color: 0xFFE5B4, // 파스텔 노란색 별
+        color: 0xFFEB3B, // 카툰 브라이트 노란 별
         transparent: false
       });
 
@@ -314,14 +314,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 메인 달 (더 크고 밝게)
     const moonGeometry = new THREE.SphereGeometry(6, 16, 16);
     const moonMaterial = new THREE.MeshBasicMaterial({
-      color: 0xFFE5B4 // 파스텔 노란색 달
+      color: 0xFFEB3B // 카툰 브라이트 노란 달
     });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
     // 그림자 부분 (검은 구로 일부를 가림) - 더 날카로운 초승달을 위해
     const shadowGeometry = new THREE.SphereGeometry(6.5, 16, 16);
     const shadowMaterial = new THREE.MeshBasicMaterial({
-      color: 0x2A1A3D // 파스텔 보라로 가림
+      color: 0x3F51B5 // 카툰 브라이트 블루로 가림
     });
     const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
     shadow.position.x = 4.5; // 더 많이 오른쪽으로 이동하여 날카로운 초승달 모양 만들기
@@ -342,13 +342,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       const size = Math.random() * 0.8 + 0.3; // 0.3~1.1 크기
       const snowballGeometry = new THREE.SphereGeometry(size, 12, 12);
       const snowballMaterial = new THREE.MeshToonMaterial({
-        color: 0xF0F0FF, // 파스텔 라벤더 화이트 눈
+        color: 0xFFFFFF, // 카툰 순백 눈
         transparent: false
       });
 
       // OutlineEffect 파라미터 설정
       snowballMaterial.userData['outlineParameters'] = {
-        thickness: 0.003,
+        thickness: 0.004,
         color: [0.9, 0.95, 0.98], // 밝은 외곽선
         alpha: 0.7,
         visible: true
@@ -377,10 +377,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 눈사람 몸체 재질
     const snowMaterial = new THREE.MeshToonMaterial({
-      color: 0xF0F0FF // 파스텔 라벤더 눈사람
+      color: 0xFFFFFF // 카툰 순백 눈사람
     });
     snowMaterial.userData['outlineParameters'] = {
-      thickness: 0.004,
+      thickness: 0.005,
       color: [0.9, 0.95, 0.98],
       alpha: 0.8,
       visible: true
@@ -405,7 +405,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     snowmanGroup.add(head);
 
     // 눈 (검은 구)
-    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x4A4A6A }); // 파스텔 다크 그레이
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 }); // 카툰 순검정
     const eyeGeometry = new THREE.SphereGeometry(0.08, 8, 8);
 
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
@@ -418,7 +418,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 코 (주황색 원뿔)
     const noseGeometry = new THREE.ConeGeometry(0.08, 0.4, 8);
-    const noseMaterial = new THREE.MeshBasicMaterial({ color: 0xFFB366 }); // 파스텔 오렌지
+    const noseMaterial = new THREE.MeshBasicMaterial({ color: 0xFF9800 }); // 카툰 브라이트 오렌지
     const nose = new THREE.Mesh(noseGeometry, noseMaterial);
     nose.position.set(0, -0.8, 0.85);
     nose.rotation.x = Math.PI / 2;
@@ -426,10 +426,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 모자 (검은 실린더)
     const hatGeometry = new THREE.CylinderGeometry(0.7, 0.7, 0.8);
-    const hatMaterial = new THREE.MeshToonMaterial({ color: 0x4A4A6A }); // 파스텔 그레이
+    const hatMaterial = new THREE.MeshToonMaterial({ color: 0x212121 }); // 카툰 다크 그레이
     hatMaterial.userData['outlineParameters'] = {
       thickness: 0.003,
-      color: [0.3, 0.3, 0.4], // 부드러운 그레이 외곽선
+      color: [0.0, 0.0, 0.0], // 카툰 강한 검정 외곽선
       alpha: 0.8,
       visible: true
     };
@@ -452,9 +452,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
 
     // 팔 (갈색 원뿔)
-    const armMaterial = new THREE.MeshToonMaterial({ color: 0xD2B48C }); // 파스텔 갈색
+    const armMaterial = new THREE.MeshToonMaterial({ color: 0x8D6E63 }); // 카툰 브라운
     armMaterial.userData['outlineParameters'] = {
-      thickness: 0.002,
+      thickness: 0.003,
       color: [0.3, 0.2, 0.1],
       alpha: 0.6,
       visible: true
@@ -508,8 +508,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         color: boxColors[index % boxColors.length]
       });
       boxMaterial.userData['outlineParameters'] = {
-        thickness: 0.003,
-        color: [0.3, 0.3, 0.4], // 부드러운 그레이 외곽선
+        thickness: 0.004,
+        color: [0.0, 0.0, 0.0], // 카툰 강한 검정 외곽선
         alpha: 0.7,
         visible: true
       };
@@ -518,9 +518,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // 리본 (세로)
       const ribbonVGeometry = new THREE.BoxGeometry(0.1, boxSize + 0.1, boxSize + 0.1);
-      const ribbonMaterial = new THREE.MeshToonMaterial({ color: 0xFFB6C1 }); // 파스텔 핑크 리본
+      const ribbonMaterial = new THREE.MeshToonMaterial({ color: 0xE91E63 }); // 카툰 브라이트 핑크 리본
       ribbonMaterial.userData['outlineParameters'] = {
-        thickness: 0.002,
+        thickness: 0.003,
         color: [0.8, 0.7, 0.0],
         alpha: 0.6,
         visible: true
@@ -550,7 +550,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 토끼 몸체
     const bodyGeometry = new THREE.SphereGeometry(0.6, 12, 12);
-    const furMaterial = new THREE.MeshToonMaterial({ color: 0xF5E6D3 }); // 파스텔 크림 터
+    const furMaterial = new THREE.MeshToonMaterial({ color: 0xFFF3E0 }); // 카툰 크림
     furMaterial.userData['outlineParameters'] = {
       thickness: 0.003,
       color: [0.9, 0.9, 0.85],
@@ -580,7 +580,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 토끼 눈
     const eyeGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x4A4A6A }); // 파스텔 다크 그레이
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 }); // 카툰 순검정
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
     leftEye.position.set(-0.15, -3.5, 0.45);
     rabbitGroup.add(leftEye);
@@ -605,10 +605,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 펭귄 몸체 (검은색)
     const penguinBodyGeometry = new THREE.SphereGeometry(0.7, 12, 12);
     penguinBodyGeometry.scale(1, 1.3, 1); // 세로로 늘림
-    const blackMaterial = new THREE.MeshToonMaterial({ color: 0x6A5B73 }); // 파스텔 보라 그레이
+    const blackMaterial = new THREE.MeshToonMaterial({ color: 0x424242 }); // 카툰 다크 그레이
     blackMaterial.userData['outlineParameters'] = {
       thickness: 0.003,
-      color: [0.3, 0.3, 0.4], // 부드러운 그레이 외곽선
+      color: [0.0, 0.0, 0.0], // 카툰 강한 검정 외곽선
       alpha: 0.7,
       visible: true
     };
@@ -619,9 +619,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 펭귄 배 (흰색)
     const bellyGeometry = new THREE.SphereGeometry(0.5, 12, 12);
     bellyGeometry.scale(1, 1.2, 0.8);
-    const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xF8F8FF }); // 파스텔 고스트 화이트
+    const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF }); // 카툰 순백
     whiteMaterial.userData['outlineParameters'] = {
-      thickness: 0.002,
+      thickness: 0.003,
       color: [0.9, 0.9, 0.9],
       alpha: 0.6,
       visible: true
@@ -632,7 +632,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 펭귄 부리
     const beakGeometry = new THREE.ConeGeometry(0.08, 0.2, 8);
-    const beakMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD4AA }); // 파스텔 오렌지
+    const beakMaterial = new THREE.MeshBasicMaterial({ color: 0xFF9800 }); // 카툰 브라이트 오렌지
     const beak = new THREE.Mesh(beakGeometry, beakMaterial);
     beak.position.set(0, -3.4, 0.6);
     beak.rotation.x = Math.PI / 2;
@@ -649,9 +649,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // 캔디케인 막대
       const stickGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.5);
-      const stickMaterial = new THREE.MeshToonMaterial({ color: 0xFFB3BA }); // 파스텔 레드
+      const stickMaterial = new THREE.MeshToonMaterial({ color: 0xF44336 }); // 카툰 브라이트 레드
       stickMaterial.userData['outlineParameters'] = {
-        thickness: 0.002,
+        thickness: 0.003,
         color: [0.5, 0.0, 0.0],
         alpha: 0.6,
         visible: true
@@ -683,9 +683,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       const miniTreeGroup = new THREE.Group();
 
       const treeGeometry = new THREE.ConeGeometry(0.4, 0.8, 8);
-      const treeMaterial = new THREE.MeshToonMaterial({ color: 0x98D982 }); // 파스텔 그린
+      const treeMaterial = new THREE.MeshToonMaterial({ color: 0x4CAF50 }); // 카툰 브라이트 그린
       treeMaterial.userData['outlineParameters'] = {
-        thickness: 0.002,
+        thickness: 0.003,
         color: [0.0, 0.3, 0.0],
         alpha: 0.6,
         visible: true
@@ -740,7 +740,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         treeGroup.traverse((child: any) => {
           if (child instanceof THREE.Mesh) {
             // 기존 재질의 색상 가져오기
-            const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0xB8E6B8);
+            const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0x4CAF50);
             // 카툰 재질로 교체
             child.material = new THREE.MeshToonMaterial({
               color: originalColor
@@ -748,7 +748,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
             // OutlineEffect 파라미터 설정
             child.material.userData['outlineParameters'] = {
-              thickness: 0.006,
+              thickness: 0.002,
               color: [0, 0.3, 0],
               alpha: 0.9,
               visible: true
@@ -793,11 +793,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       const geometry = new THREE.ConeGeometry(layer.radius, layer.height, 8);
       let color;
       if (index === 0) {
-        color = 0xB8E6B8; // 더 연한 파스텔 그린 최상단
+        color = 0x4CAF50; // 카툰 브라이트 그린 최상단
       } else if (index === 1) {
         color = 0x9DD3C8; // 중간
       } else {
-        color = 0xC8F0C8; // 더 연한 파스텔 밝은 그린 최하단
+        color = 0x66BB6A; // 카툰 브라이트 그린 중간
       }
       const material = new THREE.MeshToonMaterial({
         color
@@ -805,8 +805,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // OutlineEffect 파라미터 설정
       material.userData['outlineParameters'] = {
-        thickness: 0.004,
-        color: [0.5, 0.7, 0.5], // 부드러운 그린 외곽선
+        thickness: 0.005,
+        color: [0.1, 0.4, 0.1], // 카툰 강한 그린 외곽선
         alpha: 0.8,
         visible: true
       };
@@ -819,13 +819,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1.2);
     const trunkMaterial = new THREE.MeshToonMaterial({
-      color: 0xD2B48C // 파스텔 탄 갈색
+      color: 0x8D6E63 // 카툰 브라운
     });
 
     // OutlineEffect 파라미터 설정
     trunkMaterial.userData['outlineParameters'] = {
-      thickness: 0.005,
-      color: [0.6, 0.5, 0.4], // 부드러운 갈색 외곽선
+      thickness: 0.006,
+      color: [0.3, 0.2, 0.1], // 카툰 강한 갈색 외곽선
       alpha: 0.8,
       visible: true
     };
@@ -836,7 +836,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 노란색 별 꼭대기 장식
     const starGeometry = new THREE.ConeGeometry(0.3, 0.8, 5);
-    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFE5B4 }); // 파스텔 황금색
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFEB3B }); // 카툰 브라이트 노란
     const star = new THREE.Mesh(starGeometry, starMaterial);
     star.position.set(0, 3.5, 0);
     treeGroup.add(star);
@@ -950,7 +950,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
             backgroundTreeGroup.traverse((child: any) => {
               if (child instanceof THREE.Mesh) {
                 // 기존 재질의 색상 가져오기
-                const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0xB8E6B8);
+                const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0x4CAF50);
                 // 카툰 재질로 교체
                 child.material = new THREE.MeshToonMaterial({
                   color: originalColor
@@ -958,8 +958,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
                 // OutlineEffect 파라미터 설정
                 child.material.userData['outlineParameters'] = {
-                  thickness: 0.005,
-                  color: [0.5, 0.7, 0.5], // 부드러운 그린 외곽선
+                  thickness: 0.006,
+                  color: [0.1, 0.4, 0.1], // 카툰 강한 그린 외곽선
                   alpha: 0.7,
                   visible: true
                 };
@@ -1004,11 +1004,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       const geometry = new THREE.ConeGeometry(layer.radius, layer.height, 8);
       let color;
       if (layerIndex === 0) {
-        color = 0xB8E6B8; // 더 연한 파스텔 그린 최상단
+        color = 0x4CAF50; // 카툰 브라이트 그린 최상단
       } else if (layerIndex === 1) {
         color = 0x9DD3C8; // 중간
       } else {
-        color = 0xC8F0C8; // 더 연한 파스텔 밝은 그린 최하단
+        color = 0x66BB6A; // 카툰 브라이트 그린 중간
       }
       const material = new THREE.MeshToonMaterial({
         color
@@ -1016,7 +1016,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // OutlineEffect 파라미터 설정
       material.userData['outlineParameters'] = {
-        thickness: 0.003,
+        thickness: 0.004,
         color: [0, 0.1, 0],
         alpha: 0.6,
         visible: true
@@ -1030,12 +1030,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.25, 0.8);
     const trunkMaterial = new THREE.MeshToonMaterial({
-      color: 0xD2B48C // 파스텔 탄 갈색
+      color: 0x8D6E63 // 카툰 브라운
     });
 
     // OutlineEffect 파라미터 설정
     trunkMaterial.userData['outlineParameters'] = {
-      thickness: 0.004,
+      thickness: 0.005,
       color: [0.1, 0.05, 0],
       alpha: 0.6,
       visible: true
@@ -1047,7 +1047,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 노란색 별 꼭대기 장식
     const starGeometry = new THREE.ConeGeometry(0.2, 0.5, 5);
-    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFE5B4 }); // 파스텔 황금색
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFEB3B }); // 카툰 브라이트 노란
     const star = new THREE.Mesh(starGeometry, starMaterial);
     star.position.set(0, 2.3, 0);
     backgroundTreeGroup.add(star);
@@ -1767,7 +1767,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 별 모양 이펙트 생성
     const starGeometry = new THREE.ConeGeometry(0.3, 1, 5);
     const starMaterial = new THREE.MeshLambertMaterial({
-      color: 0xFFE5B4, // 파스텔 황금색
+      color: 0xFFEB3B, // 카툰 브라이트 노란
       emissive: 0xffaa00,
       emissiveIntensity: 0.5
     });
