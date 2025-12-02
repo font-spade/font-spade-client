@@ -1122,6 +1122,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003;
       mesh.userData['moveAngle'] = Math.random() * Math.PI * 2;
       mesh.userData['isTypography'] = true;
+      // 사인 그래프 움직임을 위한 새 파라미터들
+      mesh.userData['sinePhase'] = Math.random() * Math.PI * 2; // 사인 파형 위상
+      mesh.userData['sineAmplitude'] = 0.5 + Math.random() * 1.0; // 사인 파형 진폭 (0.5-1.5)
+      mesh.userData['sineFrequency'] = 0.8 + Math.random() * 0.4; // 사인 파형 주파수 (0.8-1.2)
+      mesh.userData['previousX'] = x; // 이전 위치 (방향 계산용)
+      mesh.userData['previousZ'] = z || 0;
 
       this.emojis.push({
         mesh,
@@ -1740,6 +1746,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003; // 0.002-0.005 속도로 이동
         mesh.userData['moveAngle'] = Math.random() * Math.PI * 2; // 랜덤 초기 각도
         mesh.userData['isTypography'] = true; // 타이포그래피 표시
+        // 사인 그래프 움직임을 위한 새 파라미터들
+        mesh.userData['sinePhase'] = Math.random() * Math.PI * 2; // 사인 파형 위상
+        mesh.userData['sineAmplitude'] = 0.5 + Math.random() * 1.0; // 사인 파형 진폭 (0.5-1.5)
+        mesh.userData['sineFrequency'] = 0.8 + Math.random() * 0.4; // 사인 파형 주파수 (0.8-1.2)
+        mesh.userData['previousX'] = msg.x; // 이전 위치 (방향 계산용)
+        mesh.userData['previousZ'] = msg.z || 0;
 
         this.emojis.push({
           mesh,
@@ -1895,29 +1907,52 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     this.emojis.forEach((emojiData, index) => {
       if (emojiData.mesh.userData['originalY'] !== undefined) {
-        // 타이포그래피 이모지 움직임 애니메이션
+        // 타이포그래피 이모지 사인 그래프 움직임 애니메이션
         if (emojiData.mesh.userData['isTypography']) {
           const moveSpeed = emojiData.mesh.userData['moveSpeed'];
-          const moveAngle = emojiData.mesh.userData['moveAngle'];
+          const sinePhase = emojiData.mesh.userData['sinePhase'];
+          const sineAmplitude = emojiData.mesh.userData['sineAmplitude'];
+          const sineFrequency = emojiData.mesh.userData['sineFrequency'];
+          const previousX = emojiData.mesh.userData['previousX'];
+          const previousZ = emojiData.mesh.userData['previousZ'];
 
-          // 원형으로 천천히 움직이기
+          // 기본 이동 방향 각도 업데이트
           emojiData.mesh.userData['moveAngle'] += moveSpeed;
           const currentAngle = emojiData.mesh.userData['moveAngle'];
 
-          // 기준점에서 작은 원을 그리며 이동 (반지름 1.5)
-          const baseX = emojiData.x;
-          const baseZ = emojiData.z || 0;
-          const newX = baseX + Math.cos(currentAngle) * 1.5;
-          const newZ = baseZ + Math.sin(currentAngle) * 1.5;
+          // 기본 직선 이동
+          const baseX = emojiData.x + Math.cos(currentAngle) * 2.0;
+          const baseZ = (emojiData.z || 0) + Math.sin(currentAngle) * 2.0;
 
+          // 사인 그래프 형태로 좌우 흔들림 추가
+          const sineOffset = Math.sin(time * sineFrequency + sinePhase) * sineAmplitude;
+          const perpAngle = currentAngle + Math.PI / 2; // 수직 방향
+          
+          const newX = baseX + Math.cos(perpAngle) * sineOffset;
+          const newZ = baseZ + Math.sin(perpAngle) * sineOffset;
+
+          // 방향 변화 계산 및 회전
+          const deltaX = newX - previousX;
+          const deltaZ = newZ - previousZ;
+          if (Math.abs(deltaX) > 0.001 || Math.abs(deltaZ) > 0.001) {
+            const directionAngle = Math.atan2(deltaZ, deltaX);
+            emojiData.mesh.rotation.y = directionAngle;
+          }
+
+          // 위치 업데이트
           emojiData.mesh.position.x = newX;
           emojiData.mesh.position.z = newZ;
+
+          // 이전 위치 저장
+          emojiData.mesh.userData['previousX'] = newX;
+          emojiData.mesh.userData['previousZ'] = newZ;
 
           // Raycast로 바닥 높이 계산
           const groundHeight = this.getGroundHeight(newX, newZ);
 
-          // 바닥에서 약간 떠서 부유하는 효과
-          const floatHeight = 0.5 + Math.sin(time * 2 + index) * 0.2;
+          // 사인 그래프 형태의 위아래 움직임
+          const verticalSine = Math.sin(time * sineFrequency * 1.5 + sinePhase) * 0.3;
+          const floatHeight = 0.5 + verticalSine;
           emojiData.mesh.position.y = groundHeight + floatHeight;
         } else {
           // 일반 이모지도 부유하는 효과 추가
