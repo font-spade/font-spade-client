@@ -1,5 +1,6 @@
 <div>
-  <div class="z-10 w-auto mx-auto flex items-center ">
+  <!-- 햄버거 메뉴 버튼 -->
+  <div class="relative z-50">
     <div (click)="isOpen = !isOpen" class='rounded-full border px-2.5 py-2.5 text-center text-sm font-semibold transition-colors border-gray-500 text-sm transition-colors active:border-white active:bg-black active:text-white sm:hover:border-white sm:hover:bg-black sm:hover:text-white'>
       <div class="flex items-center h-[20px] w-[20px] text-center justify-center">
         <app-menu-icon [isOpen]="isOpen"></app-menu-icon>
@@ -7,31 +8,77 @@
     </div>
   </div>
 
-  <ul class="absolute min-h-[720px] ml-4 lr-4 right-0 flex w-full
-              flex-col divide-y overflow-hidden rounded-lg
-              bg-white shadow-md focus:ring-black ng-tns-c1097677772-0
-              ng-trigger ng-trigger-showHideAnimation ng-star-inserted z-10"
-      *ngIf="isOpen">
-    <li class="p-2">
-<!--      <button [routerLink]="'/intro'" (click)="isOpen = !isOpen"  class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">-->
-<!--        Intro-->
-<!--      </button>-->
-      <button [routerLink]="'/emoticon-generate'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Emoticons
-      </button>
-      <button [routerLink]="'/emoji-generate'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Emoji Generator
-      </button>
-      <button [routerLink]="'/ascii-art'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Text Art
-      </button>
-      <button [routerLink]="'/image-ascii-art'" (click)="isOpen = !isOpen" class="w-full rounded-md p-2 text-left font-medium text-gray-600 hover:bg-gray-200">
-        Image Text Art
-      </button>
-<!--      <app-locale-list-box></app-locale-list-box>-->
-    </li>
-  </ul>
+  <!-- 백그라운드 오버레이 -->
   <div
-    *ngIf="isOpen" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity mt-[133px]">
+    *ngIf="isOpen" 
+    (click)="isOpen = false"
+    class="fixed inset-0 bg-black bg-opacity-50 transition-opacity z-40">
   </div>
+
+  <!-- 왼쪽 슬라이드 메뉴 -->
+  <nav 
+    class="fixed top-0 left-0 h-full w-80 max-w-[80vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50"
+    [class.translate-x-0]="isOpen"
+    [class.-translate-x-full]="!isOpen">
+    
+    <!-- 메뉴 헤더 -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Menu</h2>
+      <button 
+        (click)="isOpen = false"
+        class="p-2 rounded-md hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 메뉴 아이템들 -->
+    <ul class="py-4">
+      <li>
+        <button 
+          [routerLink]="'/emoticon-generate'" 
+          (click)="isOpen = false" 
+          class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-3">😊</span>
+            <span>Emoticons</span>
+          </div>
+        </button>
+      </li>
+      <li>
+        <button 
+          [routerLink]="'/emoji-generate'" 
+          (click)="isOpen = false" 
+          class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-3">🎨</span>
+            <span>Emoji Generator</span>
+          </div>
+        </button>
+      </li>
+      <li>
+        <button 
+          [routerLink]="'/ascii-art'" 
+          (click)="isOpen = false" 
+          class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-3">🔤</span>
+            <span>Text Art</span>
+          </div>
+        </button>
+      </li>
+      <li>
+        <button 
+          [routerLink]="'/image-ascii-art'" 
+          (click)="isOpen = false" 
+          class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-3">🖼️</span>
+            <span>Image Text Art</span>
+          </div>
+        </button>
+      </li>
+    </ul>
+  </nav>
 </div>
