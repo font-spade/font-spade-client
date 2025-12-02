@@ -135,7 +135,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 지평선 느낌의 평평한 흰색 바닥
     const groundGeometry = new THREE.PlaneGeometry(100, 100);
     const groundMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff, // 흰색
+      color: 0xCCDFDE, // 연한 민트색
       transparent: false
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
@@ -153,18 +153,24 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private createChristmasTree(): void {
     const treeGroup = new THREE.Group();
 
-    // 5단 구조의 청록색 트리
+    // 3단 구조의 귀여운 트리
     const treeLayers = [
-      { radius: 1.0, height: 1.5, y: 2.5 }, // 1층 (최상단)
-      { radius: 1.5, height: 1.8, y: 1.2 }, // 2층
-      { radius: 2.0, height: 2.0, y: -0.3 }, // 3층
-      { radius: 2.5, height: 2.2, y: -2.0 }, // 4층
-      { radius: 3.0, height: 2.5, y: -3.8 }  // 5층 (최하단)
+      { radius: 1.0, height: 1.5, y: 1.5 }, // 1층 (최상단)
+      { radius: 1.8, height: 2.0, y: 0 }, // 2층 (중간)
+      { radius: 2.5, height: 2.5, y: -1.8 }  // 3층 (최하단)
     ];
 
-    treeLayers.forEach(layer => {
+    treeLayers.forEach((layer, index) => {
       const geometry = new THREE.ConeGeometry(layer.radius, layer.height, 8);
-      const material = new THREE.MeshLambertMaterial({ color: 0x20b2aa }); // 청록색
+      let color;
+      if (index === 0) {
+        color = 0x45997D; // 최상단
+      } else if (index === 1) {
+        color = 0x9DD3C8; // 중간
+      } else {
+        color = 0x55AD94; // 최하단
+      }
+      const material = new THREE.MeshLambertMaterial({ color });
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(0, layer.y, 0);
       cone.castShadow = true;
@@ -174,16 +180,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1.2);
-    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x564338 }); // 어두운 갈색
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-    trunk.position.set(0, -5.2, 0);
+    trunk.position.set(0, -3.8, 0); // 트리를 더 위로 올려서 바닥에서 나오게 함
     trunk.castShadow = true;
     trunk.receiveShadow = true;
     treeGroup.add(trunk);
 
     // 노란색 별 꼭대기 장식
     const starGeometry = new THREE.ConeGeometry(0.3, 0.8, 5);
-    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xE8C971 }); // 따뜻한 황금색
     const star = new THREE.Mesh(starGeometry, starMaterial);
     star.position.set(0, 3.5, 0);
     treeGroup.add(star);
@@ -191,8 +197,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 트리 장식품들 배치
     this.addTreeDecorations(treeGroup);
 
-    // 트리를 중앙에 1.5배 크기로 배치
-    treeGroup.position.set(0, 0, 0);
+    // 트리를 중앙에 1.5배 크기로 배치 (더 위로 올림)
+    treeGroup.position.set(0, 1.8, 0);
     treeGroup.scale.set(1.5, 1.5, 1.5);
     this.scene.add(treeGroup);
   }
@@ -204,7 +210,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < 200; i++) {
       const snowflakeGeometry = new THREE.SphereGeometry(0.04, 6, 6);
       const snowflakeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: 0xFDFEFE, // 약간 따뜻한 흰색
         transparent: true,
         opacity: 0.8
       });
@@ -228,34 +234,31 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private addTreeDecorations(treeGroup: THREE.Group): void {
-    // 텍스트 메시지들과 장식 오브젝트들을 각 층에 배치
+    // 텍스트 메시지들과 장식 오브젝트들을 3층에 배치
     const decorations = [
       // 1층 (최상단)
-      { text: "루무모 메리크리스마스", y: 2.5, angle: 0, type: 'text' },
-      { type: 'santa', y: 2.3, angle: Math.PI / 3, color: 0xff0000 },
-      { type: 'candle', y: 2.4, angle: -Math.PI / 3, color: 0xff4444 },
+      { text: "루무모 메리크리스마스", y: 1.5, angle: 0, type: 'text' },
+      { type: 'santa', y: 1.3, angle: Math.PI / 3, color: 0xff0000 },
+      { type: 'candle', y: 1.4, angle: -Math.PI / 3, color: 0xff4444 },
 
-      // 2층
-      { text: "나은", y: 1.2, angle: 0, type: 'text' },
-      { type: 'snowman', y: 1.0, angle: Math.PI / 2, color: 0xffffff },
-      { type: 'angel', y: 1.1, angle: -Math.PI / 2, color: 0xffd700 },
-      { type: 'car', y: 1.0, angle: Math.PI, color: 0xff0000 },
+      // 2층 (중간)
+      { text: "나은", y: 0, angle: 0, type: 'text' },
+      { type: 'snowman', y: -0.2, angle: Math.PI / 2, color: 0xFDFEFE },
+      { type: 'angel', y: -0.1, angle: -Math.PI / 2, color: 0xE8C971 },
+      { type: 'car', y: -0.2, angle: Math.PI, color: 0xff0000 },
+      { text: "사랑해요", y: 0.1, angle: Math.PI / 4, type: 'text' },
 
-      // 3층
-      { text: "사랑해요", y: -0.3, angle: -Math.PI / 4, type: 'text' },
-      { type: 'bottle', y: -0.5, angle: 0, color: 0x00ff00 },
-      { text: "고마워요", y: -0.4, angle: Math.PI / 4, type: 'text' },
-      { text: "이쁜이", y: -0.2, angle: 3 * Math.PI / 4, type: 'text' },
-
-      // 4층
-      { type: 'snowglobe', y: -2.0, angle: -Math.PI / 2, color: 0x87ceeb },
-      { text: "화이팅", y: -1.8, angle: 0, type: 'text' },
-      { type: 'snowglobe', y: -2.0, angle: Math.PI / 2, color: 0x87ceeb },
+      // 3층 (최하단)
+      { type: 'bottle', y: -1.8, angle: 0, color: 0x00ff00 },
+      { text: "고마워요", y: -1.6, angle: Math.PI / 4, type: 'text' },
+      { text: "이쁜이", y: -1.7, angle: -Math.PI / 4, type: 'text' },
+      { type: 'snowglobe', y: -1.9, angle: Math.PI / 2, color: 0x87ceeb },
+      { text: "화이팅", y: -1.5, angle: 3 * Math.PI / 4, type: 'text' },
 
       // 하단부 - 노란 전구
-      { type: 'light', y: -3.8, angle: 0, color: 0xffff00 },
-      { type: 'light', y: -3.9, angle: Math.PI / 3, color: 0xffff00 },
-      { type: 'light', y: -3.9, angle: -Math.PI / 3, color: 0xffff00 },
+      { type: 'light', y: -2.5, angle: 0, color: 0xffff00 },
+      { type: 'light', y: -2.6, angle: Math.PI / 3, color: 0xffff00 },
+      { type: 'light', y: -2.6, angle: -Math.PI / 3, color: 0xffff00 },
     ];
 
     decorations.forEach(decoration => {
@@ -346,12 +349,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private getTreeRadiusAtHeight(height: number): number {
-    // 높이에 따른 트리 반지름 계산
-    if (height > 2.0) return 1.0;      // 1층
-    else if (height > 0.5) return 1.5;  // 2층
-    else if (height > -1.0) return 2.0;  // 3층
-    else if (height > -2.5) return 2.5;  // 4층
-    else return 3.0;                    // 5층
+    // 높이에 따른 트리 반지름 계산 (3단 트리)
+    if (height > 0.8) return 1.0;      // 1층 (최상단)
+    else if (height > -0.8) return 1.8;  // 2층 (중간)
+    else return 2.5;                    // 3층 (최하단)
   }
 
   private createBackgroundTrees(): void {
@@ -360,18 +361,24 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       for (let i = 0; i < 2; i++) {
         const backgroundTreeGroup = new THREE.Group();
         
-        // 5단 구조의 청록색 트리 (메인과 동일)
+        // 3단 구조의 귀여운 트리 (메인과 동일)
         const treeLayers = [
-          { radius: 0.7, height: 1.0, y: 1.8 },
-          { radius: 1.0, height: 1.2, y: 0.8 },
-          { radius: 1.3, height: 1.4, y: -0.2 },
-          { radius: 1.6, height: 1.6, y: -1.3 },
-          { radius: 1.9, height: 1.8, y: -2.5 }
+          { radius: 0.7, height: 1.0, y: 1.0 }, // 최상단
+          { radius: 1.2, height: 1.4, y: 0 }, // 중간  
+          { radius: 1.7, height: 1.8, y: -1.2 } // 최하단
         ];
 
-        treeLayers.forEach(layer => {
+        treeLayers.forEach((layer, layerIndex) => {
           const geometry = new THREE.ConeGeometry(layer.radius, layer.height, 8);
-          const material = new THREE.MeshLambertMaterial({ color: 0x20b2aa }); // 청록색
+          let color;
+          if (layerIndex === 0) {
+            color = 0x45997D; // 최상단
+          } else if (layerIndex === 1) {
+            color = 0x9DD3C8; // 중간
+          } else {
+            color = 0x55AD94; // 최하단
+          }
+          const material = new THREE.MeshLambertMaterial({ color });
           const cone = new THREE.Mesh(geometry, material);
           cone.position.set(0, layer.y, 0);
           cone.castShadow = true;
@@ -381,23 +388,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
         // 갈색 나무 기둥
         const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.25, 0.8);
-        const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+        const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x564338 }); // 어두운 갈색
         const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(0, -3.2, 0);
+        trunk.position.set(0, -1.8, 0); // 배경 트리도 더 위로 올림
         trunk.castShadow = true;
         trunk.receiveShadow = true;
         backgroundTreeGroup.add(trunk);
 
         // 노란색 별 꼭대기 장식
         const starGeometry = new THREE.ConeGeometry(0.2, 0.5, 5);
-        const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+        const starMaterial = new THREE.MeshBasicMaterial({ color: 0xE8C971 }); // 따뜻한 황금색
         const star = new THREE.Mesh(starGeometry, starMaterial);
         star.position.set(0, 2.3, 0);
         backgroundTreeGroup.add(star);
         
         const x = (side === 0 ? -15 : 15) + (Math.random() - 0.5) * 3;
         const z = -10 + Math.random() * 4;
-        backgroundTreeGroup.position.set(x, 1, z);
+        backgroundTreeGroup.position.set(x, 2.2, z); // 배경 트리도 더 위로 올림
         backgroundTreeGroup.scale.set(0.8, 0.8, 0.8); // 메인보다 약간 작게
         
         // 배경 트리 이름 라벨 데이터 저장
@@ -855,11 +862,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       y: event.clientY - this.previousMousePosition.y
     };
     
-    this.cameraAngleY -= deltaMove.x * 0.005;
-    this.cameraAngleX -= deltaMove.y * 0.005;
+    this.cameraAngleY -= deltaMove.x * 0.001; // 감도를 1/5로 줄임
+    this.cameraAngleX -= deltaMove.y * 0.001; // 감도를 1/5로 줄임
     
-    // 수직 각도 제한
-    this.cameraAngleX = Math.max(0.1, Math.min(Math.PI - 0.1, this.cameraAngleX));
+    // 수직 각도 제한 (위에서 아래로 더 제한적으로)
+    this.cameraAngleX = Math.max(0.2, Math.min(Math.PI * 0.7, this.cameraAngleX));
     
     this.previousMousePosition = {
       x: event.clientX,
@@ -891,11 +898,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       y: event.touches[0].clientY - this.previousMousePosition.y
     };
     
-    this.cameraAngleY -= deltaMove.x * 0.005;
-    this.cameraAngleX -= deltaMove.y * 0.005;
+    this.cameraAngleY -= deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
+    this.cameraAngleX -= deltaMove.y * 0.001; // 터치 감도를 1/5로 줄임
     
-    // 수직 각도 제한
-    this.cameraAngleX = Math.max(0.1, Math.min(Math.PI - 0.1, this.cameraAngleX));
+    // 수직 각도 제한 (위에서 아래로 더 제한적으로)
+    this.cameraAngleX = Math.max(0.2, Math.min(Math.PI * 0.7, this.cameraAngleX));
     
     this.previousMousePosition = {
       x: event.touches[0].clientX,
@@ -917,7 +924,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 별 모양 이펙트 생성
     const starGeometry = new THREE.ConeGeometry(0.3, 1, 5);
     const starMaterial = new THREE.MeshLambertMaterial({ 
-      color: 0xffd700,
+      color: 0xE8C971, // 따뜻한 황금색
       emissive: 0xffaa00,
       emissiveIntensity: 0.5
     });
@@ -930,7 +937,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < 10; i++) {
       const particleGeometry = new THREE.SphereGeometry(0.05, 8, 8);
       const particleMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0xffffff,
+        color: 0xFDFEFE, // 약간 따뜻한 흰색
         transparent: true,
         opacity: 0.8
       });
