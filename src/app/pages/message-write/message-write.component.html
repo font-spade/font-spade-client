@@ -94,22 +94,19 @@
         <!-- 필드 배치: 타이포그래피 생성기 -->
         <div *ngIf="placementType === 'field'" class="typography-generator">
           <div class="typography-preview">
-            <div class="generated-emoji" (click)="selectTypographyEmoji()">
-              {{generatedTypographyEmoji || '( ͡° ͜ʖ ͡°)'}}
-            </div>
-            <div class="typography-actions">
-              <button type="button" class="randomize-btn" (click)="randomizeTypographySelection()">
+            <div class="typography-header">
+              <span class="typography-title">타이포그래피 이모지 생성</span>
+              <button type="button" class="randomize-btn" (click)="randomizeAndSelectTypographyEmoji()">
                 🎲 랜덤 생성
               </button>
-              <button type="button" class="select-typography-btn" (click)="selectTypographyEmoji()">
-                ✓ 선택하기
-              </button>
+            </div>
+            <div class="generated-emoji" (click)="selectTypographyEmoji()">
+              {{generatedTypographyEmoji || '( ͡° ͜ʖ ͡°)'}}
             </div>
           </div>
 
           <div class="typography-controls">
             <div class="control-section">
-              <h4>팔/귀</h4>
               <div class="glyph-horizontal-scroll">
                 <button
                   type="button"
@@ -123,7 +120,6 @@
             </div>
 
             <div class="control-section">
-              <h4>눈</h4>
               <div class="glyph-horizontal-scroll">
                 <button
                   type="button"
@@ -137,7 +133,6 @@
             </div>
 
             <div class="control-section">
-              <h4>입</h4>
               <div class="glyph-horizontal-scroll">
                 <button
                   type="button"

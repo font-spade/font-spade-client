@@ -200,7 +200,7 @@
   padding: 30px;
   text-align: center;
   position: relative;
-  max-width: 400px;
+  max-width: 620px;
   width: 90%;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: popupSlideIn 0.3s ease;
@@ -277,22 +277,22 @@
   .christmas-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .header-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .tree-decorate-btn, .star-btn {
     width: auto;
     min-width: 120px;
   }
-  
+
   .popup-content {
     margin: 20px;
     padding: 20px;
   }
-  
+
   .emoji-large {
     font-size: 3rem;
   }

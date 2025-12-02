@@ -1,22 +1,22 @@
 .message-write-container {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, #0a1f0a 0%, #1a3d1a 50%, #0a1f0a 100%);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px 20px 100px 20px;
+  z-index: 1000;
   overflow-y: auto;
 }
 
 .write-form-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   width: 100%;
-  max-width: 500px;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
   animation: slideInUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideInUp {
@@ -36,6 +36,7 @@
   padding: 20px;
   text-align: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .form-header h2 {
@@ -69,6 +70,9 @@
 
 .message-form {
   padding: 30px;
+  padding-bottom: 100px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -211,8 +215,7 @@
   transform: translateY(-10px);
   pointer-events: none;
   transition: all 0.3s ease;
-  max-height: 500px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .emoji-picker.show {
@@ -261,8 +264,6 @@
   grid-template-columns: repeat(8, 1fr);
   gap: 5px;
   padding: 15px;
-  max-height: 200px;
-  overflow-y: auto;
 }
 
 /* Typography Emoji Generator Styles */
@@ -274,10 +275,22 @@
 }
 
 .typography-preview {
-  text-align: center;
   padding: 20px;
   border-bottom: 1px solid #ecf0f1;
   margin-bottom: 15px;
+}
+
+.typography-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.typography-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2c3e50;
 }
 
 .generated-emoji {
@@ -286,10 +299,10 @@
   background: #f8f9fa;
   padding: 15px;
   border-radius: 10px;
-  margin-bottom: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
+  text-align: center;
 }
 
 .generated-emoji:hover {
@@ -297,28 +310,17 @@
   border-color: #3498db;
 }
 
-.typography-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.randomize-btn,
-.select-typography-btn {
-  padding: 10px 20px;
+.randomize-btn {
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.randomize-btn {
   background: #6c757d;
   color: white;
 }
@@ -329,19 +331,7 @@
   box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
 }
 
-.select-typography-btn {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-}
-
-.select-typography-btn:hover {
-  background: linear-gradient(135deg, #218838, #1e9c82);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
-}
-
 .typography-controls {
-  max-height: none;
   overflow: visible;
 }
 
@@ -489,17 +479,16 @@
 }
 
 @media (max-width: 768px) {
-  .message-write-container {
-    padding: 20px 10px 150px 10px;
-    align-items: flex-start;
-  }
-
-  .write-form-card {
-    max-width: 100%;
-  }
-
   .message-form {
     padding: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-header h2 {
+    font-size: 1.3rem;
   }
 
   .emoji-grid {
@@ -523,7 +512,15 @@
   }
 
   .form-actions {
-    flex-direction: column;
+    margin-top: 20px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px 20px;
+    background: white;
+    border-top: 1px solid #ecf0f1;
+    z-index: 1001;
   }
 
   .placement-tab {
@@ -536,18 +533,18 @@
   }
 
   .typography-controls {
-    max-height: 200px;
+    overflow: visible;
   }
 
-  .glyph-grid {
-    grid-template-columns: repeat(3, 1fr);
-    max-height: 100px;
+  .typography-header {
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
   }
 
-  .glyph-btn {
-    padding: 6px;
-    font-size: 0.8rem;
-    min-height: 30px;
+  .typography-title {
+    flex: 1;
+    font-size: 0.9rem;
   }
 
   .generated-emoji {
@@ -555,14 +552,59 @@
     padding: 10px;
   }
 
-  .typography-actions {
-    flex-direction: column;
-    gap: 8px;
+  .randomize-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
   }
 
-  .randomize-btn,
-  .select-typography-btn {
-    padding: 8px 16px;
-    font-size: 0.8rem;
+  .emoji-picker {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-form {
+    padding: 15px;
+    padding-bottom: 80px;
+  }
+
+  .form-header {
+    padding: 15px;
+  }
+
+  .form-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .placement-tab {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+  }
+
+  .emoji-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .typography-generator {
+    padding: 12px;
+  }
+
+  .typography-controls {
+    overflow: visible;
+  }
+
+  .generated-emoji {
+    font-size: 1.3rem;
+    padding: 8px;
+  }
+
+  .typography-title {
+    font-size: 0.85rem;
+  }
+
+  .randomize-btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
   }
 }

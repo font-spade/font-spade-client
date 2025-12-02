@@ -224,6 +224,14 @@ export class MessageWriteComponent implements OnInit {
     }
   }
 
+  randomizeAndSelectTypographyEmoji(): void {
+    this.randomizeTypographySelection();
+    const typographyEmoji = this.generatedTypographyEmoji.trim();
+    if (typographyEmoji) {
+      this.selectedEmoji = typographyEmoji;
+    }
+  }
+
   setPlacementType(type: 'tree' | 'field'): void {
     this.placementType = type;
     this.selectedEmoji = '';

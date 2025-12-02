@@ -57,7 +57,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private previousMousePosition = { x: 0, y: 0 };
   private cameraRadius = 20; // 초기에 더 멀리서 시작
   private cameraAngleX = Math.PI / 2; // 트리를 정면에서 바라보는 각도
-  private cameraAngleY = 0; // 수평 각도 (정면)
+  private cameraAngleY = 1.8; // 수평 각도 (180도, 뒤쪽에서 시작)
 
   // 줌 컨트롤
   private minCameraRadius = 8; // 최대 줌인
@@ -69,6 +69,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   // 등록 이펙트
   private registrationEffect: THREE.Mesh | null = null;
   private newlyRegisteredEmoji: any = null;
+
+  // 불꽃 효과
+  private fireworks: THREE.Group[] = [];
+  private lastFireworkTime = 0;
+  private fireworkInterval = 4000; // 6초마다 불꽃 발사
+  private lastTime = 0;
 
   visibleMessages: Array<{
     id: string;
@@ -140,7 +146,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 그림자 비활성화
     this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.toneMappingExposure = 1.8;
 
     // OutlineEffect 초기화
     if (OutlineEffectClass) {
@@ -158,7 +164,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 초기 카메라 설정 (터치 컨트롤로 제어됨)
     this.cameraAngleX = Math.PI / 2; // 정면에서 바라보는 각도
-    this.cameraAngleY = 0;
+    this.cameraAngleY = 1.2; // 초기 180도 회전 (뒤쪽에서 시작)
     this.updateCameraPosition();
 
     const canvas = this.renderer.domElement;
@@ -283,7 +289,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     this.createStars();
 
     // 초승달 추가
-    this.createCrescentMoon();
+    // this.createCrescentMoon(); // 초승달 제거
   }
 
   private createStars(): void {
@@ -890,6 +896,121 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     return;
   }
 
+  // 불꽃 효과 생성
+  private createFirework(x: number, y: number, z: number): void {
+    const firework = new THREE.Group();
+    const particleCount = 80;
+    const particles: THREE.Mesh[] = [];
+    const velocities: THREE.Vector3[] = [];
+
+    // 불꽃 색상 (크리스마스 테마)
+    const colors = [0xff4444, 0x44ff44, 0x4444ff, 0xffaa00, 0xff44aa, 0x44ffaa];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    const geometry = new THREE.SphereGeometry(0.08, 8, 8);
+
+    // 카툰 스타일 머티리얼 (Toon 셰이딩)
+    const material = new THREE.MeshToonMaterial({
+      color: color,
+      transparent: true,
+      opacity: 1.0
+    });
+
+    for (let i = 0; i < particleCount; i++) {
+      const particle = new THREE.Mesh(geometry.clone(), material.clone());
+
+      // 구형으로 파티클 분산
+      const phi = Math.random() * Math.PI * 2;
+      const cosTheta = Math.random() * 2 - 1;
+      const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+
+      const speed = Math.random() * 15 + 5;
+      const velocity = new THREE.Vector3(
+        speed * sinTheta * Math.cos(phi),
+        speed * sinTheta * Math.sin(phi),
+        speed * cosTheta
+      );
+
+      particle.position.set(x, y, z);
+      particles.push(particle);
+      velocities.push(velocity);
+      firework.add(particle);
+    }
+
+    // 불꽃 데이터 저장
+    (firework as any).particles = particles;
+    (firework as any).velocities = velocities;
+    (firework as any).life = 2.0; // 2초 동안 지속
+    (firework as any).maxLife = 2.0;
+
+    this.fireworks.push(firework);
+    this.scene.add(firework);
+  }
+
+  // 불꽃 업데이트
+  private updateFireworks(deltaTime: number): void {
+    for (let i = this.fireworks.length - 1; i >= 0; i--) {
+      const firework = this.fireworks[i];
+      const particles = (firework as any).particles;
+      const velocities = (firework as any).velocities;
+      let life = (firework as any).life;
+      const maxLife = (firework as any).maxLife;
+
+      life -= deltaTime * 0.001;
+      (firework as any).life = life;
+
+      if (life <= 0) {
+        // 불꽃 제거
+        this.scene.remove(firework);
+        this.fireworks.splice(i, 1);
+        continue;
+      }
+
+      // 파티클 업데이트
+      for (let j = 0; j < particles.length; j++) {
+        const particle = particles[j];
+        const velocity = velocities[j];
+
+        // 위치 업데이트 (중력 적용)
+        particle.position.add(velocity.clone().multiplyScalar(deltaTime * 0.001));
+        velocity.y -= 20 * deltaTime * 0.001; // 중력
+
+        // 공기 저항
+        velocity.multiplyScalar(0.99);
+
+        // 투명도 업데이트
+        const opacity = life / maxLife;
+        (particle.material as THREE.MeshBasicMaterial).opacity = opacity;
+      }
+    }
+  }
+
+  // 불꽃 발사 체크
+  private checkFireworkLaunch(currentTime: number): void {
+    if (currentTime - this.lastFireworkTime > this.fireworkInterval) {
+      this.lastFireworkTime = currentTime;
+
+      // 1-3개의 불꽃을 발사 (시간차 적용)
+      const fireworkCount = Math.floor(Math.random() * 3) + 1; // 1, 2, 또는 3개
+      
+      for (let i = 0; i < fireworkCount; i++) {
+        // 트리 뒤쪽 랜덤 위치에서 불꽃 발사
+        const x = (Math.random() - 0.5) * 25; // 좀 더 넓은 범위
+        const y = Math.random() * 12 + 5; // 높이도 다양하게
+        const z = -12 - Math.random() * 8;
+        
+        // 첫 번째는 즉시, 나머지는 시간차를 두어 발사
+        const delay = i === 0 ? 0 : 300 + Math.random() * 400; // 0.3~0.7초 랜덤 시간차
+        setTimeout(() => {
+          this.createFirework(x, y, z);
+        }, delay);
+      }
+
+      // 다음 불꽃 간격 랜덤화 (4-8초)
+      this.fireworkInterval = 4000 + Math.random() * 4000;
+    }
+  }
+
   private addTextDecoration(treeGroup: THREE.Group, text: string, y: number, angle: number): void {
     // 텍스트를 위한 캔버스 텍스처 생성
     const canvas = document.createElement('canvas');
@@ -1185,7 +1306,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       nickname: emojiData.nickname,
       text: emojiData.message,
       screenX: screenPos.x - 125, // 메시지 박스 중앙 정렬
-      screenY: screenPos.y + 15,  // 이모지와 더 가깝게 배치
+      screenY: screenPos.y + 5,  // 이모지와 더 붙여서 배치
       visible: false,
       hiding: false
     };
@@ -1525,6 +1646,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       }
     });
 
+    // 불꽃 효과 업데이트
+    this.checkFireworkLaunch(currentTime);
+    this.updateFireworks(currentTime - (this.lastTime || currentTime));
+    this.lastTime = currentTime;
+
     this.emojis.forEach((emojiData, index) => {
       if (emojiData.mesh.userData['originalY'] !== undefined) {
         // 타이포그래피 이모지 움직임 애니메이션
@@ -1619,7 +1745,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
         // 메시지 위치를 이모지 가까이 배치
         message.screenX = screenPos.x - 125; // 메시지 박스 중앙 정렬
-        message.screenY = screenPos.y + 15;  // 이모지와 더 가깝게 배치
+        message.screenY = screenPos.y + 5;  // 이모지와 더 붙여서 배치
       }
     });
 
@@ -1825,12 +1951,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const x = this.cameraRadius * Math.sin(this.cameraAngleX) * Math.cos(this.cameraAngleY);
-    const y = this.cameraRadius * Math.cos(this.cameraAngleX);
-    const z = this.cameraRadius * Math.sin(this.cameraAngleX) * Math.sin(this.cameraAngleY);
+    // 회전 중심점은 트리 위치 (0, 3, 0)로 설정
+    const centerX = 0;
+    const centerY = 3;
+    const centerZ = 0;
 
-    this.camera.position.set(x-20, y+5, z+20);
-    this.camera.lookAt(0, -4, 0); // 카메라가 트리의 중간 높이를 바라보도록
+    // 구형 좌표계로 카메라 위치 계산
+    const x = centerX + this.cameraRadius * Math.sin(this.cameraAngleX) * Math.cos(this.cameraAngleY);
+    const y = centerY + this.cameraRadius * Math.cos(this.cameraAngleX);
+    const z = centerZ + this.cameraRadius * Math.sin(this.cameraAngleX) * Math.sin(this.cameraAngleY);
+
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(centerX, centerY, centerZ); // 트리 중심을 바라보도록
   }
 
   // 등록 이펙트 생성
