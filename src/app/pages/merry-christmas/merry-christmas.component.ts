@@ -4,9 +4,11 @@ import * as THREE from 'three';
 
 // GLTFLoader 임포트 (타입 에러 회피)
 declare const GLTFLoader: any;
+declare const OutlineEffect: any;
 
 // 동적 로딩
 let GLTFLoaderClass: any;
+let OutlineEffectClass: any;
 
 @Component({
   selector: 'app-merry-christmas',
@@ -17,8 +19,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   @ViewChild('threeCanvas', { static: true }) canvasRef!: ElementRef;
 
   private scene!: THREE.Scene;
+  private emojiScene!: THREE.Scene; // 이모지 전용 씬
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
+  private outlineEffect: any = null; // OutlineEffect 인스턴스
   public emojis: Array<{
     mesh: THREE.Mesh;
     nickname: string;
@@ -47,6 +51,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // 터치/마우스 컨트롤
   private isDragging = false;
+  private hasMouseMoved = false; // 마우스가 움직였는지 추적
+  private mouseStartPosition = { x: 0, y: 0 }; // 마우스 시작 위치
   private previousMousePosition = { x: 0, y: 0 };
   private cameraRadius = 15; // 조금 더 가까이
   private cameraAngleX = 0.4; // 트리를 위에서 바라보는 각도 (더 위에서)
@@ -74,6 +80,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadGLTFLoader();
+    await this.loadOutlineEffect();
     this.initThreeJS();
   }
 
@@ -88,6 +95,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private async loadOutlineEffect(): Promise<void> {
+    try {
+      const { OutlineEffect } = await import('three/examples/jsm/effects/OutlineEffect.js');
+      OutlineEffectClass = OutlineEffect;
+    } catch (error) {
+      console.error('OutlineEffect 로드 실패:', error);
+      OutlineEffectClass = null;
+    }
+  }
+
   ngAfterViewInit(): void {
     // Three.js 초기화가 완료된 후 메시지 로드
     setTimeout(() => {
@@ -98,6 +115,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   private initThreeJS(): void {
     this.scene = new THREE.Scene();
+    this.emojiScene = new THREE.Scene(); // 이모지 전용 씬 초기화
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -110,11 +128,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       alpha: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x05001C, 1); // 지정된 어두운 배경색
+    this.renderer.setClearColor(0x2d1b69, 1); // 하늘 돔과 어울리는 보라색
     // 그림자 비활성화
     this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.2;
+
+    // OutlineEffect 초기화
+    if (OutlineEffectClass) {
+      this.outlineEffect = new OutlineEffectClass(this.renderer, {
+        defaultThickness: 0.003,
+        defaultColor: [0, 0, 0],
+        defaultAlpha: 0.8,
+        defaultKeepAlive: true
+      });
+    }
 
     this.setupLighting();
     this.createGround();
@@ -143,12 +171,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 자연스러운 안개 효과 (연한 보라색)
     this.scene.fog = new THREE.Fog(0x2d1b69, 15, 50);
 
-    // 부드러운 주변 조명 (조금 더 밝게)
-    const ambientLight = new THREE.AmbientLight(0x404080, 0.6);
+    // 카툰 렌더링에 맞는 밝은 주변 조명
+    const ambientLight = new THREE.AmbientLight(0x404080, 0.8);
     this.scene.add(ambientLight);
 
-    // 메인 조명 - 따뜻한 톤
-    const directionalLight = new THREE.DirectionalLight(0xffe4b5, 1.2);
+    // 메인 조명 - 카툰 스타일에 맞게 더 밝게
+    const directionalLight = new THREE.DirectionalLight(0xffe4b5, 1.5);
     directionalLight.position.set(8, 20, 10);
     directionalLight.castShadow = false;
     this.scene.add(directionalLight);
@@ -173,35 +201,40 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private createGround(): void {
     // 자연스러운 지형 생성
     const groundGeometry = new THREE.PlaneGeometry(100, 100, 50, 50);
-    
+
     // 높이맵으로 지형 변형
     const vertices = groundGeometry.attributes['position'] as THREE.BufferAttribute;
     for (let i = 0; i < vertices.count; i++) {
       const x = vertices.getX(i);
       const y = vertices.getY(i);
-      
+
       // 중심에서 멀어질수록 높아지는 언덕 형태
       const distanceFromCenter = Math.sqrt(x * x + y * y);
-      const height = Math.sin(distanceFromCenter * 0.1) * 2 + 
+      const height = Math.sin(distanceFromCenter * 0.1) * 2 +
                      Math.sin(x * 0.05) * Math.sin(y * 0.05) * 1.5;
-      
+
       vertices.setZ(i, height - 5);
     }
     groundGeometry.computeVertexNormals();
-    
-    // 고급스러운 PBR 재질 적용
-    const groundMaterial = new THREE.MeshStandardMaterial({
+
+    // 카툰 스타일 재질 적용
+    const groundMaterial = new THREE.MeshToonMaterial({
       color: 0xC5E0DE, // 지정된 바닥 색상
-      roughness: 0.8, // 거친 표면
-      metalness: 0.1, // 약간의 금속성
-      envMapIntensity: 0.5,
       transparent: false
     });
-    
+
+    // OutlineEffect 파라미터 설정
+    groundMaterial.userData['outlineParameters'] = {
+      thickness: 0.002,
+      color: [0, 0, 0],
+      alpha: 0.6,
+      visible: true
+    };
+
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     this.scene.add(ground);
-    
+
     // 하늘 돔 추가
     this.createSkyDome();
   }
@@ -209,23 +242,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private createSkyDome(): void {
     // 하늘 돔 생성
     const skyGeometry = new THREE.SphereGeometry(80, 32, 32);
-    
+
     // 그라데이션 하늘 텍스처 생성
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 512;
     const context = canvas.getContext('2d')!;
-    
+
     // 수직 그라데이션 (위쪽은 어두운 보라, 아래쪽은 연한 보라)
     const gradient = context.createLinearGradient(0, 0, 0, 512);
     gradient.addColorStop(0, '#0a0a2e'); // 상단 - 진한 보라
     gradient.addColorStop(0.4, '#16213e'); // 중간 상단
     gradient.addColorStop(0.7, '#2d1b69'); // 중간 하단
     gradient.addColorStop(1, '#4a1c5c'); // 하단 - 연한 보라
-    
+
     context.fillStyle = gradient;
     context.fillRect(0, 0, 512, 512);
-    
+
     // 별들 추가
     context.fillStyle = '#ffffff';
     for (let i = 0; i < 100; i++) {
@@ -234,13 +267,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       const size = Math.random() * 2 + 1;
       context.fillRect(x, y, size, size);
     }
-    
+
     const skyTexture = new THREE.CanvasTexture(canvas);
     const skyMaterial = new THREE.MeshBasicMaterial({
       map: skyTexture,
       side: THREE.BackSide // 돔 안쪽에서 보이도록
     });
-    
+
     const skyDome = new THREE.Mesh(skyGeometry, skyMaterial);
     skyDome.position.set(0, 0, 0);
     this.scene.add(skyDome);
@@ -266,10 +299,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       (gltf: any) => {
         const treeGroup = gltf.scene;
 
-        // 트리 설정 (그림자 제거)
+        // 트리를 카툰 스타일로 변경
         treeGroup.traverse((child: any) => {
           if (child instanceof THREE.Mesh) {
-            // 그림자 설정 제거
+            // 기존 재질의 색상 가져오기
+            const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0x45997D);
+            // 카툰 재질로 교체
+            child.material = new THREE.MeshToonMaterial({
+              color: originalColor
+            });
+
+            // OutlineEffect 파라미터 설정
+            child.material.userData['outlineParameters'] = {
+              thickness: 0.006,
+              color: [0, 0.3, 0],
+              alpha: 0.9,
+              visible: true
+            };
           }
         });
 
@@ -279,7 +325,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         // 트리를 바닥에 붙여서 배치
         treeGroup.position.set(0, -5, 0);
         treeGroup.scale.set(10, 10, 10); // 크기를 10배로 증가
-        
+
         // 메인 트리 참조 저장
         this.mainTreeGroup = treeGroup;
         this.scene.add(treeGroup);
@@ -316,12 +362,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       } else {
         color = 0x55AD94; // 최하단
       }
-      const material = new THREE.MeshStandardMaterial({ 
-        color,
-        roughness: 0.7,
-        metalness: 0.0,
-        envMapIntensity: 0.3
+      const material = new THREE.MeshToonMaterial({
+        color
       });
+
+      // OutlineEffect 파라미터 설정
+      material.userData['outlineParameters'] = {
+        thickness: 0.004,
+        color: [0, 0.2, 0],
+        alpha: 0.8,
+        visible: true
+      };
+
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(0, layer.y, 0);
       treeGroup.add(cone);
@@ -329,12 +381,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1.2);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x564338, // 어두운 갈색
-      roughness: 0.9,
-      metalness: 0.0,
-      envMapIntensity: 0.2
+    const trunkMaterial = new THREE.MeshToonMaterial({
+      color: 0x564338 // 어두운 갈색
     });
+
+    // OutlineEffect 파라미터 설정
+    trunkMaterial.userData['outlineParameters'] = {
+      thickness: 0.005,
+      color: [0.2, 0.1, 0],
+      alpha: 0.8,
+      visible: true
+    };
+
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     trunk.position.set(0, -3.8, 0);
     treeGroup.add(trunk);
@@ -449,11 +507,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           (gltf: any) => {
             const backgroundTreeGroup = gltf.scene.clone();
 
-            // 트리 그림자 설정
+            // 배경 트리를 카툰 스타일로 변경
             backgroundTreeGroup.traverse((child: any) => {
               if (child instanceof THREE.Mesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
+                // 기존 재질의 색상 가져오기
+                const originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0x45997D);
+                // 카툰 재질로 교체
+                child.material = new THREE.MeshToonMaterial({
+                  color: originalColor
+                });
+
+                // OutlineEffect 파라미터 설정
+                child.material.userData['outlineParameters'] = {
+                  thickness: 0.005,
+                  color: [0, 0.2, 0],
+                  alpha: 0.7,
+                  visible: true
+                };
               }
             });
 
@@ -501,12 +571,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       } else {
         color = 0x55AD94; // 최하단
       }
-      const material = new THREE.MeshStandardMaterial({ 
-        color,
-        roughness: 0.7,
-        metalness: 0.0,
-        envMapIntensity: 0.3
+      const material = new THREE.MeshToonMaterial({
+        color
       });
+
+      // OutlineEffect 파라미터 설정
+      material.userData['outlineParameters'] = {
+        thickness: 0.003,
+        color: [0, 0.1, 0],
+        alpha: 0.6,
+        visible: true
+      };
+
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(0, layer.y, 0);
       backgroundTreeGroup.add(cone);
@@ -514,12 +590,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.25, 0.8);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x564338, // 어두운 갈색
-      roughness: 0.9,
-      metalness: 0.0,
-      envMapIntensity: 0.2
+    const trunkMaterial = new THREE.MeshToonMaterial({
+      color: 0x564338 // 어두운 갈색
     });
+
+    // OutlineEffect 파라미터 설정
+    trunkMaterial.userData['outlineParameters'] = {
+      thickness: 0.004,
+      color: [0.1, 0.05, 0],
+      alpha: 0.6,
+      visible: true
+    };
+
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     trunk.position.set(0, -1.8, 0); // 기둥 위치는 그대로
     backgroundTreeGroup.add(trunk);
@@ -550,24 +632,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     canvas.width = 512;
     canvas.height = 512;
 
-    // 투명한 배경
+    // 완전 투명한 배경 설정
+    context.globalCompositeOperation = 'source-over';
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 이모지를 검은색으로 그리기 (더 크고 두껍게)
-    context.font = 'bold 200px Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji';
-    context.fillStyle = '#000000'; // 검은색
-    context.strokeStyle = '#000000'; // 외곽선도 검은색
-    context.lineWidth = 8; // 두꺼운 외곽선
+    // 이모지를 컬러로 그리기 (원래 색상 유지)
+    context.font = '200px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "EmojiOne Color"';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
 
-    // 외곽선 먼저 그리기
-    context.strokeText(emoji, canvas.width / 2, canvas.height / 2);
-    // 채우기
+    // 이모지 그리기 (외곽선 없이)
     context.fillText(emoji, canvas.width / 2, canvas.height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.premultiplyAlpha = false;
+    texture.format = THREE.RGBAFormat;
 
     // 트리에 붙는 이모지는 더 작게 설정
     const size = isAttachedToTree ? 0.8 : 2.5; // 트리 부착용은 0.8, 일반은 2.5
@@ -575,8 +654,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      alphaTest: 0.3,
-      side: THREE.DoubleSide
+      alphaTest: 0.01,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.NormalBlending
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -591,31 +672,35 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     canvas.width = 512;
     canvas.height = 128;
 
-    // 투명한 배경
+    // 완전 투명한 배경 설정
+    context.globalCompositeOperation = 'source-over';
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 타이포그래피 이모지를 검은색으로 그리기 (더 크고 두껍게)
-    context.font = 'bold 48px monospace'; // 더 큰 폰트
-    context.fillStyle = '#000000'; // 검은색
-    context.strokeStyle = '#000000'; // 외곽선도 검은색
-    context.lineWidth = 4; // 두꺼운 외곽선
+    // 타이포그래피 이모지를 흰색으로 그리기
+    context.font = 'bold 48px monospace';
+    context.fillStyle = '#FFFFFF'; // 흰색
+    context.strokeStyle = '#000000'; // 검은색 외곽선
+    context.lineWidth = 2; // 얇은 외곽선
     context.textAlign = 'center';
     context.textBaseline = 'middle';
 
-    // 외곽선 먼저 그리기
+    // 외곽선 먼저 그리기 (가독성을 위해)
     context.strokeText(typographyEmoji, canvas.width / 2, canvas.height / 2);
-    // 채우기
+    // 흰색 채우기
     context.fillText(typographyEmoji, canvas.width / 2, canvas.height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.premultiplyAlpha = false;
+    texture.format = THREE.RGBAFormat;
 
     const geometry = new THREE.PlaneGeometry(4.0, 1.0); // 더 큰 크기
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      alphaTest: 0.1,
-      side: THREE.DoubleSide
+      alphaTest: 0.01,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.NormalBlending
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -687,6 +772,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
 
   private onCanvasClick(event: MouseEvent): void {
+    // 드래그한 경우 클릭 이벤트 무시
+    if (this.hasMouseMoved) {
+      return;
+    }
+
     const rect = this.renderer.domElement.getBoundingClientRect();
     const mouse = new THREE.Vector2();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -754,11 +844,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const maxRadius = 3; // 트리 하단 최대 반지름
     const minRadius = 0.5; // 트리 상단 최소 반지름
     const maxHeight = 12; // 트리 최대 높이
-    
+
     // 높이에 따른 반지름 계산 (아래가 넓고 위가 좁은 원뿔 형태)
     const normalizedHeight = Math.max(0, Math.min(1, height / maxHeight));
     const radius = minRadius + (maxRadius - minRadius) * (1 - normalizedHeight);
-    
+
     return {
       x: Math.cos(angle) * radius,
       y: height - 5, // 트리 바닥 위치 보정
@@ -801,7 +891,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     typographyEmojis.forEach((msg, index) => {
       setTimeout(() => {
         const mesh = this.createTypographyMesh(msg.emoji, msg.x, msg.y, msg.z);
-        this.scene.add(mesh);
+        this.emojiScene.add(mesh); // 이모지 씬에 추가
 
         mesh.userData['originalY'] = msg.y;
         mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003; // 0.002-0.005 속도로 이동
@@ -832,9 +922,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
         const y = msg.height - 7; // 높이 조정
-        
+
         const mesh = this.createEmojiMesh(msg.emoji, x, y, z); // 일반 크기로 생성
-        this.scene.add(mesh); // 씬에 직접 추가
+        this.emojiScene.add(mesh); // 이모지 씬에 추가
 
         mesh.userData['originalY'] = y;
         mesh.userData['nearTree'] = true;
@@ -913,21 +1003,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         if (emojiData.mesh.userData['isTypography']) {
           const moveSpeed = emojiData.mesh.userData['moveSpeed'];
           const moveAngle = emojiData.mesh.userData['moveAngle'];
-          
+
           // 원형으로 천천히 움직이기
           emojiData.mesh.userData['moveAngle'] += moveSpeed;
           const currentAngle = emojiData.mesh.userData['moveAngle'];
-          
+
           // 기준점에서 작은 원을 그리며 이동 (반지름 1.5)
           const baseX = emojiData.x;
           const baseZ = emojiData.z || 0;
           emojiData.mesh.position.x = baseX + Math.cos(currentAngle) * 1.5;
           emojiData.mesh.position.z = baseZ + Math.sin(currentAngle) * 1.5;
-          
+
           // Y축은 지형 위로 부유하는 효과 (더 높게)
           emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 2 + index) * 0.3 + 0.5;
         }
-        
+
         // 이모지가 항상 카메라를 정면으로 바라보도록 설정 (빌보드 효과)
         const cameraDirection = new THREE.Vector3();
         this.camera.getWorldDirection(cameraDirection);
@@ -1003,7 +1093,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 카메라 위치 업데이트 (원형 궤도)
     this.updateCameraPosition();
 
-    this.renderer.render(this.scene, this.camera);
+    // 1. 메인 씬을 OutlineEffect로 렌더링 (3D 오브젝트들)
+    if (this.outlineEffect) {
+      this.outlineEffect.render(this.scene, this.camera);
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
+
+    // 2. 이모지 씬을 기본 렌더러로 오버레이 렌더링 (투명도 유지)
+    this.renderer.autoClear = false; // 자동 클리어 비활성화
+    this.renderer.render(this.emojiScene, this.camera);
+    this.renderer.autoClear = true; // 다음 프레임을 위해 다시 활성화
   }
 
   private onWindowResize(): void {
@@ -1033,6 +1133,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   // 터치/마우스 컨트롤 메서드들
   private onPointerDown(event: MouseEvent): void {
     this.isDragging = true;
+    this.hasMouseMoved = false;
+    this.mouseStartPosition = {
+      x: event.clientX,
+      y: event.clientY
+    };
     this.previousMousePosition = {
       x: event.clientX,
       y: event.clientY
@@ -1046,6 +1151,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       x: event.clientX - this.previousMousePosition.x,
       y: event.clientY - this.previousMousePosition.y
     };
+
+    // 마우스가 움직였는지 체크 (5px 이상 움직이면 드래그로 간주)
+    const distanceFromStart = Math.sqrt(
+      Math.pow(event.clientX - this.mouseStartPosition.x, 2) +
+      Math.pow(event.clientY - this.mouseStartPosition.y, 2)
+    );
+
+    if (distanceFromStart > 5) {
+      this.hasMouseMoved = true;
+    }
 
     this.cameraAngleY -= deltaMove.x * 0.001; // 감도를 1/5로 줄임
     this.cameraAngleX -= deltaMove.y * 0.001; // 감도를 1/5로 줄임
@@ -1067,6 +1182,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     event.preventDefault();
     if (event.touches.length === 1) {
       this.isDragging = true;
+      this.hasMouseMoved = false;
+      this.mouseStartPosition = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY
+      };
       this.previousMousePosition = {
         x: event.touches[0].clientX,
         y: event.touches[0].clientY
@@ -1082,6 +1202,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       x: event.touches[0].clientX - this.previousMousePosition.x,
       y: event.touches[0].clientY - this.previousMousePosition.y
     };
+
+    // 터치가 움직였는지 체크 (5px 이상 움직이면 드래그로 간주)
+    const distanceFromStart = Math.sqrt(
+      Math.pow(event.touches[0].clientX - this.mouseStartPosition.x, 2) +
+      Math.pow(event.touches[0].clientY - this.mouseStartPosition.y, 2)
+    );
+
+    if (distanceFromStart > 5) {
+      this.hasMouseMoved = true;
+    }
 
     this.cameraAngleY -= deltaMove.x * 0.001; // 터치 감도를 1/5로 줄임
     this.cameraAngleX -= deltaMove.y * 0.001; // 터치 감도를 1/5로 줄임
@@ -1188,7 +1318,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         ? this.createTypographyMesh(emoji, x, y, z)
         : this.createEmojiMesh(emoji, x, y, z);
 
-      this.scene.add(mesh);
+      this.emojiScene.add(mesh); // 이모지 씬에 추가
       mesh.userData['originalY'] = y;
 
       this.emojis.push({
