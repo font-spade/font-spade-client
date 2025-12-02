@@ -55,7 +55,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private hasMouseMoved = false; // 마우스가 움직였는지 추적
   private mouseStartPosition = { x: 0, y: 0 }; // 마우스 시작 위치
   private previousMousePosition = { x: 0, y: 0 };
-  private cameraRadius = 15; // 조금 더 가까이
+  private cameraRadius = 20; // 초기에 더 멀리서 시작
   private cameraAngleX = Math.PI / 2; // 트리를 정면에서 바라보는 각도
   private cameraAngleY = 0; // 수평 각도 (정면)
 
@@ -847,6 +847,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 트리를 중앙에 1.5배 크기로 배치
     treeGroup.position.set(0, 1.8, 0);
     treeGroup.scale.set(1.5, 1.5, 1.5);
+
+    // 메인 트리 참조 저장 (폴백 트리)
+    this.mainTreeGroup = treeGroup;
     this.scene.add(treeGroup);
   }
 
@@ -1260,9 +1263,81 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const emojiData = this.emojis.find(emoji => {
       return emoji.nickname === message.nickname && emoji.message === message.text;
     });
-    
+
     if (emojiData) {
       this.showEmojiPopup(emojiData);
+    }
+  }
+
+  // 레이캐스팅으로 이모지를 트리 표면에 붙이는 함수
+  private attachEmojiToTreeSurface(angle: number, targetHeight: number): { x: number, y: number, z: number } {
+    // 바깥쪽에서 트리 중심으로 레이를 쏘는 방식으로 변경
+    const rayDistance = 10; // 트리 바깥쪽 시작점 거리
+    const rayOrigin = new THREE.Vector3(
+      Math.cos(angle) * rayDistance,
+      targetHeight - 7,
+      Math.sin(angle) * rayDistance
+    );
+
+    const rayDirection = new THREE.Vector3(
+      -Math.cos(angle), // 트리 중심 방향
+      0,
+      -Math.sin(angle)
+    ).normalize();
+
+    // 레이캐스터 생성
+    const raycaster = new THREE.Raycaster();
+    raycaster.set(rayOrigin, rayDirection);
+
+    // 메인 트리와 교차점 찾기
+    let intersects: THREE.Intersection[] = [];
+    if (this.mainTreeGroup) {
+      intersects = raycaster.intersectObject(this.mainTreeGroup, true);
+
+      // 디버그 로그
+      console.log(`Raycast for angle ${angle.toFixed(2)}: ${intersects.length} intersections`);
+      if (intersects.length > 0) {
+        console.log('Intersection point:', intersects[0].point);
+      }
+    }
+
+    // 교차점이 있으면 그 위치에, 없으면 기본 위치에 배치
+    if (intersects.length > 0) {
+      const intersection = intersects[0];
+      // 교차점에서 약간 바깥쪽으로 이동 (이모지가 트리에 묻히지 않게)
+      const offsetDistance = 0.5;
+      const position = intersection.point.clone();
+
+      // face normal이 있으면 사용, 없으면 중심에서 바깥쪽 방향 사용
+      let normal: THREE.Vector3;
+      if (intersection.face && intersection.face.normal) {
+        normal = intersection.face.normal.clone();
+        // 월드 좌표계로 변환
+        const matrix = new THREE.Matrix3().getNormalMatrix(intersection.object.matrixWorld);
+        normal.applyMatrix3(matrix).normalize();
+      } else {
+        // 폴백: 트리 중심에서 바깥쪽 방향
+        normal = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+      }
+
+      position.add(normal.multiplyScalar(offsetDistance));
+
+      console.log('Final position:', position);
+
+      return {
+        x: position.x,
+        y: position.y,
+        z: position.z
+      };
+    } else {
+      // 폴백: 기존 방식으로 배치
+      console.log('No intersection found, using fallback position');
+      const radius = 4;
+      return {
+        x: Math.cos(angle) * radius,
+        y: targetHeight - 7,
+        z: Math.sin(angle) * radius
+      };
     }
   }
 
@@ -1370,20 +1445,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       }, index * 300);
     });
 
-    // 트리 이모티콘들 배치 (트리 주변 가까이에)
+    // 트리 이모티콘들 배치 (레이캐스팅으로 트리 표면에 붙이기)
     treeEmojis.forEach((msg, index) => {
       setTimeout(() => {
-        // 트리 주변 가까운 위치에 배치
-        const angle = msg.angle;
-        const radius = 4 + Math.random() * 2; // 트리에서 4-6 거리
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = msg.height - 7; // 높이 조정
+        // 레이캐스팅으로 트리 표면에 정확히 붙이기
+        const treePosition = this.attachEmojiToTreeSurface(msg.angle, msg.height);
 
-        const mesh = this.createEmojiMesh(msg.emoji, x, y, z); // 일반 크기로 생성
+        const mesh = this.createEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z);
         this.emojiScene.add(mesh); // 이모지 씬에 추가
 
-        mesh.userData['originalY'] = y;
+        mesh.userData['originalY'] = treePosition.y;
         mesh.userData['nearTree'] = true;
 
         this.emojis.push({
@@ -1391,9 +1462,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           nickname: msg.nickname,
           message: msg.message,
           emoji: msg.emoji,
-          x: x,
-          y: y,
-          z: z,
+          x: treePosition.x,
+          y: treePosition.y,
+          z: treePosition.z,
           nextMessageTime: Date.now() + Math.random() * 5000 + 5000
         });
 
@@ -1758,8 +1829,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const y = this.cameraRadius * Math.cos(this.cameraAngleX);
     const z = this.cameraRadius * Math.sin(this.cameraAngleX) * Math.sin(this.cameraAngleY);
 
-    this.camera.position.set(x, y, z);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(x-20, y+5, z+20);
+    this.camera.lookAt(0, -4, 0); // 카메라가 트리의 중간 높이를 바라보도록
   }
 
   // 등록 이펙트 생성
