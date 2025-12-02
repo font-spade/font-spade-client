@@ -482,8 +482,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     rightArm.rotation.z = -Math.PI / 3;
     snowmanGroup.add(rightArm);
 
-    // 눈사람 위치 설정 (트리 옆)
-    snowmanGroup.position.set(-8, 0, 5);
+    // 눈사람 위치 설정 (트리 옆) - Raycast로 바닥 높이 계산
+    const snowmanGroundHeight = this.getGroundHeight(-8, 5);
+    snowmanGroup.position.set(-8, snowmanGroundHeight + 4.5, 5); // 눈사람이 바닥 위에 올바르게 서도록
 
     this.scene.add(snowmanGroup);
   }
@@ -545,11 +546,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       giftGroup.add(ribbonV);
       giftGroup.add(ribbonH);
 
-      // 바닥 위치 계산
-      const height = Math.sin(Math.sqrt(pos.x * pos.x + pos.z * pos.z) * 0.1) * 2 +
-                    Math.sin(pos.x * 0.05) * Math.sin(pos.z * 0.05) * 1.5;
+      // Raycast로 바닥 높이 계산
+      const groundHeight = this.getGroundHeight(pos.x, pos.z);
 
-      giftGroup.position.set(pos.x, height - 5 + boxSize/2, pos.z);
+      giftGroup.position.set(pos.x, groundHeight + boxSize/2, pos.z);
       this.scene.add(giftGroup);
     });
   }
@@ -606,7 +606,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     nose.position.set(0, -3.65, 0.48);
     rabbitGroup.add(nose);
 
-    rabbitGroup.position.set(4, 0, -6);
+    // Raycast로 바닥 높이 계산 (토끼 몸체 높이 고려)
+    const rabbitGroundHeight = this.getGroundHeight(4, -6);
+    rabbitGroup.position.set(4, rabbitGroundHeight + 4.5, -6); // 토끼가 바닥 위에 올바르게 서도록
     this.scene.add(rabbitGroup);
 
     // 펭귄 만들기
@@ -648,7 +650,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     beak.rotation.x = Math.PI / 2;
     penguinGroup.add(beak);
 
-    penguinGroup.position.set(-10, 0, -4);
+    // Raycast로 바닥 높이 계산 (펭귄 몸체 높이 고려)
+    const penguinGroundHeight = this.getGroundHeight(-10, -4);
+    penguinGroup.position.set(-10, penguinGroundHeight + 4.3, -4); // 펭귄이 바닥 위에 올바르게 서도록
     this.scene.add(penguinGroup);
   }
 
@@ -679,11 +683,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       const angle = (i / 5) * Math.PI * 2;
       const radius = 12 + Math.random() * 3;
-      candyCaneGroup.position.set(
-        Math.cos(angle) * radius,
-        0,
-        Math.sin(angle) * radius
-      );
+      const candyX = Math.cos(angle) * radius;
+      const candyZ = Math.sin(angle) * radius;
+
+      // Raycast로 바닥 높이 계산 (캔디케인 높이 고려)
+      const candyGroundHeight = this.getGroundHeight(candyX, candyZ);
+      candyCaneGroup.position.set(candyX, candyGroundHeight + 4.5, candyZ); // 캔디케인이 바닥 위에 올바르게 서도록
 
       this.scene.add(candyCaneGroup);
     }
@@ -717,9 +722,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       ];
 
       const pos = positions[i];
-      const height = Math.sin(Math.sqrt(pos.x * pos.x + pos.z * pos.z) * 0.1) * 2 +
-                    Math.sin(pos.x * 0.05) * Math.sin(pos.z * 0.05) * 1.5;
-      miniTreeGroup.position.set(pos.x, height, pos.z);
+      // Raycast로 바닥 높이 계산 (미니 트리 높이 고려)
+      const miniTreeGroundHeight = this.getGroundHeight(pos.x, pos.z);
+      miniTreeGroup.position.set(pos.x, miniTreeGroundHeight + 4.7, pos.z); // 미니 트리가 바닥 위에 올바르게 서도록
 
       this.scene.add(miniTreeGroup);
     }
@@ -1023,6 +1028,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       // 5~10초 간격 랜덤화
       this.emojiUpdateInterval = 5000 + Math.random() * 5000;
 
+      console.log('이모지 업데이트 실행 - 현재 이모지 수:', this.emojis.length);
+
       // 현재 이모지 중 몇개를 제거할지 결정 (1-3개)
       const removeCount = Math.min(Math.floor(Math.random() * 3) + 1, this.emojis.length);
 
@@ -1079,6 +1086,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // 랜덤 이모지 추가
   private addRandomEmoji(): void {
+    console.log('addRandomEmoji 호출됨');
     const emojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
     const nicknames = ['산타', '루돌프', '눈사람', '요정', '천사', '크리스마스'];
     const messages = [
@@ -1101,7 +1109,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       // 필드 배치
       const x = (Math.random() - 0.5) * 25;
       const z = (Math.random() - 0.5) * 25;
-      const y = Math.random() * 3 + 1;
+
+      // Raycast로 바닥 높이 계산
+      const groundHeight = this.getGroundHeight(x, z);
+      const y = groundHeight + 0.5; // 바닥에서 약간 띄워서
 
       const mesh = this.createTypographyMesh('( ͡° ͜ʖ ͡°)', x, y, z);
       this.emojiScene.add(mesh);
@@ -1129,7 +1140,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
       // 트리 표면에 정확히 부착
       const treePosition = this.attachEmojiToTreeSurface(angle, height);
-      const mesh = this.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z);
+      const mesh = this.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z, true);
 
       this.emojiScene.add(mesh);
       this.animateEmojiEntry(mesh);
@@ -1349,17 +1360,18 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const texture = new THREE.CanvasTexture(canvas);
     texture.premultiplyAlpha = false;
     texture.format = THREE.RGBAFormat;
+    texture.needsUpdate = true; // 텍스처 업데이트 강제
 
-    // 트리에 붙는 이모지는 더 작게 설정
-    const size = isAttachedToTree ? 0.8 : 2.5; // 트리 부착용은 0.8, 일반은 2.5
+    // 모든 이모지를 동일한 크기로 통일
+    const size = isAttachedToTree ? 1.2 : 2.0; // 트리 부착용은 1.2, 일반은 2.0
     const geometry = new THREE.PlaneGeometry(size, size);
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      alphaTest: 0.01,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      blending: THREE.NormalBlending
+      alphaTest: 0.01, // alphaTest 값을 낮춰서 이모지가 보이도록
+      side: THREE.DoubleSide, // 양쪽 면 렌더링
+      depthWrite: false, // 투명 객체는 depthWrite false
+      fog: false // 안개 영향 받지 않음
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -1378,6 +1390,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     context.globalCompositeOperation = 'source-over';
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 캔버스를 수직으로 뒤집기 (Three.js에서 올바르게 보이도록)
+    context.scale(1, -1);
+    context.translate(0, -canvas.height);
+
     // 타이포그래피 이모지를 검정색으로 그리기
     context.font = 'bold 48px monospace';
     context.fillStyle = '#000000'; // 검정색
@@ -1390,15 +1406,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     const texture = new THREE.CanvasTexture(canvas);
     texture.premultiplyAlpha = false;
     texture.format = THREE.RGBAFormat;
+    texture.flipY = false; // 텍스처 뒤집힘 방지
+    texture.needsUpdate = true; // 텍스처 업데이트 강제
 
-    const geometry = new THREE.PlaneGeometry(4.0, 1.0); // 더 큰 크기
+    const geometry = new THREE.PlaneGeometry(3.2, 0.8); // 4:1 비율 유지하면서 적당한 크기
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
-      alphaTest: 0.01,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      blending: THREE.NormalBlending
+      alphaTest: 0.01, // alphaTest 값을 낮춰서 타이포그래피 이모지가 보이도록
+      side: THREE.DoubleSide, // 양쪽 면 렌더링
+      depthWrite: false, // 투명 객체는 depthWrite false
+      fog: false // 안개 영향 받지 않음
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -1611,8 +1629,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     raycaster.set(rayOrigin, rayDirection);
 
     // 지면과 교차점 찾기 (지면 mesh만 대상으로)
-    const groundObjects = this.scene.children.filter(child => 
-      child instanceof THREE.Mesh && 
+    const groundObjects = this.scene.children.filter(child =>
+      child instanceof THREE.Mesh &&
       child.geometry instanceof THREE.PlaneGeometry
     );
 
@@ -1711,10 +1729,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 타이포그래피 이모지 먼저 배치
     typographyEmojis.forEach((msg, index) => {
       setTimeout(() => {
-        const mesh = this.createTypographyMesh(msg.emoji, msg.x, msg.y, msg.z);
+        // Raycast로 바닥 높이 계산
+        const groundHeight = this.getGroundHeight(msg.x, msg.z);
+        const y = groundHeight + 0.5;
+
+        const mesh = this.createTypographyMesh(msg.emoji, msg.x, y, msg.z);
         this.emojiScene.add(mesh); // 이모지 씬에 추가
 
-        mesh.userData['originalY'] = msg.y;
+        mesh.userData['originalY'] = y;
         mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003; // 0.002-0.005 속도로 이동
         mesh.userData['moveAngle'] = Math.random() * Math.PI * 2; // 랜덤 초기 각도
         mesh.userData['isTypography'] = true; // 타이포그래피 표시
@@ -1887,13 +1909,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           const baseZ = emojiData.z || 0;
           const newX = baseX + Math.cos(currentAngle) * 1.5;
           const newZ = baseZ + Math.sin(currentAngle) * 1.5;
-          
+
           emojiData.mesh.position.x = newX;
           emojiData.mesh.position.z = newZ;
 
           // Raycast로 바닥 높이 계산
           const groundHeight = this.getGroundHeight(newX, newZ);
-          
+
           // 바닥에서 약간 떠서 부유하는 효과
           const floatHeight = 0.5 + Math.sin(time * 2 + index) * 0.2;
           emojiData.mesh.position.y = groundHeight + floatHeight;
