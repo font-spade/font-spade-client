@@ -110,10 +110,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       alpha: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x050017, 1); // 어두운 보라색 배경
-    // 고급스러운 그림자 활성화
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 부드러운 그림자
+    this.renderer.setClearColor(0x05001C, 1); // 지정된 어두운 배경색
+    // 그림자 비활성화
+    this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.2;
 
@@ -151,17 +150,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     // 메인 조명 - 따뜻한 톤
     const directionalLight = new THREE.DirectionalLight(0xffe4b5, 1.2);
     directionalLight.position.set(8, 20, 10);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 50;
+    directionalLight.castShadow = false;
     this.scene.add(directionalLight);
 
     // 트리 중심 따뜻한 포인트 라이트
     const centerLight = new THREE.PointLight(0xffd700, 0.8, 15);
     centerLight.position.set(0, 8, 2);
-    centerLight.castShadow = true;
+    centerLight.castShadow = false;
     this.scene.add(centerLight);
 
     // 추가 보조 조명 (차가운 톤)
@@ -194,14 +189,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     }
     groundGeometry.computeVertexNormals();
     
-    const groundMaterial = new THREE.MeshLambertMaterial({
-      color: 0xE8F5E8, // 연한 연두색
+    // 고급스러운 PBR 재질 적용
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0xC5E0DE, // 지정된 바닥 색상
+      roughness: 0.8, // 거친 표면
+      metalness: 0.1, // 약간의 금속성
+      envMapIntensity: 0.5,
       transparent: false
     });
     
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
     this.scene.add(ground);
     
     // 하늘 돔 추가
@@ -268,11 +266,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       (gltf: any) => {
         const treeGroup = gltf.scene;
 
-        // 트리 그림자 설정
+        // 트리 설정 (그림자 제거)
         treeGroup.traverse((child: any) => {
           if (child instanceof THREE.Mesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            // 그림자 설정 제거
           }
         });
 
@@ -319,21 +316,27 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       } else {
         color = 0x55AD94; // 최하단
       }
-      const material = new THREE.MeshLambertMaterial({ color });
+      const material = new THREE.MeshStandardMaterial({ 
+        color,
+        roughness: 0.7,
+        metalness: 0.0,
+        envMapIntensity: 0.3
+      });
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(0, layer.y, 0);
-      cone.castShadow = true;
-      cone.receiveShadow = true;
       treeGroup.add(cone);
     });
 
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1.2);
-    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x564338 }); // 어두운 갈색
+    const trunkMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x564338, // 어두운 갈색
+      roughness: 0.9,
+      metalness: 0.0,
+      envMapIntensity: 0.2
+    });
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     trunk.position.set(0, -3.8, 0);
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
     treeGroup.add(trunk);
 
     // 노란색 별 꼭대기 장식
@@ -359,7 +362,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < 200; i++) {
       const snowflakeGeometry = new THREE.SphereGeometry(0.04, 6, 6);
       const snowflakeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xFDFEFE, // 약간 따뜻한 흰색
+        color: 0xFCF9FC, // 지정된 눈 색상
         transparent: true,
         opacity: 0.8
       });
@@ -498,21 +501,27 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       } else {
         color = 0x55AD94; // 최하단
       }
-      const material = new THREE.MeshLambertMaterial({ color });
+      const material = new THREE.MeshStandardMaterial({ 
+        color,
+        roughness: 0.7,
+        metalness: 0.0,
+        envMapIntensity: 0.3
+      });
       const cone = new THREE.Mesh(geometry, material);
       cone.position.set(0, layer.y, 0);
-      cone.castShadow = true;
-      cone.receiveShadow = true;
       backgroundTreeGroup.add(cone);
     });
 
     // 갈색 나무 기둥
     const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.25, 0.8);
-    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x564338 }); // 어두운 갈색
+    const trunkMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x564338, // 어두운 갈색
+      roughness: 0.9,
+      metalness: 0.0,
+      envMapIntensity: 0.2
+    });
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     trunk.position.set(0, -1.8, 0); // 기둥 위치는 그대로
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
     backgroundTreeGroup.add(trunk);
 
     // 노란색 별 꼭대기 장식
@@ -764,14 +773,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadMessages(), 500);
       return;
     }
-    // 타이포그래피 이모지 예시들 (필드에 배치)
+    // 타이포그래피 이모지 예시들 (지형 위에 떠서 배치)
     const typographyEmojis = [
-      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)', x: -6, y: -4, z: 2 },
-      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ( ゜-゜ノ)', x: 4, y: -4, z: 1 },
-      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯', x: -3, y: -4, z: 4 },
-      { nickname: '슬기', message: '새해 복 많이 받으세요', emoji: 'ಠ( ಠ ͜ʖ ಠ )ಠ', x: 5, y: -4, z: 3 },
-      { nickname: '예은', message: '모두 건강하고 행복하게!', emoji: '(•̀_•́)', x: -1, y: -4, z: 6 },
-      { nickname: '준호', message: '크리스마스 대박!', emoji: 'ლ(•́ o •̀)ლ', x: 2, y: -4, z: 5 }
+      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)', x: -6, y: -2.5, z: 2 },
+      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ( ゜-゜ノ)', x: 4, y: -2.3, z: 1 },
+      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯', x: -3, y: -2.4, z: 4 },
+      { nickname: '슬기', message: '새해 복 많이 받으세요', emoji: 'ಠ( ಠ ͜ʖ ಠ )ಠ', x: 5, y: -2.2, z: 3 },
+      { nickname: '예은', message: '모두 건강하고 행복하게!', emoji: '(•̀_•́)', x: -1, y: -2.6, z: 6 },
+      { nickname: '준호', message: '크리스마스 대박!', emoji: 'ლ(•́ o •̀)ლ', x: 2, y: -2.1, z: 5 }
     ];
 
     // 트리 이모티콘들 (트리에 실제로 붙여서 배치)
@@ -915,8 +924,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           emojiData.mesh.position.x = baseX + Math.cos(currentAngle) * 1.5;
           emojiData.mesh.position.z = baseZ + Math.sin(currentAngle) * 1.5;
           
-          // Y축은 약간의 부유 효과
-          emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 2 + index) * 0.1;
+          // Y축은 지형 위로 부유하는 효과 (더 높게)
+          emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 2 + index) * 0.3 + 0.5;
         }
         
         // 이모지가 항상 카메라를 정면으로 바라보도록 설정 (빌보드 효과)
