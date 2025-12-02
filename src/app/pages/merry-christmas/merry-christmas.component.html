@@ -25,7 +25,8 @@
          [style.left.px]="message.screenX" 
          [style.top.px]="message.screenY"
          [class.visible]="message.visible"
-         [class.hiding]="message.hiding">
+         [class.hiding]="message.hiding"
+         (click)="onMessageClick(message)">
       <div class="message-bubble">
         <div class="message-nickname">{{message.nickname}}</div>
         <div class="message-text">{{message.text}}</div>
