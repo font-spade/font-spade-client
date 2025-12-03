@@ -22,7 +22,7 @@
     </div>
     
     <!-- HTML 메시지 오버레이 -->
-    <div class="message-overlay" *ngFor="let message of visibleMessages" 
+    <div class="message-overlay" *ngFor="let message of emojiService.visibleMessages" 
          [style.left.px]="message.screenX" 
          [style.top.px]="message.screenY"
          [class.visible]="message.visible"
