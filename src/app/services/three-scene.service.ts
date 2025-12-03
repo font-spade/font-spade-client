@@ -381,11 +381,17 @@ export class ThreeSceneService {
     let intersects: THREE.Intersection[] = [];
     if (this.mainTreeGroup) {
       intersects = raycaster.intersectObject(this.mainTreeGroup, true);
+      // 디버그: 레이캐스팅 결과 로깅
+      if (intersects.length === 0) {
+        console.log('레이캐스팅 실패 - 각도:', angle, '높이:', targetHeight);
+      }
+    } else {
+      console.log('트리 메시가 로드되지 않음');
     }
 
     if (intersects.length > 0) {
       const intersection = intersects[0];
-      const offsetDistance = 1.5;
+      const offsetDistance = 0.8; // 트리에 더 가깝게
       const position = intersection.point.clone();
 
       let normal: THREE.Vector3;
@@ -428,7 +434,7 @@ export class ThreeSceneService {
           intersection.face.normal.clone().normalize() :
           new THREE.Vector3(Math.cos(retryAngle), 0, Math.sin(retryAngle));
         
-        position.add(normal.multiplyScalar(1.0));
+        position.add(normal.multiplyScalar(0.5)); // 트리에 더 가깝게
         return { x: position.x, y: position.y, z: position.z };
       }
       

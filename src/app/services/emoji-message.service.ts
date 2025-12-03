@@ -188,6 +188,22 @@ export class EmojiMessageService {
           const verticalSine = Math.sin(time * sineFrequency * 1.5 + sinePhase) * 0.3;
           const floatHeight = 0.5 + verticalSine;
           emojiData.mesh.position.y = groundHeight + floatHeight;
+        } else if (emojiData.mesh.userData['attachToTree']) {
+          // 트리 주변 회전 애니메이션
+          const rotationSpeed = emojiData.mesh.userData['rotationSpeed'] || 0.01;
+          let currentAngle = emojiData.mesh.userData['angle'] || 0;
+          currentAngle += rotationSpeed;
+          emojiData.mesh.userData['angle'] = currentAngle;
+          
+          const height = emojiData.mesh.userData['height'] || 5;
+          // 레이캐스팅으로 트리 표면의 새 위치 계산
+          const newPosition = this.threeScene.attachEmojiToTreeSurface(currentAngle, height);
+          emojiData.mesh.position.set(newPosition.x, newPosition.y, newPosition.z);
+          
+          // 실제 위치 데이터도 업데이트
+          emojiData.x = newPosition.x;
+          emojiData.y = newPosition.y;
+          emojiData.z = newPosition.z;
         } else if (emojiData.mesh.userData['nearTree']) {
           emojiData.mesh.position.y = emojiData.mesh.userData['originalY'] + Math.sin(time * 1.5 + index) * 0.2;
         }
