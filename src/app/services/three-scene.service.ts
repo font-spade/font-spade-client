@@ -577,25 +577,30 @@ export class ThreeSceneService {
     }
 
     const starGroup = new THREE.Group();
-    const starCount = 80;
+    const starCount = 60; // 별 개수 줄임
 
     for (let i = 0; i < starCount; i++) {
       const spriteMaterial = new THREE.SpriteMaterial({
         map: this.starTexture!,
         transparent: true,
         depthWrite: false,
-        opacity: 0.9,
+        opacity: 0.7, // 투명도 줄임
         blending: THREE.AdditiveBlending
       });
 
       const star = new THREE.Sprite(spriteMaterial);
-      // 별 크기를 0.3배로 축소
-      const scale = 0.3;
+      // 별 크기를 더 작게 조정
+      const scale = 0.2;
       star.scale.set(scale, scale, scale);
 
-      const x = (Math.random() - 0.5) * 80;
-      const y = Math.random() * 40 + 15;
-      const z = -20 - Math.random() * 20;
+      const x = (Math.random() - 0.5) * 60; // 범위 줄임
+      const y = Math.random() * 30 + 10; // 높이 범위 줄임
+      const z = -20 - Math.random() * 15;
+
+      // 달처럼 보일 수 있는 큰 별이나 특정 위치의 별 제외
+      if (Math.abs(x) < 10 && y > 25) {
+        continue; // 화면 중앙 위쪽의 큰 별들 제외
+      }
 
       star.position.set(x, y, z);
       starGroup.add(star);
@@ -679,35 +684,95 @@ export class ThreeSceneService {
 
     const bodyBottomGeometry = new THREE.SphereGeometry(1.5, 16, 16);
     const bodyBottom = new THREE.Mesh(bodyBottomGeometry, snowMaterial);
-    bodyBottom.position.y = -4.5;
+    bodyBottom.position.y = -2.5;
     snowmanGroup.add(bodyBottom);
 
     const bodyMiddleGeometry = new THREE.SphereGeometry(1.2, 16, 16);
     const bodyMiddle = new THREE.Mesh(bodyMiddleGeometry, snowMaterial);
-    bodyMiddle.position.y = -3.2;
+    bodyMiddle.position.y = -1.2;
     snowmanGroup.add(bodyMiddle);
 
     const headGeometry = new THREE.SphereGeometry(0.9, 16, 16);
     const head = new THREE.Mesh(headGeometry, snowMaterial);
-    head.position.y = -2;
+    head.position.y = 0;
     snowmanGroup.add(head);
 
-    const noseGeometry = new THREE.ConeGeometry(0.1, 0.4, 8);
-    const noseMaterial = new THREE.MeshBasicMaterial({ color: 0xFF9800 });
+    // 코 - 더 크고 앞으로 나오게
+    const noseGeometry = new THREE.ConeGeometry(0.15, 0.6, 8);
+    const noseMaterial = new THREE.MeshToonMaterial({ color: 0xFF9800 });
     const nose = new THREE.Mesh(noseGeometry, noseMaterial);
-    nose.position.set(0, -2, 0.6);
+    nose.position.set(0, 0.1, 0.9); // 더 앞으로
     nose.rotation.x = Math.PI / 2;
     snowmanGroup.add(nose);
 
-    const eyeGeometry = new THREE.SphereGeometry(0.07, 8, 8);
-    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    // 눈 - 더 크게
+    const eyeGeometry = new THREE.SphereGeometry(0.12, 8, 8);
+    const eyeMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.3, -2.2, 0.55);
+    leftEye.position.set(-0.35, 0.25, 0.8); // 더 위로, 더 앞으로
     snowmanGroup.add(leftEye);
 
     const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.3, -2.2, 0.55);
+    rightEye.position.set(0.35, 0.25, 0.8); // 더 위로, 더 앞으로
     snowmanGroup.add(rightEye);
+
+    // 입 - 더 크고 앞으로
+    const mouthGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+    const mouthMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
+    
+    for (let i = 0; i < 5; i++) {
+      const mouthDot = new THREE.Mesh(mouthGeometry, mouthMaterial);
+      const angle = (i - 2) * 0.15; // 더 좁게
+      mouthDot.position.set(Math.sin(angle) * 0.5, -0.2, 0.8); // 더 앞으로
+      snowmanGroup.add(mouthDot);
+    }
+
+    // 단추들 - 더 크고 눈에 잘 띄게
+    const buttonGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const buttonMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
+    
+    const button1 = new THREE.Mesh(buttonGeometry, buttonMaterial);
+    button1.position.set(0, -0.5, 1.15); // 가운데 몸통
+    snowmanGroup.add(button1);
+    
+    const button2 = new THREE.Mesh(buttonGeometry, buttonMaterial);
+    button2.position.set(0, -0.9, 1.15);
+    snowmanGroup.add(button2);
+
+    const button3 = new THREE.Mesh(buttonGeometry, buttonMaterial);
+    button3.position.set(0, -1.8, 1.45); // 아래 몸통
+    snowmanGroup.add(button3);
+
+    // 팔 (나뭇가지 스타일) - 더 두껍고 눈에 잘 띄게
+    const stickGeometry = new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8);
+    const stickMaterial = new THREE.MeshToonMaterial({ 
+      color: 0x8B4513,
+      transparent: false 
+    });
+    
+    // 왼쪽 팔
+    const leftArm = new THREE.Mesh(stickGeometry, stickMaterial);
+    leftArm.position.set(-1.1, -0.5, 0);
+    leftArm.rotation.z = Math.PI / 6; // 30도로 줄임
+    snowmanGroup.add(leftArm);
+    
+    // 오른쪽 팔  
+    const rightArm = new THREE.Mesh(stickGeometry, stickMaterial);
+    rightArm.position.set(1.1, -0.5, 0);
+    rightArm.rotation.z = -Math.PI / 6; // -30도로 줄임
+    snowmanGroup.add(rightArm);
+
+    // 모자
+    const hatBottomGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.1, 16);
+    const hatMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
+    const hatBottom = new THREE.Mesh(hatBottomGeometry, hatMaterial);
+    hatBottom.position.set(0, 0.9, 0);
+    snowmanGroup.add(hatBottom);
+
+    const hatTopGeometry = new THREE.CylinderGeometry(0.7, 0.7, 0.8, 16);
+    const hatTop = new THREE.Mesh(hatTopGeometry, hatMaterial);
+    hatTop.position.set(0, 1.35, 0);
+    snowmanGroup.add(hatTop);
 
     snowmanGroup.position.set(-5, -1, 8);
     this.scene.add(snowmanGroup);
