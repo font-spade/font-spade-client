@@ -589,8 +589,8 @@ export class ThreeSceneService {
       });
 
       const star = new THREE.Sprite(spriteMaterial);
-      // 달처럼 보이는 큰 별 제거 - 모든 별을 작고 균일하게
-      const scale = i === 0 ? 0.3 : 0.5; // 첫 번째 별이 큰 달이었다면 작게 만들기
+      // 별 크기를 0.3배로 축소
+      const scale = 0.3;
       star.scale.set(scale, scale, scale);
 
       const x = (Math.random() - 0.5) * 80;
@@ -1378,5 +1378,48 @@ export class ThreeSceneService {
       // 발사 간격을 더 길게 (8-16초)
       this.fireworkInterval = 8000 + Math.random() * 8000;
     }
+  }
+
+  dispose(): void {
+    // Three.js 리소스 정리
+    if (this.renderer) {
+      this.renderer.dispose();
+      this.renderer.domElement.remove();
+    }
+
+    // 씬 정리
+    if (this.scene) {
+      this.scene.clear();
+    }
+    if (this.emojiScene) {
+      this.emojiScene.clear();
+    }
+
+    // 텍스처 정리
+    if (this.starTexture) {
+      this.starTexture.dispose();
+    }
+
+    // 메시들 정리
+    this.snowflakes.forEach(snowflake => {
+      if (snowflake.geometry) snowflake.geometry.dispose();
+      if (snowflake.material instanceof THREE.Material) snowflake.material.dispose();
+    });
+    this.snowflakes = [];
+
+    this.fireworks.forEach(firework => {
+      firework.children.forEach(child => {
+        if (child instanceof THREE.Mesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material instanceof THREE.Material) child.material.dispose();
+        }
+      });
+    });
+    this.fireworks = [];
+
+    this.backgroundTrees = [];
+    this.mainTreeGroup = null;
+    this.registrationEffect = null;
+    this.starField = null;
   }
 }

@@ -1,5 +1,5 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as THREE from 'three';
@@ -15,7 +15,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './merry-christmas.component.html',
   styleUrls: ['./merry-christmas.component.css']
 })
-export class MerryChristmasComponent implements OnInit, AfterViewInit {
+export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('threeCanvas', { static: true }) canvasRef!: ElementRef;
 
   public backgroundTreeNames: string[] = ['민수님', '지우님', '예린님', '준호님'];
@@ -40,6 +40,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   ownerName = '익명';
 
   writeButtonText = '나의 트리 만들기';
+  private animationId: number | null = null;
+  private routerSubscription: any;
+  private currentUrl: string = '';
   
   get messageCount(): number {
     return this.emojiService.messageCount;
@@ -129,8 +132,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   // 새 메시지 등록 처리
-  addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field'): void {
-    this.emojiService.addNewMessage(nickname, message, emoji, placementType);
+  addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field', youtube_url?: string): void {
+    this.emojiService.addNewMessage(nickname, message, emoji, placementType, youtube_url);
   }
 
   private registerSceneEvents(): void {
@@ -205,7 +208,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private animate(): void {
-    requestAnimationFrame(() => this.animate());
+    this.animationId = requestAnimationFrame(() => this.animate());
 
     const currentTime = Date.now();
 
@@ -785,6 +788,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   // YouTube 관련 메소드들
+  getYouTubeVideoId(url: string): string | null {
+    if (!url) return null;
+    
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+  }
+
   getYouTubeEmbedUrl(videoId: string): SafeResourceUrl {
     const url = `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&rel=0`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -796,6 +807,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // ngOnInit 수정
   async ngOnInit(): Promise<void> {
+    this.currentUrl = this.router.url;
+    await this.initializeComponent();
+    
+    // 라우터 이벤트 구독하여 다른 스팟으로 이동할 때 재초기화
+    this.routerSubscription = this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd && event.url.includes('/4spot') && event.url !== this.currentUrl) {
+        this.currentUrl = event.url;
+        setTimeout(() => {
+          this.reinitializeScene();
+        }, 100);
+      }
+    });
+  }
+
+  private async initializeComponent(): Promise<void> {
     await this.checkAuthStatus();
     await this.threeSceneService.loadGLTFLoader();
     await this.threeSceneService.loadOutlineEffect();
@@ -804,5 +830,38 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     this.loadKakaoSdk().catch(error => {
       console.warn('카카오 SDK 로드 실패:', error);
     });
+  }
+
+  private reinitializeScene(): void {
+    // 기존 리소스 정리
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+    this.emojiService.clearAll();
+    
+    // 씬 재초기화
+    setTimeout(() => {
+      this.animate();
+      this.loadMessages();
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    // 라우터 구독 해제
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+    
+    // Three.js 리소스 정리
+    this.threeSceneService.dispose();
+    
+    // EmojiMessage 서비스 정리
+    this.emojiService.clearAll();
+    
+    // 애니메이션 프레임 정리
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
   }
 }

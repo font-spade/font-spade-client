@@ -50,10 +50,24 @@
       <div class="message-content">
         <div class="nickname">{{selectedEmoji.nickname}}</div>
         <div class="message">{{selectedEmoji.message}}</div>
+        <div class="youtube-player" *ngIf="selectedEmoji.youtube_url && getYouTubeVideoId(selectedEmoji.youtube_url)">
+          <div class="youtube-header">
+            <span>🎵 함께 듣는 음악</span>
+          </div>
+          <iframe 
+            [src]="getYouTubeEmbedUrl(getYouTubeVideoId(selectedEmoji.youtube_url))"
+            width="320"
+            height="180"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
       </div>
       <button class="close-btn" (click)="hideEmojiPopup()">×</button>
     </div>
   </div>
+
 
   <!-- Login Modal -->
   <div class="auth-modal" [class.visible]="showLoginModal" *ngIf="showLoginModal">

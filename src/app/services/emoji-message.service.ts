@@ -15,6 +15,7 @@ export interface EmojiData {
   messageIndex?: number;
   createdAt?: number;
   removing?: boolean;
+  youtube_url?: string;
 }
 
 export interface VisibleMessage {
@@ -101,7 +102,7 @@ export class EmojiMessageService {
     emoji.removing = false;
   }
 
-  addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field'): void {
+  addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field', youtube_url?: string): void {
     let x = 0;
     let y = 0;
     let z = 0;
@@ -135,7 +136,8 @@ export class EmojiMessageService {
         emoji,
         x,
         y,
-        nextMessageTime: Date.now() + Math.random() * 5000 + 3000
+        nextMessageTime: Date.now() + Math.random() * 5000 + 3000,
+        youtube_url
       });
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
 
@@ -303,7 +305,8 @@ export class EmojiMessageService {
           attachToTree: true,
           height: position.height,
           angle: position.angle,
-          messageIndex: index
+          messageIndex: index,
+          youtube_url: msg.youtube_url
         });
       } else {
         const position = this.threeScene.generateRandomFieldPosition();
@@ -314,7 +317,8 @@ export class EmojiMessageService {
           x: position.x,
           y: position.y,
           z: position.z,
-          messageIndex: index
+          messageIndex: index,
+          youtube_url: msg.youtube_url
         });
       }
     });
@@ -385,7 +389,8 @@ export class EmojiMessageService {
           emoji: msg.emoji,
           x: msg.x,
           y: msg.y,
-          z: msg.z
+          z: msg.z,
+          youtube_url: msg.youtube_url
         });
         this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
 
@@ -410,7 +415,8 @@ export class EmojiMessageService {
           emoji: msg.emoji,
           x: treePosition.x,
           y: treePosition.y,
-          z: treePosition.z
+          z: treePosition.z,
+          youtube_url: msg.youtube_url
         });
         this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
 
@@ -575,7 +581,8 @@ export class EmojiMessageService {
         y: y,
         z: position.z,
         nextMessageTime: Date.now() + 3000,
-        messageIndex: randomIndex
+        messageIndex: randomIndex,
+        youtube_url: msg.youtube_url
       });
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
     } else {
@@ -602,7 +609,8 @@ export class EmojiMessageService {
         y: attachPosition.y,
         z: attachPosition.z,
         nextMessageTime: Date.now() + 3000,
-        messageIndex: randomIndex
+        messageIndex: randomIndex,
+        youtube_url: msg.youtube_url
       });
     }
 
@@ -653,7 +661,8 @@ export class EmojiMessageService {
         x: position.x,
         y,
         z: position.z,
-        nextMessageTime: Date.now() + Math.random() * 5000 + 3000
+        nextMessageTime: Date.now() + Math.random() * 5000 + 3000,
+        youtube_url: undefined
       });
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
     } else {
@@ -677,7 +686,8 @@ export class EmojiMessageService {
         x: attachPosition.x,
         y: attachPosition.y,
         z: attachPosition.z,
-        nextMessageTime: Date.now() + Math.random() * 5000 + 3000
+        nextMessageTime: Date.now() + Math.random() * 5000 + 3000,
+        youtube_url: undefined
       });
     }
 
