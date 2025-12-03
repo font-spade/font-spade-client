@@ -352,8 +352,9 @@ export class ThreeSceneService {
   }
 
   generateRandomTreePosition(): { height: number; angle: number } {
+    // 균등한 높이 분포를 위해 sqrt 제거하고 하단에 더 많이 배치
     const randomValue = Math.random();
-    const weightedRandom = Math.sqrt(randomValue);
+    const weightedRandom = Math.pow(randomValue, 1.5); // 하단에 더 집중되도록
     const height = 2.5 + weightedRandom * 7;
     const angle = Math.random() * Math.PI * 2;
     return { height, angle };
@@ -413,17 +414,23 @@ export class ThreeSceneService {
   }
 
   getTreeAttachPosition(height: number, angle: number): { x: number; y: number; z: number } {
-    const minRadius = 0.5;
-    const maxRadius = 3;
+    const minRadius = 1.2; // 최소 반지름 증가
+    const maxRadius = 3.5; // 최대 반지름 증가
     const maxHeight = 12;
 
     const normalizedHeight = Math.max(0, Math.min(1, height / maxHeight));
-    const radius = minRadius + (maxRadius - minRadius) * (1 - normalizedHeight);
+    // 더 완만한 곡선으로 트리 모양 만들기
+    const radiusMultiplier = Math.pow(1 - normalizedHeight, 0.7);
+    const radius = minRadius + (maxRadius - minRadius) * radiusMultiplier;
+
+    // 각도에 약간의 랜덤 변화 추가하여 중심축 집중 방지
+    const angleVariation = (Math.random() - 0.5) * 0.3;
+    const finalAngle = angle + angleVariation;
 
     return {
-      x: Math.cos(angle) * radius,
+      x: Math.cos(finalAngle) * radius,
       y: height - 5,
-      z: Math.sin(angle) * radius
+      z: Math.sin(finalAngle) * radius
     };
   }
 

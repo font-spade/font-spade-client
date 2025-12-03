@@ -41,10 +41,10 @@ export class EmojiMessageService {
   private currentSecond = 0;
   private maxVisibleMessages = 20;
   private lastEmojiUpdateTime = 0;
-  private emojiUpdateInterval = 7000;
+  private emojiUpdateInterval = 180000; // 3분 (180초)
   private isLoadingMessages = false;
   private maxEmojis = 8;
-  private emojiLifetime = 20000;
+  private emojiLifetime = 600000; // 10분 (600초)
 
   constructor(
     private threeScene: ThreeSceneService,
@@ -765,26 +765,22 @@ export class EmojiMessageService {
   private checkEmojiUpdate(currentTime: number, options: { isDragging: boolean; hasSpot: boolean; isLoggedIn: boolean }): void {
     if (currentTime - this.lastEmojiUpdateTime > this.emojiUpdateInterval) {
       this.lastEmojiUpdateTime = currentTime;
-      this.emojiUpdateInterval = 5000 + Math.random() * 5000;
+      // 3분 간격으로 고정
+      this.emojiUpdateInterval = 180000; // 3분
 
-      const removeCount = Math.min(Math.floor(Math.random() * 3) + 1, this.emojis.length);
+      // 1개씩만 제거
+      const removeCount = 1;
 
       if (this.emojis.length > 0) {
-        for (let i = 0; i < removeCount; i++) {
-          const randomIndex = Math.floor(Math.random() * this.emojis.length);
-          const emojiToRemove = this.emojis[randomIndex];
-          this.startEmojiRemoval(emojiToRemove);
-        }
+        const randomIndex = Math.floor(Math.random() * this.emojis.length);
+        const emojiToRemove = this.emojis[randomIndex];
+        this.startEmojiRemoval(emojiToRemove);
 
         setTimeout(() => {
           if (!options.isLoggedIn && !options.hasSpot) {
-            for (let i = 0; i < removeCount; i++) {
-              this.addRandomEmoji();
-            }
+            this.addRandomEmoji();
           } else {
-            for (let i = 0; i < removeCount; i++) {
-              this.addNextApiMessage();
-            }
+            this.addNextApiMessage();
           }
         }, 1000);
       }
