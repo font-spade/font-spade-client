@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as THREE from 'three';
 
 // GLTFLoader 임포트 (타입 에러 회피)
@@ -10,6 +11,32 @@ declare const OutlineEffect: any;
 // 동적 로딩
 let GLTFLoaderClass: any;
 let OutlineEffectClass: any;
+
+// 인터페이스 정의
+interface User {
+  id: string;
+  nickname: string;
+  profileImage?: string;
+  kakaoId?: number;
+}
+
+interface Spot {
+  id: string;
+  ownerId: string;
+  title: string;
+  season: string;  // spring, summer, autumn, winter
+  theme_data?: any;
+  shareUrl: string;
+  youtube_url?: string;
+  youtube_video_id?: string;
+  message_count?: number;
+}
+
+interface AuthState {
+  isLoggedIn: boolean;
+  user?: User;
+  currentSpotId?: string;  // currentTreeId → currentSpotId로 변경
+}
 
 @Component({
   selector: 'app-merry-christmas',
@@ -33,7 +60,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     y: number;
     z?: number;
     nextMessageTime?: number;
+    messageIndex?: number; // API 메시지 인덱스 추가
   }> = [];
+
+  public messageCount: number = 0;
+  private apiMessages: any[] = []; // API에서 받은 메시지들 저장
 
   private snowflakes: THREE.Mesh[] = [];
   public backgroundTreeNames: string[] = ['민수님', '지우님', '예린님', '준호님'];
@@ -80,6 +111,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   // 이모지 동적 관리
   private lastEmojiUpdateTime = 0;
   private emojiUpdateInterval = 7000; // 7초마다 이모지 업데이트
+  private isLoadingMessages = false; // 메시지 로딩 중 플래그
 
   visibleMessages: Array<{
     id: string;
@@ -93,15 +125,98 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   selectedEmoji: any = null;
   isEmojiPopupVisible = false;
-  ownerName = '도현';
+  ownerName = '익명';
 
-  constructor(private router: Router, private http: HttpClient) {}
+  // 버튼 텍스트 동적 변경
+  writeButtonText = '나의 트리 만들기';
 
-  async ngOnInit(): Promise<void> {
-    await this.loadGLTFLoader();
-    await this.loadOutlineEffect();
-    this.initThreeJS();
+  updateWriteButtonText(): void {
+    this.refreshSeasonContext();
+    // URL에 스팟 ID가 있으면 다른 사람의 스팟을 방문 중
+    const spotId = this.route.snapshot.paramMap.get('id');
+
+    // 계절에 따른 버튼 텍스트 결정
+    const season = this.currentSeason;
+    const seasonTexts = {
+      'winter': { create: '나의 트리 만들기', decorate: '트리 꾸며주기' },
+      'spring': { create: '나의 봄 스팟 만들기', decorate: '봄 스팟 꾸며주기' },
+      'summer': { create: '나의 여름 스팟 만들기', decorate: '여름 스팟 꾸며주기' },
+      'autumn': { create: '나의 가을 스팟 만들기', decorate: '가을 스팟 꾸며주기' }
+    };
+
+    if (this.authState.isLoggedIn) {
+      // 로그인한 사용자는 무조건 꾸미기 모드 (스팟이 이미 생성되었으므로)
+      this.writeButtonText = seasonTexts[season as keyof typeof seasonTexts].decorate;
+    } else {
+      // 로그인하지 않은 사용자
+      if (spotId) {
+        // 다른 사람의 스팟 방문
+        this.writeButtonText = seasonTexts[season as keyof typeof seasonTexts].decorate;
+      } else {
+        // 메인 페이지 - 현재는 겨울(크리스마스) 시즌
+        this.writeButtonText = seasonTexts['winter'].create;
+      }
+    }
   }
+
+  // 인증 관련 프로퍼티
+  authState: AuthState = { isLoggedIn: false, currentSpotId: undefined };
+  currentSpot?: Spot;
+  showLoginModal = false;
+  showAnonymousModal = false;
+  currentSeason: 'winter' | 'spring' | 'summer' | 'autumn' = 'winter';
+
+  // YouTube 플레이어 관련
+  isYouTubeVisible = false;
+
+  apiBaseUrl = 'http://localhost:8000'; // 서버 URL
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
+  ) {
+    this.refreshSeasonContext();
+  }
+
+  private detectCurrentSeason(date: Date = new Date()): 'winter' | 'spring' | 'summer' | 'autumn' {
+    const month = date.getMonth() + 1; // 1-12
+    if (month === 12 || month <= 2) {
+      return 'winter';
+    }
+    if (month >= 3 && month <= 5) {
+      return 'spring';
+    }
+    if (month >= 6 && month <= 8) {
+      return 'summer';
+    }
+    return 'autumn';
+  }
+
+  private refreshSeasonContext(): void {
+    this.currentSeason = this.detectCurrentSeason();
+  }
+
+  private getAuthHeaders(): { [header: string]: string } | undefined {
+    const token = localStorage.getItem('authToken');
+    return token ? { 'Authorization': `Bearer ${token}` } : undefined;
+  }
+
+  private mapSpotResponse(data: any): Spot {
+    return {
+      id: data.id,
+      ownerId: data.owner_id || data.ownerId,
+      title: data.title,
+      season: data.season,
+      theme_data: data.theme_data,
+      shareUrl: data.share_url || data.shareUrl,
+      youtube_url: data.youtube_url,
+      youtube_video_id: data.youtube_video_id,
+      message_count: data.message_count
+    };
+  }
+
 
   private async loadGLTFLoader(): Promise<void> {
     try {
@@ -1043,14 +1158,23 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           // 사라지는 애니메이션
           this.animateEmojiExit(emojiToRemove.mesh, () => {
             this.emojiScene.remove(emojiToRemove.mesh);
+            console.log('이모지 제거:', emojiToRemove.emoji, '인덱스:', emojiToRemove.messageIndex);
             this.emojis.splice(this.emojis.indexOf(emojiToRemove), 1);
           });
         }
 
         // 새로운 이모지 추가 (제거한 만큼)
         setTimeout(() => {
-          for (let i = 0; i < removeCount; i++) {
-            this.addRandomEmoji();
+          if (!this.authState.isLoggedIn && !this.authState.currentSpotId) {
+            // 로그인하지 않은 상태: 랜덤 이모지 추가
+            for (let i = 0; i < removeCount; i++) {
+              this.addRandomEmoji();
+            }
+          } else {
+            // 로그인한 상태: API 메시지에서 다음 메시지 추가
+            for (let i = 0; i < removeCount; i++) {
+              this.addNextApiMessage();
+            }
           }
         }, 1000); // 1초 후 새로운 이모지 추가
       }
@@ -1085,8 +1209,106 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     animate();
   }
 
-  // 랜덤 이모지 추가
+  // API 메시지에서 다음 메시지 추가 (로그인 상태일 때)
+  private addNextApiMessage(): void {
+    if (!this.apiMessages || this.apiMessages.length === 0) {
+      console.log('API 메시지가 없음');
+      return;
+    }
+
+    // 현재 화면에 표시된 이모지들의 인덱스 수집
+    const currentDisplayedIndices = new Set<number>();
+    this.emojis.forEach(emoji => {
+      if (emoji.messageIndex !== undefined) {
+        currentDisplayedIndices.add(emoji.messageIndex);
+      }
+    });
+
+    // 화면에 표시되지 않은 메시지 중에서 선택
+    const availableIndices = [];
+    for (let i = 0; i < this.apiMessages.length; i++) {
+      if (!currentDisplayedIndices.has(i)) {
+        availableIndices.push(i);
+      }
+    }
+
+    // 사용 가능한 메시지가 없으면 아무것도 하지 않음
+    if (availableIndices.length === 0) {
+      console.log('모든 메시지가 현재 화면에 표시되어 새로운 메시지를 추가하지 않음');
+      return;
+    }
+
+    if (availableIndices.length > 0) {
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      const msg = this.apiMessages[randomIndex];
+      console.log(`새로운 메시지 추가: ${msg.nickname} - ${msg.emoji} (인덱스: ${randomIndex})`);
+
+      // center 타입을 랜덤하게 field 또는 tree로 분배 (50:50)
+      let actualPlacementType = msg.placementType;
+      if (actualPlacementType === 'background') {
+        // 필드 배치 타이포그래피 이모지
+        const position = this.generateRandomFieldPosition();
+        const groundHeight = this.getGroundHeight(position.x, position.z);
+        const y = groundHeight + 0.5;
+        const mesh = this.createTypographyMesh(msg.emoji, position.x, y, position.z);
+        this.emojiScene.add(mesh);
+
+        mesh.userData['originalY'] = y;
+        mesh.userData['moveSpeed'] = 0.002 + Math.random() * 0.003;
+        mesh.userData['moveAngle'] = Math.random() * Math.PI * 2;
+        mesh.userData['isTypography'] = true;
+        mesh.userData['sinePhase'] = Math.random() * Math.PI * 2;
+        mesh.userData['sineAmplitude'] = 0.5 + Math.random() * 1.0;
+        mesh.userData['sineFrequency'] = 0.8 + Math.random() * 0.4;
+        mesh.userData['previousX'] = position.x;
+
+        this.emojis.push({
+          mesh,
+          nickname: msg.nickname,
+          message: msg.message,
+          emoji: msg.emoji,
+          x: position.x,
+          y: y,
+          z: position.z,
+          nextMessageTime: Date.now() + 3000,
+          messageIndex: randomIndex
+        });
+      } else {
+        // 트리 배치 이모지
+        const position = this.generateRandomTreePosition();
+        const mesh = this.createEmojiMesh(msg.emoji, 0, position.height, 0, true);
+        this.emojiScene.add(mesh);
+
+        mesh.userData['attachToTree'] = true;
+        mesh.userData['height'] = position.height;
+        mesh.userData['angle'] = position.angle;
+        mesh.userData['rotationSpeed'] = 0.005 + Math.random() * 0.01;
+
+        this.emojis.push({
+          mesh,
+          nickname: msg.nickname,
+          message: msg.message,
+          emoji: msg.emoji,
+          x: 0,
+          y: position.height,
+          z: 0,
+          nextMessageTime: Date.now() + 3000,
+          messageIndex: randomIndex
+        });
+      }
+
+      this.animateEmojiEntry(this.emojis[this.emojis.length - 1].mesh);
+    }
+  }
+
+  // 랜덤 이모지 추가 - 로그인하지 않은 상태에서만
   private addRandomEmoji(): void {
+    // 로그인한 상태거나 실제 스팟이 있으면 랜덤 이모지 추가하지 않음
+    if (this.authState.isLoggedIn || this.authState.currentSpotId) {
+      console.log('로그인 상태이므로 랜덤 이모지 추가하지 않음');
+      return;
+    }
+
     console.log('addRandomEmoji 호출됨');
     const emojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
     const nicknames = ['산타', '루돌프', '눈사람', '요정', '천사', '크리스마스'];
@@ -1505,8 +1727,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
 
   private onCanvasClick(event: MouseEvent): void {
+    console.log('Canvas 클릭됨, hasMouseMoved:', this.hasMouseMoved);
+
     // 드래그한 경우 클릭 이벤트 무시
     if (this.hasMouseMoved) {
+      console.log('마우스 이동으로 인해 클릭 이벤트 무시');
       return;
     }
 
@@ -1515,19 +1740,24 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    console.log('마우스 좌표:', mouse.x, mouse.y);
+
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, this.camera);
 
     const intersects = raycaster.intersectObjects(this.emojis.map(e => e.mesh));
+    console.log('Raycasting 결과:', intersects.length, '개의 이모지 감지');
 
     if (intersects.length > 0) {
       const clickedMesh = intersects[0].object as THREE.Mesh;
       const emojiData = this.emojis.find(e => e.mesh === clickedMesh);
 
       if (emojiData) {
+        console.log('이모지 클릭됨:', emojiData.emoji, emojiData.nickname);
         this.showEmojiPopup(emojiData);
       }
     } else {
+      console.log('이모지 클릭되지 않음');
       this.hideEmojiPopup();
     }
   }
@@ -1720,19 +1950,26 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     return { height, angle };
   }
 
-  private async fetchMessagesFromAPI(): Promise<any[]> {
-    try {
-      // API에서 메시지 데이터 가져오기
-      const response = await this.http.get<any[]>('/api/messages').toPromise();
-      return response || [];
-    } catch (error) {
-      console.error('API에서 메시지를 가져오는데 실패했습니다:', error);
-      // API 실패 시 빈 배열 반환 (개발 단계에서는 fallback 데이터 사용)
-      return [];
-    }
+
+  private clearAllEmojis(): void {
+    // 기존 이모지들을 모두 제거
+    this.emojis.forEach(emojiData => {
+      if (emojiData.mesh.parent) {
+        emojiData.mesh.parent.remove(emojiData.mesh);
+      }
+    });
+    this.emojis = [];
+    this.visibleMessages = [];
+    console.log('기존 이모지들을 모두 제거했습니다.');
   }
 
   private async loadMessages(): Promise<void> {
+    // 이미 로딩 중이면 중단
+    if (this.isLoadingMessages) {
+      console.log('이미 메시지 로딩 중입니다. 중복 호출 방지');
+      return;
+    }
+
     // Scene이 초기화되었는지 확인
     if (!this.scene) {
       console.log('Scene이 아직 초기화되지 않아서 메시지 로드를 지연합니다.');
@@ -1740,27 +1977,36 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.isLoadingMessages = true;
+
+    // 스팟 ID가 있으면 실제 메시지 로드, 없으면 더미 데이터 사용
+    if (this.authState.currentSpotId) {
+      console.log('실제 스팟 메시지 로드:', this.authState.currentSpotId);
+      await this.loadRealMessages();
+    } else {
+      console.log('스팟 없음 - 더미 데이터 사용');
+      this.loadFallbackMessages();
+    }
+
+    this.isLoadingMessages = false;
+  }
+
+  private async loadRealMessages(): Promise<void> {
     try {
       // API에서 메시지 데이터 가져오기
-      const apiMessages = await this.fetchMessagesFromAPI();
-      
+      this.apiMessages = await this.fetchMessagesFromAPI();
+
       // API 데이터를 placementType에 따라 분류하고 동적 위치 생성
       const typographyEmojis: any[] = [];
       const treeEmojis: any[] = [];
-      
-      apiMessages.forEach(msg => {
-        if (msg.placementType === 'field') {
-          // 필드 배치 타이포그래피 이모지
-          const position = this.generateRandomFieldPosition();
-          typographyEmojis.push({
-            nickname: msg.nickname,
-            message: msg.message,
-            emoji: msg.emoji,
-            x: position.x,
-            y: position.y,
-            z: position.z
-          });
-        } else if (msg.placementType === 'tree') {
+
+      this.apiMessages.forEach((msg, index) => {
+        console.log(`메시지 처리: ${msg.nickname} - placementType: ${msg.placementType}`);
+
+        // center 타입을 랜덤하게 field 또는 tree로 분배 (50:50)
+        let actualPlacementType = msg.placementType;
+
+        if (actualPlacementType === 'center') {
           // 트리 배치 일반 이모지
           const position = this.generateRandomTreePosition();
           treeEmojis.push({
@@ -1769,26 +2015,44 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
             emoji: msg.emoji,
             attachToTree: true,
             height: position.height,
-            angle: position.angle
+            angle: position.angle,
+            messageIndex: index // API 메시지 인덱스 추가
+          });
+        } else {
+          const position = this.generateRandomFieldPosition();
+          typographyEmojis.push({
+            nickname: msg.nickname,
+            message: msg.message,
+            emoji: msg.emoji,
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            messageIndex: index // API 메시지 인덱스 추가
           });
         }
       });
 
-      console.log(`API에서 로드된 메시지: ${apiMessages.length}개 (타이포그래피: ${typographyEmojis.length}, 트리: ${treeEmojis.length})`);
+      console.log(`API에서 로드된 메시지: ${this.apiMessages.length}개 (타이포그래피: ${typographyEmojis.length}, 트리: ${treeEmojis.length})`);
 
-      // API에 데이터가 없는 경우 fallback 데이터 사용 (개발 단계)
-      if (apiMessages.length === 0) {
-        console.log('API 데이터가 없어서 fallback 데이터를 사용합니다.');
-        this.loadFallbackMessages();
+      // 메시지 개수 업데이트
+      this.messageCount = this.apiMessages.length;
+
+      // 기존 이모지들을 모두 제거 (깔끔하게 시작)
+      this.clearAllEmojis();
+
+      // API에 데이터가 없으면 빈 상태로 유지 (로그인 사용자는 더미 데이터 사용 안함)
+      if (this.apiMessages.length === 0) {
+        console.log('아직 메시지가 없습니다. 첫 번째 메시지를 남겨보세요!');
         return;
       }
 
       // API에서 받은 데이터로 이모지 배치
       this.placeEmojisFromData(typographyEmojis, treeEmojis);
-      
+
     } catch (error) {
       console.error('메시지 로드 중 오류 발생:', error);
-      this.loadFallbackMessages();
+      // 로그인한 상태에서는 fallback 메시지 사용 안함
+      console.log('API 오류로 인해 메시지를 로드할 수 없습니다.');
     }
   }
 
@@ -1804,7 +2068,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       ...this.generateRandomFieldPosition()
     }));
 
-    // 기본 트리 이모지들  
+    // 기본 트리 이모지들
     const fallbackTreeEmojis = [
       { nickname: '김영희', message: '메리 크리스마스!', emoji: '🎄' },
       { nickname: '박철수', message: '행복한 연말 되세요!', emoji: '🎅' },
@@ -1826,10 +2090,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // 이모지 배치 공통 로직
   private placeEmojisFromData(typographyEmojis: any[], treeEmojis: any[]): void {
+    console.log(`이모지 배치 시작: 타이포그래피 ${typographyEmojis.length}개, 트리 ${treeEmojis.length}개`);
 
     // 타이포그래피 이모지 먼저 배치
     typographyEmojis.forEach((msg, index) => {
       setTimeout(() => {
+        console.log(`타이포그래피 이모지 생성: ${msg.nickname} - ${msg.emoji} at (${msg.x}, ${msg.z})`);
+
         // Raycast로 바닥 높이 계산
         const groundHeight = this.getGroundHeight(msg.x, msg.z);
         const y = groundHeight + 0.5;
@@ -2165,9 +2432,6 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  onWriteMessage(): void {
-    this.router.navigate(['/message-write']);
-  }
 
   onShare(): void {
     const url = window.location.href;
@@ -2447,5 +2711,377 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       }, 5000);
 
     }, 1000);
+  }
+
+  // 인증 관련 메서드들
+  async checkAuthStatus(): Promise<void> {
+    // URL 파라미터에서 트리 ID 확인
+    const treeId = this.route.snapshot.paramMap.get('id');
+    let isOwnerOfCurrentSpot = false;
+
+    // 사용자 정보 확인 (localStorage에서)
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        this.authState.isLoggedIn = true;
+        this.authState.user = {
+          id: user.id,
+          nickname: user.nickname,
+          kakaoId: user.id
+        };
+        console.log('사용자 정보 로드:', user.nickname);
+
+        // 스팟 데이터 로드 및 소유자 확인
+        if (treeId) {
+          await this.loadSpotData(treeId);
+          // 현재 스팟의 소유자인지 확인
+          if (this.currentSpot && this.currentSpot.ownerId === user.id) {
+            isOwnerOfCurrentSpot = true;
+            this.authState.currentSpotId = treeId;
+            this.ownerName = user.nickname;
+            console.log('내 스팟 방문:', treeId);
+          } else {
+            // 다른 사람의 스팟 방문
+            this.authState.currentSpotId = undefined; // 내 스팟 ID는 설정하지 않음
+            this.ownerName = this.currentSpot?.title || '익명의 트리';
+            console.log('다른 사람의 스팟 방문:', treeId, '소유자:', this.ownerName);
+          }
+        } else {
+          // URL에 스팟 ID가 없으면 내 스팟으로 이동
+          this.ownerName = user.nickname;
+          await this.loadCurrentUserSpot();
+        }
+      } catch (error) {
+        console.error('사용자 정보 파싱 실패:', error);
+      }
+    } else if (treeId) {
+      // 로그인하지 않고 스팟 방문
+      await this.loadSpotData(treeId);
+      this.authState.currentSpotId = treeId; // 방문 중인 스팟 ID 설정
+    }
+
+    // JWT 토큰 확인 (백업 방법)
+    const token = localStorage.getItem('authToken');
+    if (token && !this.authState.isLoggedIn) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp * 1000 > Date.now()) {
+          this.authState.isLoggedIn = true;
+          this.authState.user = {
+            id: payload.user_id,
+            nickname: payload.nickname,
+            kakaoId: payload.kakao_id
+          };
+          this.ownerName = payload.nickname;
+
+          // 사용자의 스팟이 있는지 확인하고 없으면 생성
+          if (!treeId) {
+            await this.loadCurrentUserSpot();
+          }
+
+          // 버튼 텍스트 업데이트
+          this.updateWriteButtonText();
+        }
+      } catch (error) {
+        console.error('토큰 파싱 실패:', error);
+        localStorage.removeItem('authToken');
+      }
+    }
+
+    // 로그인되지 않은 상태에서 스팟 ID가 있으면 방문자 모드
+    if (!this.authState.isLoggedIn && treeId) {
+      this.showVisitorOptions();
+    } else if (!this.authState.isLoggedIn && !treeId) {
+      // 로그인되지 않고 스팟 ID도 없으면 홈에서 로그인 유도
+      this.showLoginModal = true;
+    }
+
+    // 모든 경우에 버튼 텍스트 업데이트
+    this.updateWriteButtonText();
+
+    // 스팟 ID가 있으면 메시지 로드 (한 번만)
+    if (this.authState.currentSpotId && !this.isLoadingMessages) {
+      console.log('메시지 로드 시작:', this.authState.currentSpotId);
+      this.loadMessages();
+    }
+  }
+
+  async loadSpotData(spotId: string): Promise<void> {
+    try {
+      const response = await this.http.get<any>(`${this.apiBaseUrl}/spots/${spotId}`).toPromise();
+      debugger;
+      this.currentSpot = this.mapSpotResponse(response);
+      if (this.currentSpot) {
+        this.ownerName = this.currentSpot.title || '익명의 트리';
+      }
+      // 스팟 데이터 로드 후 버튼 텍스트 업데이트
+      this.updateWriteButtonText();
+    } catch (error) {
+      console.error('스팟 데이터 로드 실패:', error);
+    }
+  }
+
+  private async loadCurrentUserSpot(): Promise<void> {
+    if (!this.authState.user) {
+      return;
+    }
+
+    try {
+      const headers = this.getAuthHeaders();
+      const options = headers ? { headers } : {};
+      const response = await this.http
+        .get<any[]>(`${this.apiBaseUrl}/users/${this.authState.user.id}/spots`, options)
+        .toPromise();
+
+      const mySpot = response && response.length ? response[0] : null;
+
+      if (mySpot) {
+        const mappedSpot = this.mapSpotResponse(mySpot);
+        this.currentSpot = mappedSpot;
+        this.authState.currentSpotId = mappedSpot.id;
+        if (mappedSpot.title) {
+          this.ownerName = mappedSpot.title;
+        } else if (this.authState.user?.nickname) {
+          this.ownerName = this.authState.user.nickname;
+        }
+
+        const routeSpotId = this.route.snapshot.paramMap.get('id');
+        if (!routeSpotId) {
+          this.router.navigate(['/4spot', mappedSpot.id], { replaceUrl: true });
+        }
+      } else {
+        await this.createUserSpot();
+      }
+    } catch (error) {
+      console.error('내 스팟 불러오기 실패:', error);
+      const httpError = error as HttpErrorResponse;
+      if (httpError?.status === 404) {
+        await this.createUserSpot();
+      }
+    }
+  }
+
+  async createUserSpot(): Promise<void> {
+    if (!this.authState.user) return;
+
+    try {
+      const headers = this.getAuthHeaders();
+      if (!headers) {
+        console.error('인증 토큰이 없어 스팟을 생성할 수 없습니다.');
+        return;
+      }
+
+      const spotData = {
+        owner_id: this.authState.user.id,
+        title: `${this.authState.user.nickname}님의 트리`,
+        season: this.currentSeason
+      };
+
+      const response = await this.http.post<{spot_id: string, share_url: string, title: string}>(
+        `${this.apiBaseUrl}/spots`, spotData,
+        { headers }
+      ).toPromise();
+
+      if (response) {
+        this.currentSpot = {
+          id: response.spot_id,
+          ownerId: this.authState.user.id,
+          title: response.title,
+          season: this.currentSeason,
+          shareUrl: response.share_url
+        };
+        this.authState.currentSpotId = response.spot_id;
+        if (response.title) {
+          this.ownerName = response.title;
+        }
+
+        // URL을 스팟 ID가 포함된 주소로 변경
+        this.router.navigate(['/4spot', response.spot_id], { replaceUrl: true });
+      }
+    } catch (error) {
+      console.error('스팟 생성 실패:', error);
+    }
+  }
+
+  showVisitorOptions(): void {
+    this.showAnonymousModal = true;
+  }
+
+  private kakaoLoginUrl: string = '';
+
+  getKakaoLoginUrl(): string {
+    if (!this.kakaoLoginUrl) {
+      const clientId = '85c57099905117aec84375e532cb75be';
+      const redirectUri = 'http://localhost/auth/kakao/callback';
+      const state = this.generateRandomState();
+
+      this.kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=profile_nickname,profile_image`;
+    }
+
+    return this.kakaoLoginUrl;
+  }
+
+  private generateRandomState(): string {
+    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+  }
+
+  onAnonymousStart(): void {
+    this.showAnonymousModal = false;
+    // 로그인 상태는 유지하면서 다른 사람의 스팟을 방문하는 모드
+    console.log('익명으로 다른 사람의 스팟 방문');
+  }
+
+  onCreateMyTree(): void {
+    this.showLoginModal = true;
+  }
+
+  closeLoginModal(): void {
+    this.showLoginModal = false;
+  }
+
+  closeAnonymousModal(): void {
+    this.showAnonymousModal = false;
+    // 메인 페이지로 리다이렉트
+    this.router.navigate(['/']);
+  }
+
+  // 기존 fetchMessagesFromAPI 메서드 수정
+  private async fetchMessagesFromAPI(): Promise<any[]> {
+    try {
+      if (!this.authState.currentSpotId) {
+        return [];
+      }
+
+      const response = await this.http.get<any[]>(`${this.apiBaseUrl}/messages/${this.authState.currentSpotId}`).toPromise();
+      return response || [];
+    } catch (error) {
+      console.error('API에서 메시지를 가져오는데 실패했습니다:', error);
+      return [];
+    }
+  }
+
+  // onWriteMessage 메서드 수정
+  async onWriteMessage(): Promise<void> {
+    console.log('onWriteMessage 호출됨');
+    console.log('로그인 상태:', this.authState.isLoggedIn);
+
+    const visitingSpotId = this.route.snapshot.paramMap.get('id');
+    console.log('방문 중인 스팟 ID:', visitingSpotId);
+    console.log('내 스팟 ID:', this.authState.currentSpotId);
+
+    if (!this.authState.isLoggedIn) {
+      console.log('로그인되지 않아서 로그인 모달 표시');
+      this.showLoginModal = true;
+      return;
+    }
+
+    let targetSpotId = this.authState.currentSpotId; // 기본값은 내 스팟
+
+    if (visitingSpotId) {
+      // 다른 사람의 스팟을 방문 중이면 해당 스팟에 메시지 작성
+      targetSpotId = visitingSpotId;
+      console.log('다른 사람의 스팟에 메시지 작성:', targetSpotId);
+    } else {
+      // 내 스팟인 경우
+      if (!targetSpotId) {
+        console.log('내 스팟 ID가 없어서 로드/생성 시도');
+        await this.loadCurrentUserSpot();
+        if (!this.authState.currentSpotId) {
+          await this.createUserSpot();
+        }
+        targetSpotId = this.authState.currentSpotId;
+      }
+    }
+
+    console.log('최종 스팟 ID:', targetSpotId);
+    if (targetSpotId) {
+      console.log('메시지 작성 페이지로 이동 시도:', targetSpotId);
+      try {
+        const result = this.router.navigate(['/message-write'], {
+          queryParams: {
+            spotId: targetSpotId,
+            nickname: this.authState.user?.nickname || '사용자'
+          }
+        });
+        console.log('라우터 네비게이션 결과:', result);
+
+        // 라우터 네비게이션이 Promise를 반환하므로 결과 확인
+        result.then(success => {
+          console.log('네비게이션 성공 여부:', success);
+          if (!success) {
+            console.error('네비게이션 실패 - 라우터 설정 확인 필요');
+          }
+        }).catch(error => {
+          console.error('네비게이션 에러:', error);
+        });
+
+      } catch (error) {
+        console.error('라우터 navigate 호출 에러:', error);
+      }
+    } else {
+      console.error('스팟 ID를 확인할 수 없어서 페이지 이동 실패');
+    }
+  }
+
+  // 로그아웃 메서드
+  async onLogout(): Promise<void> {
+    try {
+      console.log('로그아웃 시작');
+
+      // 서버에 로그아웃 요청 (카카오 로그아웃 포함)
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await this.http.post(`${this.apiBaseUrl}/auth/logout`, {}, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).toPromise();
+      }
+
+      console.log('서버 로그아웃 완료');
+    } catch (error) {
+      console.error('서버 로그아웃 실패:', error);
+      // 서버 로그아웃 실패해도 클라이언트 정리는 진행
+    }
+
+    // 클라이언트 상태 초기화
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userInfo');
+
+    // 인증 상태 초기화
+    this.authState.isLoggedIn = false;
+    this.authState.user = undefined;
+    this.authState.currentSpotId = undefined;
+
+    // UI 상태 초기화
+    this.ownerName = '익명';
+    this.writeButtonText = '나의 트리 만들기';
+    this.showLoginModal = false;
+    this.showAnonymousModal = false;
+
+    // 이모지와 메시지 초기화
+    this.clearAllEmojis();
+
+    console.log('로그아웃 완료 - 메인 페이지로 이동');
+
+    // 메인 페이지로 이동
+    this.router.navigate(['/4spot']);
+  }
+
+  // YouTube 관련 메소드들
+  getYouTubeEmbedUrl(videoId: string): SafeResourceUrl {
+    const url = `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&rel=0`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  toggleYouTube(): void {
+    this.isYouTubeVisible = !this.isYouTubeVisible;
+  }
+
+  // ngOnInit 수정
+  async ngOnInit(): Promise<void> {
+    await this.checkAuthStatus(); // 인증 상태 확인 먼저
+    await this.loadGLTFLoader();
+    await this.loadOutlineEffect();
+    this.initThreeJS();
   }
 }

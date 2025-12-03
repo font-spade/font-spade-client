@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -24,6 +24,10 @@ export class MessageWriteComponent implements OnInit {
 
   // 배치 방식 선택
   placementType: 'tree' | 'field' = 'tree';
+
+  // 스팟 ID
+  spotId: string = '';
+  apiBaseUrl = 'http://localhost:8000';
 
   emojiCategories = [
     {
@@ -62,12 +66,36 @@ export class MessageWriteComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private http: HttpClient,
     private cdRef: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: string
   ) {}
 
   ngOnInit(): void {
+    // URL 쿼리 파라미터에서 스팟 ID와 닉네임 가져오기
+    this.route.queryParams.subscribe(params => {
+      this.spotId = params['spotId'] || '';
+      const userNickname = params['nickname'] || '';
+      
+      if (!this.spotId) {
+        console.error('스팟 ID가 없습니다. 메인 페이지로 이동합니다.');
+        this.router.navigate(['/4spot']);
+        return;
+      }
+      
+      // 로그인한 사용자의 닉네임이 있으면 사용, 없으면 랜덤 생성
+      if (userNickname) {
+        this.nickname = userNickname;
+        console.log('로그인한 사용자 닉네임 사용:', userNickname);
+      } else {
+        this.nickname = this.generateUserNickname();
+        console.log('랜덤 닉네임 생성:', this.nickname);
+      }
+      
+      console.log('메시지 작성 페이지 로드 - 스팟 ID:', this.spotId);
+    });
+
     this.fetchTypographyData();
     this.initializeRandomValues();
   }
@@ -76,7 +104,7 @@ export class MessageWriteComponent implements OnInit {
   generateUserNickname(): string {
     // 세션 스토리지에서 기존 닉네임 확인
     let nickname = sessionStorage.getItem('userNickname');
-    
+
     if (!nickname) {
       const adjectives = [
         '똑똑한', '활발한', '친절한', '유쾌한', '신비한',
@@ -87,7 +115,7 @@ export class MessageWriteComponent implements OnInit {
         '꼼꼼한', '세심한', '신중한', '대담한', '독특한', '특별한',
         '소중한', '훌륭한', '놀라운'
       ];
-      
+
       const nouns = [
         '사자', '호랑이', '토끼', '고양이', '강아지', '독수리', '돌고래',
         '판다', '펭귄', '코알라', '여우', '늑대', '사슴', '다람쥐', '햄스터',
@@ -98,22 +126,21 @@ export class MessageWriteComponent implements OnInit {
         '거북이', '다람쥐', '청설모', '족제비', '수달', '비버', '두더지', '물개',
         '얼룩말', '치타', '표범', '재규어', '퓨마', '나비'
       ];
-      
+
       const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
       const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-      
+
       nickname = `${randomAdjective}${randomNoun}`;
       sessionStorage.setItem('userNickname', nickname);
     }
-    
+
     return nickname;
   }
 
   // 초기값들을 랜덤으로 설정
   initializeRandomValues(): void {
-    // 닉네임 설정
-    this.nickname = this.generateUserNickname();
-
+    // 닉네임은 ngOnInit에서 이미 설정됨
+    
     // 배치 방식 랜덤 선택
     this.placementType = Math.random() > 0.5 ? 'tree' : 'field';
 
@@ -145,26 +172,34 @@ export class MessageWriteComponent implements OnInit {
   }
 
   onSubmit(): void {
+    debugger;
     if (this.isFormValid()) {
+      // 이모티콘이면 'background', 이모지면 'center'로 매핑
+      const serverPlacementType = this.placementType === 'field' ? 'background' : 'center';
+      
       const messageData = {
         nickname: this.nickname,
         message: this.message,
         emoji: this.selectedEmoji,
-        placementType: this.placementType
+        placement_type: serverPlacementType,
+        spot_id: this.spotId,
+        position_x: null,
+        position_y: null,
+        position_z: null
       };
 
       console.log('메시지 등록:', messageData);
 
-      // 서버로 전송 (임시로 로그만 출력, 실제 API 엔드포인트로 교체 필요)
-      this.http.post('/api/messages', messageData).subscribe({
+      // 서버로 전송
+      this.http.post(`${this.apiBaseUrl}/messages`, messageData).subscribe({
         next: (response) => {
           console.log('메시지 전송 성공:', response);
-          this.router.navigate(['/merry-christmas']);
+          // 스팟 페이지로 이동 (스팟 ID 포함)
+          this.router.navigate(['/4spot', this.spotId]);
         },
         error: (error) => {
           console.error('메시지 전송 실패:', error);
-          // 임시로 실패해도 페이지 이동 (개발 단계)
-          this.router.navigate(['/merry-christmas']);
+          alert('메시지 전송에 실패했습니다. 다시 시도해주세요.');
         }
       });
     } else {
@@ -174,7 +209,7 @@ export class MessageWriteComponent implements OnInit {
 
   isFormValid(): boolean {
     let hasValidEmoji = false;
-    
+
     if (this.placementType === 'tree') {
       hasValidEmoji = this.selectedEmoji !== '';
     } else {
@@ -188,7 +223,12 @@ export class MessageWriteComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/merry-christmas']);
+    // 스팟 ID가 있으면 해당 스팟으로, 없으면 메인으로
+    if (this.spotId) {
+      this.router.navigate(['/4spot', this.spotId]);
+    } else {
+      this.router.navigate(['/4spot']);
+    }
   }
 
   getMessageLength(): number {
@@ -314,7 +354,7 @@ export class MessageWriteComponent implements OnInit {
     this.placementType = type;
     this.selectedEmoji = '';
     this.showEmojiPicker = false;
-    
+
     // 배치 방식에 따라 적절한 이모지를 자동 선택
     if (type === 'tree') {
       // 트리 배치 시 일반 이모지 랜덤 선택

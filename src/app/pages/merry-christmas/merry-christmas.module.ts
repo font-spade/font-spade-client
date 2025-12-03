@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MerryChristmasComponent } from './merry-christmas.component';
 
 @NgModule({
@@ -7,7 +8,8 @@ import { MerryChristmasComponent } from './merry-christmas.component';
     MerryChristmasComponent
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    FormsModule
   ],
   exports: [
     MerryChristmasComponent

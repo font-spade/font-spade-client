@@ -24,6 +24,7 @@ import { ToastModule } from './components/common/toast/toast.module';
 import { EmojiTextModule } from './pages/emoji-text/emoji-text.module';
 import { MerryChristmasModule } from './pages/merry-christmas/merry-christmas.module';
 import { MessageWriteModule } from './pages/message-write/message-write.module';
+import { KakaoCallbackComponent } from './auth/kakao-callback.component';
 //
 // export function initializeApp(emojiService: EmojiKitchenService) {
 //   return () => emojiService;
@@ -36,7 +37,8 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    KakaoCallbackComponent
   ],
   imports: [
     BrowserModule,

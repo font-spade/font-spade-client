@@ -2,11 +2,12 @@
   <header class="christmas-header">
     <h1>🎄 {{ownerName}}님의 트리</h1>
     <div class="message-count">
-      {{emojis.length}}개의 메시지가 도착했어요!
+      {{messageCount}}개의 메시지가 도착했어요!
     </div>
     <div class="header-buttons">
-      <button class="tree-decorate-btn" (click)="onWriteMessage()">트리 꿈여주기</button>
+      <button class="tree-decorate-btn" (click)="onWriteMessage()">{{writeButtonText}}</button>
       <button class="star-btn" (click)="onShare()">⭐</button>
+      <button *ngIf="authState.isLoggedIn" class="logout-btn" (click)="onLogout()">로그아웃</button>
     </div>
   </header>
 
@@ -51,6 +52,55 @@
         <div class="message">{{selectedEmoji.message}}</div>
       </div>
       <button class="close-btn" (click)="hideEmojiPopup()">×</button>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="auth-modal" [class.visible]="showLoginModal" *ngIf="showLoginModal">
+    <div class="modal-content">
+      <div class="service-branding">
+        <h1 class="service-name">4️⃣spot</h1>
+        <p class="service-slogan">Your four seasons, four spots to visit!</p>
+      </div>
+      <h2>🎄 크리스마스 트리 만들기</h2>
+      <p>사용자가 남긴 인사나 글귀를 AI가 감성적으로 분석하여<br>새로운 인사말을 이모지와 이모티콘으로 표현해드립니다.</p>
+      <p class="feature-description">나만의 크리스마스 트리를 만들어 친구들과 공유해보세요!</p>
+      <div class="auth-buttons">
+        <a class="kakao-login-btn" [href]="getKakaoLoginUrl()">
+          <img src="//k.kakaocdn.net/14/dn/btqCn0WEmI3/nijroPfbpCa4at5EIsjyf0/o.jpg" alt="카카오 로그인" />
+        </a>
+      </div>
+      <button class="close-btn" (click)="closeLoginModal()">×</button>
+    </div>
+  </div>
+
+  <!-- Anonymous Modal -->
+  <div class="auth-modal" [class.visible]="showAnonymousModal" *ngIf="showAnonymousModal">
+    <div class="modal-content">
+      <h2>🎄 {{ownerName}}</h2>
+      <p>친구의 크리스마스 트리를 꾸며주세요!</p>
+      <div class="auth-buttons">
+        <a class="primary-btn" [href]="getKakaoLoginUrl()">카카오 로그인</a>
+        <button class="secondary-btn" (click)="onAnonymousStart()">익명으로 시작하기</button>
+      </div>
+      <button class="close-btn" (click)="closeAnonymousModal()">×</button>
+    </div>
+  </div>
+
+  <!-- YouTube Player (if spot has YouTube URL) -->
+  <div class="youtube-player" *ngIf="currentSpot?.youtube_video_id">
+    <div class="youtube-controls">
+      <button class="youtube-toggle-btn" (click)="toggleYouTube()">
+        {{isYouTubeVisible ? '🎵 음악 숨기기' : '🎵 음악 듣기'}}
+      </button>
+    </div>
+    <div class="youtube-embed" [class.visible]="isYouTubeVisible" *ngIf="isYouTubeVisible">
+      <iframe 
+        [src]="getYouTubeEmbedUrl(currentSpot.youtube_video_id)"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
     </div>
   </div>
 </div>
