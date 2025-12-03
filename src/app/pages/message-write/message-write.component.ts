@@ -209,7 +209,7 @@ export class MessageWriteComponent implements OnInit {
         position_z: null
       };
 
-      if (this.placementType === 'tree' && this.youtubeUrl.trim()) {
+      if (this.youtubeUrl.trim()) {
         messageData.youtube_url = this.youtubeUrl.trim();
       }
 
@@ -240,7 +240,7 @@ export class MessageWriteComponent implements OnInit {
     return this.nickname.trim() !== '' &&
            this.message.trim() !== '' &&
            hasValidEmoji &&
-           (this.placementType !== 'tree' || this.isYoutubeLinkValid());
+           this.isYoutubeLinkValid();
   }
 
   isYoutubeLinkValid(): boolean {

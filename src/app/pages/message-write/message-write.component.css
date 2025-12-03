@@ -307,15 +307,17 @@
 }
 
 .generated-emoji {
-  font-size: 2rem;
+  font-size: 3rem;
   font-family: monospace;
+  font-weight: 900;
   background: #f8f9fa;
-  padding: 15px;
+  padding: 20px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   text-align: center;
+  letter-spacing: 2px;
 }
 
 .generated-emoji:hover {
@@ -561,8 +563,10 @@
   }
 
   .generated-emoji {
-    font-size: 1.5rem;
-    padding: 10px;
+    font-size: 2.2rem;
+    padding: 15px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
   }
 
   .randomize-btn {
@@ -608,8 +612,10 @@
   }
 
   .generated-emoji {
-    font-size: 1.3rem;
-    padding: 8px;
+    font-size: 1.8rem;
+    padding: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
   }
 
   .typography-title {

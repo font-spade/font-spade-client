@@ -51,6 +51,20 @@ export class EmojiMessageService {
     private apiService: MerryChristmasApiService
   ) {}
 
+  private getCurrentUserNickname(): string | null {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      return userInfo.nickname || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private isCurrentUserEmoji(nickname: string): boolean {
+    const currentUserNickname = this.getCurrentUserNickname();
+    return currentUserNickname ? currentUserNickname === nickname : false;
+  }
+
   async loadMessages(spotId?: string): Promise<void> {
     if (this.isLoadingMessages) {
       return;
@@ -512,6 +526,7 @@ export class EmojiMessageService {
     }
 
     if (availableIndices.length === 0) {
+      this.addRandomEmoji();
       return;
     }
 
@@ -522,7 +537,8 @@ export class EmojiMessageService {
       const position = this.threeScene.generateRandomFieldPosition();
       const groundHeight = this.threeScene.getGroundHeight(position.x, position.z);
       const y = groundHeight + 0.5;
-      const mesh = this.threeScene.createTypographyMesh(msg.emoji, position.x, y, position.z);
+      const isCurrentUser = this.isCurrentUserEmoji(msg.nickname);
+      const mesh = this.threeScene.createTypographyMesh(msg.emoji, position.x, y, position.z, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['originalY'] = y;
@@ -548,7 +564,8 @@ export class EmojiMessageService {
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
     } else {
       const position = this.threeScene.generateRandomTreePosition();
-      const mesh = this.threeScene.createEmojiMesh(msg.emoji, 0, position.height, 0, true);
+      const isCurrentUser = this.isCurrentUserEmoji(msg.nickname);
+      const mesh = this.threeScene.createEmojiMesh(msg.emoji, 0, position.height, 0, true, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['attachToTree'] = true;
@@ -589,12 +606,13 @@ export class EmojiMessageService {
     const message = messages[Math.floor(Math.random() * messages.length)];
 
     const placementType = Math.random() > 0.5 ? 'tree' : 'field';
+    const isCurrentUser = this.isCurrentUserEmoji(nickname);
 
     if (placementType === 'field') {
       const position = this.threeScene.generateRandomFieldPosition();
       const groundHeight = this.threeScene.getGroundHeight(position.x, position.z);
       const y = groundHeight + 0.5;
-      const mesh = this.threeScene.createTypographyMesh(emoji, position.x, y, position.z);
+      const mesh = this.threeScene.createTypographyMesh(emoji, position.x, y, position.z, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['originalY'] = y;
@@ -621,7 +639,7 @@ export class EmojiMessageService {
     } else {
       const position = this.threeScene.generateRandomTreePosition();
       const treePosition = this.threeScene.attachEmojiToTreeSurface(position.angle, position.height);
-      const mesh = this.threeScene.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z);
+      const mesh = this.threeScene.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z, false, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['originalY'] = treePosition.y;
@@ -648,6 +666,10 @@ export class EmojiMessageService {
                         this.apiMessages[emojiData.messageIndex ?? -1]?.text ||
                         emojiData.message || '';
 
+    if (!messageText || messageText.trim() === '') {
+      return;
+    }
+
     const duplicateMessage = this.visibleMessages.find(msg =>
       msg.text === messageText && msg.visible && !msg.hiding
     );
@@ -671,7 +693,7 @@ export class EmojiMessageService {
     const htmlMessage: VisibleMessage = {
       id: messageId,
       nickname: emojiData.nickname,
-      text: emojiData.message,
+      text: messageText,
       screenX: screenPos.x - 125,
       screenY: screenPos.y - 80,
       visible: false,

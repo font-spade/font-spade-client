@@ -58,13 +58,35 @@
   <!-- Login Modal -->
   <div class="auth-modal" [class.visible]="showLoginModal" *ngIf="showLoginModal">
     <div class="modal-content">
-      <div class="service-branding">
-        <h1 class="service-name">4️⃣spot</h1>
-        <p class="service-slogan">Your four seasons, four spots to visit!</p>
+      <div class="feature-showcase">
+        <h2>🎄 마법같은 크리스마스 트리 만들기</h2>
+        
+        <div class="feature-highlights">
+          <div class="feature-item">
+            <span class="feature-icon">✨</span>
+            <div class="feature-text">
+              <strong>AI 감성 분석</strong>
+              <p>당신의 마음을 담은 메시지를 AI가 이해하고 아름다운 이모지로 변환해요</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <span class="feature-icon">🎨</span>
+            <div class="feature-text">
+              <strong>개성 있는 표현</strong>
+              <p>텍스트 아트와 다양한 이모티콘으로 나만의 스타일을 표현해보세요</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <span class="feature-icon">🤝</span>
+            <div class="feature-text">
+              <strong>함께 만드는 즐거움</strong>
+              <p>친구들과 함께 꾸미는 특별한 크리스마스 트리를 만들어보세요</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <h2>🎄 크리스마스 트리 만들기</h2>
-      <p>사용자가 남긴 인사나 글귀를 AI가 감성적으로 분석하여<br>새로운 인사말을 이모지와 이모티콘으로 표현해드립니다.</p>
-      <p class="feature-description">나만의 크리스마스 트리를 만들어 친구들과 공유해보세요!</p>
       <div class="auth-buttons">
         <a class="kakao-login-btn" [href]="getKakaoLoginUrl()">
           <img src="//k.kakaocdn.net/14/dn/btqCn0WEmI3/nijroPfbpCa4at5EIsjyf0/o.jpg" alt="카카오 로그인" />

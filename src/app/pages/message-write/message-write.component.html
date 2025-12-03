@@ -30,6 +30,22 @@
           required></textarea>
       </div>
 
+      <div class="form-group">
+        <label for="youtubeUrl">YouTube 링크 (선택)</label>
+        <input
+          type="text"
+          id="youtubeUrl"
+          name="youtubeUrl"
+          [(ngModel)]="youtubeUrl"
+          placeholder="https://youtu.be/xxxx"
+          (blur)="youtubeTouched = true"
+        />
+        <small class="help-text">배경 음악 YouTube 링크를 입력하세요.</small>
+        <div class="error-text" *ngIf="youtubeTouched && !isYoutubeLinkValid()">
+          유효한 YouTube 링크를 입력해주세요.
+        </div>
+      </div>
+
       <!-- 배치 방식 선택 -->
       <div class="form-group">
         <label>배치 방식 선택</label>
@@ -145,22 +161,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="form-group" *ngIf="placementType === 'tree'">
-        <label for="youtubeUrl">YouTube 링크 (선택)</label>
-        <input
-          type="text"
-          id="youtubeUrl"
-          name="youtubeUrl"
-          [(ngModel)]="youtubeUrl"
-          placeholder="https://youtu.be/xxxx"
-          (blur)="youtubeTouched = true"
-        />
-        <small class="help-text">트리에 연결할 배경 음악 YouTube 링크를 입력하세요.</small>
-        <div class="error-text" *ngIf="youtubeTouched && !isYoutubeLinkValid()">
-          유효한 YouTube 링크를 입력해주세요.
         </div>
       </div>
 

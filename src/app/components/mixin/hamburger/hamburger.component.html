@@ -37,6 +37,17 @@
     <ul class="py-4">
       <li>
         <button 
+          [routerLink]="'/4spot'" 
+          (click)="isOpen = false" 
+          class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-3">🎄</span>
+            <span>4spot</span>
+          </div>
+        </button>
+      </li>
+      <li>
+        <button 
           [routerLink]="'/emoticon-generate'" 
           (click)="isOpen = false" 
           class="w-full px-6 py-3 text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors border-b border-gray-100">

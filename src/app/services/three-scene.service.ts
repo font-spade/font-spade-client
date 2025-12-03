@@ -206,7 +206,7 @@ export class ThreeSceneService {
     this.registrationEffect.scale.set(scale, scale, scale);
   }
 
-  createEmojiMesh(emoji: string, x: number, y: number, z: number, isAttachedToTree: boolean = false): THREE.Mesh {
+  createEmojiMesh(emoji: string, x: number, y: number, z: number, isAttachedToTree: boolean = false, isCurrentUser: boolean = false): THREE.Mesh {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     canvas.width = 512;
@@ -239,10 +239,20 @@ export class ThreeSceneService {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
 
+    // 현재 사용자의 이모지에 빨간 외곽선 추가
+    if (isCurrentUser) {
+      mesh.userData['outlineParameters'] = {
+        thickness: 0.008,
+        color: [1, 0, 0],
+        alpha: 0.9,
+        visible: true
+      };
+    }
+
     return mesh;
   }
 
-  createTypographyMesh(typographyEmoji: string, x: number, y: number, z: number): THREE.Mesh {
+  createTypographyMesh(typographyEmoji: string, x: number, y: number, z: number, isCurrentUser: boolean = false): THREE.Mesh {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     canvas.width = 512;
@@ -276,6 +286,16 @@ export class ThreeSceneService {
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
+
+    // 현재 사용자의 타이포그래피 이모지에 빨간 외곽선 추가
+    if (isCurrentUser) {
+      mesh.userData['outlineParameters'] = {
+        thickness: 0.008,
+        color: [1, 0, 0],
+        alpha: 0.9,
+        visible: true
+      };
+    }
 
     return mesh;
   }
@@ -527,7 +547,8 @@ export class ThreeSceneService {
       });
 
       const star = new THREE.Sprite(spriteMaterial);
-      const scale = 1;
+      // 달처럼 보이는 큰 별 제거 - 모든 별을 작고 균일하게
+      const scale = i === 0 ? 0.3 : 0.5; // 첫 번째 별이 큰 달이었다면 작게 만들기
       star.scale.set(scale, scale, scale);
 
       const x = (Math.random() - 0.5) * 80;
@@ -1008,92 +1029,312 @@ export class ThreeSceneService {
     treeGroup.add(decoration);
   }
 
-  private createFirework(x: number, y: number, z: number): void {
-    const firework = new THREE.Group();
-    const particleCount = 30;
+  private createFirework(targetX: number, targetY: number, targetZ: number): void {
+    // 시작 위치 (지상)
+    const startX = targetX + (Math.random() - 0.5) * 2;
+    const startY = 0;
+    const startZ = targetZ + (Math.random() - 0.5) * 2;
+
+    // 로켓 생성
+    this.createRocket(startX, startY, startZ, targetX, targetY, targetZ);
+  }
+
+  private createRocket(startX: number, startY: number, startZ: number, targetX: number, targetY: number, targetZ: number): void {
+    const rocket = new THREE.Group();
+
+    // 로켓 메시
+    const rocketGeometry = new THREE.CylinderGeometry(0.05, 0.1, 0.3, 8);
+    const rocketMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    const rocketMesh = new THREE.Mesh(rocketGeometry, rocketMaterial);
+    rocket.add(rocketMesh);
+
+    // 꼬리 트레일을 위한 파티클들
+    const trailParticles: THREE.Mesh[] = [];
+    const trailPositions: THREE.Vector3[] = [];
+
+    for (let i = 0; i < 20; i++) {
+      const trailGeometry = new THREE.SphereGeometry(0.03, 6, 6);
+      const trailMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(1, 0.5 + Math.random() * 0.5, 0),
+        transparent: true,
+        opacity: 0.8
+      });
+      const trailParticle = new THREE.Mesh(trailGeometry, trailMaterial);
+      trailParticle.visible = false;
+      rocket.add(trailParticle);
+      trailParticles.push(trailParticle);
+      trailPositions.push(new THREE.Vector3(startX, startY, startZ));
+    }
+
+    rocket.position.set(startX, startY, startZ);
+    this.scene.add(rocket);
+
+    // 로켓 데이터 설정
+    const launchTime = 1.5 + Math.random() * 0.5; // 1.5-2초 발사 시간
+    (rocket as any).isRocket = true;
+    (rocket as any).startTime = Date.now();
+    (rocket as any).launchTime = launchTime * 1000;
+    (rocket as any).startPos = new THREE.Vector3(startX, startY, startZ);
+    (rocket as any).targetPos = new THREE.Vector3(targetX, targetY, targetZ);
+    (rocket as any).trailParticles = trailParticles;
+    (rocket as any).trailPositions = trailPositions;
+    (rocket as any).trailIndex = 0;
+
+    this.fireworks.push(rocket);
+  }
+
+  private explodeRocket(position: THREE.Vector3): void {
+    // 메인 폭발 (파티클 수 감소)
+    this.createExplosion(position, this.getRandomFireworkColors(), 50, 8, false);
+
+    // 15% 확률로 연속 폭발 생성 (확률 감소)
+    if (Math.random() < 0.15) {
+      setTimeout(() => {
+        this.createChainExplosions(position, 1 + Math.floor(Math.random() * 2));
+      }, 500 + Math.random() * 500);
+    }
+  }
+
+  private createChainExplosions(centerPos: THREE.Vector3, count: number): void {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const offsetX = (Math.random() - 0.5) * 6;
+        const offsetY = (Math.random() - 0.5) * 4;
+        const offsetZ = (Math.random() - 0.5) * 6;
+
+        const chainPos = new THREE.Vector3(
+          centerPos.x + offsetX,
+          centerPos.y + offsetY,
+          centerPos.z + offsetZ
+        );
+
+        this.createExplosion(chainPos, this.getRandomFireworkColors(), 50, 6, true);
+      }, i * (200 + Math.random() * 300));
+    }
+  }
+
+  private createExplosion(position: THREE.Vector3, colors: THREE.Color[], particleCount: number, speed: number, isChain: boolean): void {
+    const explosion = new THREE.Group();
     const particles: THREE.Mesh[] = [];
     const velocities: THREE.Vector3[] = [];
+    const trails: THREE.Mesh[][] = [];
 
     for (let i = 0; i < particleCount; i++) {
-      const particleGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+      // 메인 파티클
+      const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+      const color = colors[Math.floor(Math.random() * colors.length)];
       const particleMaterial = new THREE.MeshBasicMaterial({
-        color: 0xFFD700,
+        color: color,
         transparent: true,
         opacity: 1
       });
       const particle = new THREE.Mesh(particleGeometry, particleMaterial);
 
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 5 + 3;
+      // 구형 폭발 패턴
+      const phi = Math.acos(2 * Math.random() - 1);
+      const theta = Math.random() * Math.PI * 2;
+      const speedMultiplier = speed + Math.random() * 4;
+
       const velocity = new THREE.Vector3(
-        Math.cos(angle) * speed,
-        Math.random() * 3 + 2,
-        Math.sin(angle) * speed
+        Math.sin(phi) * Math.cos(theta) * speedMultiplier,
+        Math.sin(phi) * Math.sin(theta) * speedMultiplier * 0.8,
+        Math.cos(phi) * speedMultiplier
       );
 
-      particle.position.set(x, y, z);
-      firework.add(particle);
+      particle.position.copy(position);
+      explosion.add(particle);
       particles.push(particle);
       velocities.push(velocity);
+
+      // 각 파티클에 트레일 추가 (트레일 수 감소)
+      const trailParticles: THREE.Mesh[] = [];
+      for (let j = 0; j < 8; j++) {
+        const trailGeometry = new THREE.SphereGeometry(0.04, 4, 4);
+        const trailMaterial = new THREE.MeshBasicMaterial({
+          color: color.clone().multiplyScalar(0.7),
+          transparent: true,
+          opacity: 0.6
+        });
+        const trailParticle = new THREE.Mesh(trailGeometry, trailMaterial);
+        trailParticle.position.copy(position);
+        trailParticle.visible = false;
+        explosion.add(trailParticle);
+        trailParticles.push(trailParticle);
+      }
+      trails.push(trailParticles);
     }
 
-    (firework as any).particles = particles;
-    (firework as any).velocities = velocities;
-    (firework as any).life = 2.0;
-    (firework as any).maxLife = 2.0;
+    (explosion as any).particles = particles;
+    (explosion as any).velocities = velocities;
+    (explosion as any).trails = trails;
+    (explosion as any).life = isChain ? 3.0 : 4.0;
+    (explosion as any).maxLife = isChain ? 3.0 : 4.0;
+    (explosion as any).isExplosion = true;
+    (explosion as any).trailPositions = particles.map(() => []);
 
-    this.fireworks.push(firework);
-    this.scene.add(firework);
+    this.fireworks.push(explosion);
+    this.scene.add(explosion);
+  }
+
+  private getRandomFireworkColors(): THREE.Color[] {
+    const colorSets = [
+      [new THREE.Color(1, 0, 0), new THREE.Color(1, 0.5, 0), new THREE.Color(1, 1, 0)], // 빨강-주황-노랑
+      [new THREE.Color(0, 0, 1), new THREE.Color(0.5, 0, 1), new THREE.Color(1, 1, 1)], // 파랑-보라-흰색
+      [new THREE.Color(0, 1, 0), new THREE.Color(1, 1, 0), new THREE.Color(1, 1, 1)], // 초록-노랑-흰색
+      [new THREE.Color(1, 0, 1), new THREE.Color(1, 0.5, 1), new THREE.Color(1, 1, 1)], // 마젠타-분홍-흰색
+      [new THREE.Color(1, 1, 0), new THREE.Color(1, 0.5, 0), new THREE.Color(1, 0, 0)], // 금색-주황-빨강
+    ];
+    return colorSets[Math.floor(Math.random() * colorSets.length)];
   }
 
   private updateFireworks(deltaTime: number): void {
     for (let i = this.fireworks.length - 1; i >= 0; i--) {
       const firework = this.fireworks[i];
-      const particles = (firework as any).particles;
-      const velocities = (firework as any).velocities;
-      let life = (firework as any).life;
-      const maxLife = (firework as any).maxLife;
 
-      life -= deltaTime * 0.001;
-      (firework as any).life = life;
+      if ((firework as any).isRocket) {
+        this.updateRocket(firework, deltaTime, i);
+      } else if ((firework as any).isExplosion) {
+        this.updateExplosion(firework, deltaTime, i);
+      }
+    }
+  }
 
-      if (life <= 0) {
-        this.scene.remove(firework);
-        this.fireworks.splice(i, 1);
-        continue;
+  private updateRocket(rocket: THREE.Group, deltaTime: number, index: number): void {
+    const currentTime = Date.now();
+    const startTime = (rocket as any).startTime;
+    const launchTime = (rocket as any).launchTime;
+    const elapsed = currentTime - startTime;
+
+    if (elapsed >= launchTime) {
+      // 로켓이 목표에 도달했으므로 폭발
+      this.explodeRocket((rocket as any).targetPos);
+      this.scene.remove(rocket);
+      this.fireworks.splice(index, 1);
+      return;
+    }
+
+    // 로켓 위치 업데이트 (포물선 궤도)
+    const progress = elapsed / launchTime;
+    const startPos = (rocket as any).startPos;
+    const targetPos = (rocket as any).targetPos;
+
+    // 베지어 곡선을 사용한 포물선 궤도
+    const midPoint = new THREE.Vector3(
+      (startPos.x + targetPos.x) / 2,
+      targetPos.y + 3, // 더 높이 올라가도록
+      (startPos.z + targetPos.z) / 2
+    );
+
+    const currentPos = new THREE.Vector3();
+    currentPos.lerpVectors(startPos, midPoint, progress * 2);
+    if (progress > 0.5) {
+      const secondProgress = (progress - 0.5) * 2;
+      currentPos.lerpVectors(midPoint, targetPos, secondProgress);
+    }
+
+    rocket.position.copy(currentPos);
+
+    // 로켓 방향 설정
+    const direction = new THREE.Vector3()
+      .subVectors(targetPos, currentPos)
+      .normalize();
+    rocket.lookAt(rocket.position.clone().add(direction));
+
+    // 트레일 업데이트
+    const trailParticles = (rocket as any).trailParticles;
+    const trailPositions = (rocket as any).trailPositions;
+    let trailIndex = (rocket as any).trailIndex;
+
+    // 새로운 트레일 파티클 추가
+    if (trailIndex < trailParticles.length) {
+      const trailParticle = trailParticles[trailIndex];
+      trailParticle.position.copy(currentPos);
+      trailParticle.visible = true;
+      (rocket as any).trailIndex = trailIndex + 1;
+    }
+
+    // 기존 트레일 파티클들 페이드아웃
+    for (let j = 0; j < trailIndex; j++) {
+      const particle = trailParticles[j];
+      const age = (trailIndex - j) / trailParticles.length;
+      (particle.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.8 - age);
+    }
+  }
+
+  private updateExplosion(explosion: THREE.Group, deltaTime: number, index: number): void {
+    const particles = (explosion as any).particles;
+    const velocities = (explosion as any).velocities;
+    const trails = (explosion as any).trails;
+    const trailPositions = (explosion as any).trailPositions;
+    let life = (explosion as any).life;
+    const maxLife = (explosion as any).maxLife;
+
+    life -= deltaTime * 0.001;
+    (explosion as any).life = life;
+
+    if (life <= 0) {
+      this.scene.remove(explosion);
+      this.fireworks.splice(index, 1);
+      return;
+    }
+
+    for (let j = 0; j < particles.length; j++) {
+      const particle = particles[j];
+      const velocity = velocities[j];
+      const trailParticles = trails[j];
+
+      // 파티클 위치 업데이트
+      particle.position.add(velocity.clone().multiplyScalar(deltaTime * 0.001));
+
+      // 중력과 공기저항 적용
+      velocity.y -= 15 * deltaTime * 0.001;
+      velocity.multiplyScalar(0.985);
+
+      // 파티클 투명도 업데이트
+      const opacity = Math.pow(life / maxLife, 0.5);
+      (particle.material as THREE.MeshBasicMaterial).opacity = opacity;
+
+      // 트레일 업데이트
+      trailPositions[j].push(particle.position.clone());
+
+      // 트레일 길이 제한 (더 짧게)
+      if (trailPositions[j].length > 8) {
+        trailPositions[j].shift();
       }
 
-      for (let j = 0; j < particles.length; j++) {
-        const particle = particles[j];
-        const velocity = velocities[j];
+      // 트레일 파티클들 위치 및 투명도 업데이트
+      for (let k = 0; k < Math.min(trailPositions[j].length, trailParticles.length); k++) {
+        const trailParticle = trailParticles[k];
+        const trailPos = trailPositions[j][trailPositions[j].length - 1 - k];
 
-        particle.position.add(velocity.clone().multiplyScalar(deltaTime * 0.001));
-        velocity.y -= 20 * deltaTime * 0.001;
-        velocity.multiplyScalar(0.99);
+        if (trailPos && k < trailPositions[j].length) {
+          trailParticle.position.copy(trailPos);
+          trailParticle.visible = true;
 
-        const opacity = life / maxLife;
-        (particle.material as THREE.MeshBasicMaterial).opacity = opacity;
+          const trailOpacity = opacity * (1 - k / trailParticles.length) * 0.7;
+          (trailParticle.material as THREE.MeshBasicMaterial).opacity = Math.max(0, trailOpacity);
+        }
       }
+
+      // 파티클 크기 변화
+      const scale = 0.5 + opacity * 0.5;
+      particle.scale.setScalar(scale);
     }
   }
 
   private checkFireworkLaunch(currentTime: number): void {
     if (currentTime - this.lastFireworkTime > this.fireworkInterval) {
       this.lastFireworkTime = currentTime;
-      const fireworkCount = Math.floor(Math.random() * 3) + 1;
 
-      for (let i = 0; i < fireworkCount; i++) {
-        const x = (Math.random() - 0.5) * 25;
-        const y = Math.random() * 12 + 5;
-        const z = -12 - Math.random() * 8;
+      // 하나의 폭죽만 발사 (더 높게)
+      const x = (Math.random() - 0.5) * 25;
+      const y = Math.random() * 8 + 15; // 15-23 높이로 변경
+      const z = -12 - Math.random() * 8;
 
-        const delay = i === 0 ? 0 : 300 + Math.random() * 400;
-        setTimeout(() => {
-          this.createFirework(x, y, z);
-        }, delay);
-      }
+      this.createFirework(x, y, z);
 
-      this.fireworkInterval = 4000 + Math.random() * 4000;
+      // 발사 간격을 더 길게 (8-16초)
+      this.fireworkInterval = 8000 + Math.random() * 8000;
     }
   }
 }
