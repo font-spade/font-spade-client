@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import * as THREE from 'three';
 
 // GLTFLoader 임포트 (타입 에러 회피)
@@ -94,7 +95,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   isEmojiPopupVisible = false;
   ownerName = '도현';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadGLTFLoader();
@@ -1701,36 +1702,130 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     };
   }
 
-  private loadMessages(): void {
+  // 동적 위치 생성 메서드들
+  private generateRandomFieldPosition(): { x: number, y: number, z: number } {
+    // 트리 주변 반경 2-8 범위에서 랜덤 위치 생성
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 2 + Math.random() * 6; // 2-8 반경
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    const y = -4.8; // 고정된 바닥 높이
+    return { x, y, z };
+  }
+
+  private generateRandomTreePosition(): { height: number, angle: number } {
+    // 트리 높이와 각도 랜덤 생성
+    const height = 2.5 + Math.random() * 9; // 2.5-11.5 높이 범위
+    const angle = Math.random() * Math.PI * 2; // 0-2π 각도 범위
+    return { height, angle };
+  }
+
+  private async fetchMessagesFromAPI(): Promise<any[]> {
+    try {
+      // API에서 메시지 데이터 가져오기
+      const response = await this.http.get<any[]>('/api/messages').toPromise();
+      return response || [];
+    } catch (error) {
+      console.error('API에서 메시지를 가져오는데 실패했습니다:', error);
+      // API 실패 시 빈 배열 반환 (개발 단계에서는 fallback 데이터 사용)
+      return [];
+    }
+  }
+
+  private async loadMessages(): Promise<void> {
     // Scene이 초기화되었는지 확인
     if (!this.scene) {
       console.log('Scene이 아직 초기화되지 않아서 메시지 로드를 지연합니다.');
       setTimeout(() => this.loadMessages(), 500);
       return;
     }
-    // 타이포그래피 이모지 예시들 (바닥에 배치)
-    const typographyEmojis = [
-      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)', x: -6, y: -4.8, z: 2 },
-      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ(  ゚- ゚ノ)', x: 4, y: -4.8, z: 1 },
-      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯', x: -3, y: -4.8, z: 4 },
-      { nickname: '슬기', message: '새해 복 많이 받으세요', emoji: 'ಠ( ಠ ͜ʖ ಠ )ಠ', x: 5, y: -4.8, z: 3 },
-      { nickname: '예은', message: '모두 건강하고 행복하게!', emoji: '(•̀_•́)', x: -1, y: -4.8, z: 6 },
-      { nickname: '준호', message: '크리스마스 대박!', emoji: 'ლ(•́ o •̀)ლ', x: 2, y: -4.8, z: 5 }
-    ];
 
-    // 트리 이모티콘들 (트리에 실제로 붙여서 배치)
-    const treeEmojis = [
-      { nickname: '김영희', message: '메리 크리스마스!', emoji: '🎄', attachToTree: true, height: 8, angle: 0 },
-      { nickname: '박철수', message: '행복한 연말 되세요!', emoji: '🎅', attachToTree: true, height: 6, angle: Math.PI / 3 },
-      { nickname: '이수정', message: '따뜻한 크리스마스 보내요', emoji: '⭐', attachToTree: true, height: 10, angle: -Math.PI / 4 },
-      { nickname: '최민수', message: '새해 복 많이 받으세요!', emoji: '🎁', attachToTree: true, height: 4, angle: Math.PI / 2 },
-      { nickname: '정다은', message: '사랑하는 사람들과 함께하는 크리스마스', emoji: '❄️', attachToTree: true, height: 7, angle: -Math.PI / 2 },
-      { nickname: '강민호', message: '모두 건강하고 행복한 새해!', emoji: '🤶', attachToTree: true, height: 5, angle: Math.PI },
-      { nickname: '송지혜', message: '따뜻한 마음으로 크리스마스를', emoji: '🔔', attachToTree: true, height: 9, angle: 3 * Math.PI / 4 },
-      { nickname: '윤서준', message: '가족과 함께하는 소중한 시간', emoji: '🕯️', attachToTree: true, height: 3, angle: -3 * Math.PI / 4 },
-      { nickname: '지효', message: '만사형통!', emoji: '🎄', attachToTree: true, height: 8.5, angle: Math.PI / 6 },
-      { nickname: '수민', message: '좋은 사람들과 함께', emoji: '🎅', attachToTree: true, height: 6.5, angle: -Math.PI / 6 }
-    ];
+    try {
+      // API에서 메시지 데이터 가져오기
+      const apiMessages = await this.fetchMessagesFromAPI();
+      
+      // API 데이터를 placementType에 따라 분류하고 동적 위치 생성
+      const typographyEmojis: any[] = [];
+      const treeEmojis: any[] = [];
+      
+      apiMessages.forEach(msg => {
+        if (msg.placementType === 'field') {
+          // 필드 배치 타이포그래피 이모지
+          const position = this.generateRandomFieldPosition();
+          typographyEmojis.push({
+            nickname: msg.nickname,
+            message: msg.message,
+            emoji: msg.emoji,
+            x: position.x,
+            y: position.y,
+            z: position.z
+          });
+        } else if (msg.placementType === 'tree') {
+          // 트리 배치 일반 이모지
+          const position = this.generateRandomTreePosition();
+          treeEmojis.push({
+            nickname: msg.nickname,
+            message: msg.message,
+            emoji: msg.emoji,
+            attachToTree: true,
+            height: position.height,
+            angle: position.angle
+          });
+        }
+      });
+
+      console.log(`API에서 로드된 메시지: ${apiMessages.length}개 (타이포그래피: ${typographyEmojis.length}, 트리: ${treeEmojis.length})`);
+
+      // API에 데이터가 없는 경우 fallback 데이터 사용 (개발 단계)
+      if (apiMessages.length === 0) {
+        console.log('API 데이터가 없어서 fallback 데이터를 사용합니다.');
+        this.loadFallbackMessages();
+        return;
+      }
+
+      // API에서 받은 데이터로 이모지 배치
+      this.placeEmojisFromData(typographyEmojis, treeEmojis);
+      
+    } catch (error) {
+      console.error('메시지 로드 중 오류 발생:', error);
+      this.loadFallbackMessages();
+    }
+  }
+
+  // 개발 단계용 fallback 데이터
+  private loadFallbackMessages(): void {
+    // 기본 타이포그래피 이모지들
+    const fallbackTypographyEmojis = [
+      { nickname: '도현', message: '웃음 가득한 크리스마스!', emoji: '( ͡° ͜ʖ ͡°)' },
+      { nickname: '민수', message: '행복한 연말 되세요', emoji: '┬─┬ ノ(  ゚- ゚ノ)' },
+      { nickname: '지우', message: '따뜻한 마음으로', emoji: '(╯°□°)╯' }
+    ].map(msg => ({
+      ...msg,
+      ...this.generateRandomFieldPosition()
+    }));
+
+    // 기본 트리 이모지들  
+    const fallbackTreeEmojis = [
+      { nickname: '김영희', message: '메리 크리스마스!', emoji: '🎄' },
+      { nickname: '박철수', message: '행복한 연말 되세요!', emoji: '🎅' },
+      { nickname: '이수정', message: '따뜻한 크리스마스 보내요', emoji: '⭐' },
+      { nickname: '최민수', message: '새해 복 많이 받으세요!', emoji: '🎁' },
+      { nickname: '정다은', message: '사랑하는 사람들과 함께하는 크리스마스', emoji: '❄️' }
+    ].map(msg => {
+      const position = this.generateRandomTreePosition();
+      return {
+        ...msg,
+        attachToTree: true,
+        height: position.height,
+        angle: position.angle
+      };
+    });
+
+    this.placeEmojisFromData(fallbackTypographyEmojis, fallbackTreeEmojis);
+  }
+
+  // 이모지 배치 공통 로직
+  private placeEmojisFromData(typographyEmojis: any[], treeEmojis: any[]): void {
 
     // 타이포그래피 이모지 먼저 배치
     typographyEmojis.forEach((msg, index) => {
@@ -1927,7 +2022,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           // 사인 그래프 형태로 좌우 흔들림 추가
           const sineOffset = Math.sin(time * sineFrequency + sinePhase) * sineAmplitude;
           const perpAngle = currentAngle + Math.PI / 2; // 수직 방향
-          
+
           const newX = baseX + Math.cos(perpAngle) * sineOffset;
           const newZ = baseZ + Math.sin(perpAngle) * sineOffset;
 
