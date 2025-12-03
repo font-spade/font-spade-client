@@ -717,12 +717,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
     console.log('최종 스팟 ID:', targetSpotId);
     if (targetSpotId) {
+      const isOwnerViewing = this.authState.isLoggedIn && targetSpotId === this.authState.currentSpotId;
       console.log('메시지 작성 페이지로 이동 시도:', targetSpotId);
       try {
         const result = this.router.navigate(['/message-write'], {
           queryParams: {
             spotId: targetSpotId,
-            nickname: this.authState.user?.nickname || '사용자'
+            nickname: this.authState.user?.nickname || '사용자',
+            canEditYoutube: isOwnerViewing
           }
         });
         console.log('라우터 네비게이션 결과:', result);

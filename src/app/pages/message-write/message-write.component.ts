@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 
 interface GlyphPair {
   left: string;
@@ -21,6 +22,7 @@ export class MessageWriteComponent implements OnInit {
   nickname: string = '';
   message: string = '';
   selectedEmoji: string = '';
+  youtubeUrl: string = '';
 
   // 배치 방식 선택
   placementType: 'tree' | 'field' = 'tree';
@@ -28,6 +30,8 @@ export class MessageWriteComponent implements OnInit {
   // 스팟 ID
   spotId: string = '';
   apiBaseUrl = 'http://localhost:8000';
+  canEditYoutube = false;
+  youtubeTouched = false;
 
   emojiCategories = [
     {
@@ -77,6 +81,7 @@ export class MessageWriteComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.spotId = params['spotId'] || '';
       const userNickname = params['nickname'] || '';
+      this.canEditYoutube = params['canEditYoutube'] === 'true';
       
       if (!this.spotId) {
         console.error('스팟 ID가 없습니다. 메인 페이지로 이동합니다.');
@@ -94,10 +99,27 @@ export class MessageWriteComponent implements OnInit {
       }
       
       console.log('메시지 작성 페이지 로드 - 스팟 ID:', this.spotId);
+      if (this.canEditYoutube) {
+        this.loadExistingYoutube();
+      }
     });
 
     this.fetchTypographyData();
     this.initializeRandomValues();
+  }
+
+  private loadExistingYoutube(): void {
+    this.http.get<any>(`${this.apiBaseUrl}/spots/${this.spotId}`).subscribe({
+      next: (spot) => {
+        if (spot && spot.youtube_url) {
+          this.youtubeUrl = spot.youtube_url;
+        }
+        this.cdRef.detectChanges();
+      },
+      error: (error) => {
+        console.error('스팟 정보 조회 실패:', error);
+      }
+    });
   }
 
   // 고유 사용자 닉네임 생성
@@ -171,13 +193,12 @@ export class MessageWriteComponent implements OnInit {
     this.showEmojiPicker = !this.showEmojiPicker;
   }
 
-  onSubmit(): void {
-    debugger;
+  async onSubmit(): Promise<void> {
     if (this.isFormValid()) {
       // 이모티콘이면 'background', 이모지면 'center'로 매핑
       const serverPlacementType = this.placementType === 'field' ? 'background' : 'center';
       
-      const messageData = {
+      const messageData: any = {
         nickname: this.nickname,
         message: this.message,
         emoji: this.selectedEmoji,
@@ -188,20 +209,19 @@ export class MessageWriteComponent implements OnInit {
         position_z: null
       };
 
+      if (this.placementType === 'tree' && this.youtubeUrl.trim()) {
+        messageData.youtube_url = this.youtubeUrl.trim();
+      }
+
       console.log('메시지 등록:', messageData);
 
-      // 서버로 전송
-      this.http.post(`${this.apiBaseUrl}/messages`, messageData).subscribe({
-        next: (response) => {
-          console.log('메시지 전송 성공:', response);
-          // 스팟 페이지로 이동 (스팟 ID 포함)
-          this.router.navigate(['/4spot', this.spotId]);
-        },
-        error: (error) => {
-          console.error('메시지 전송 실패:', error);
-          alert('메시지 전송에 실패했습니다. 다시 시도해주세요.');
-        }
-      });
+      try {
+        await firstValueFrom(this.http.post(`${this.apiBaseUrl}/messages`, messageData));
+        this.router.navigate(['/4spot', this.spotId]);
+      } catch (error) {
+        console.error('메시지 전송 실패:', error);
+        alert('메시지 전송에 실패했습니다. 다시 시도해주세요.');
+      }
     } else {
       alert('모든 필드를 입력해주세요.');
     }
@@ -219,7 +239,23 @@ export class MessageWriteComponent implements OnInit {
 
     return this.nickname.trim() !== '' &&
            this.message.trim() !== '' &&
-           hasValidEmoji;
+           hasValidEmoji &&
+           (this.placementType !== 'tree' || this.isYoutubeLinkValid());
+  }
+
+  isYoutubeLinkValid(): boolean {
+    const value = this.youtubeUrl.trim();
+    if (!value) {
+      return true;
+    }
+
+    const patterns = [
+      /^(https?:\/\/)?(www\.)?youtube\.com\/watch\?v=[\w-]+/i,
+      /^(https?:\/\/)?(www\.)?youtu\.be\/[\w-]+/i,
+      /^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+/i
+    ];
+
+    return patterns.some(pattern => pattern.test(value));
   }
 
   onCancel(): void {

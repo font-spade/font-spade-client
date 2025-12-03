@@ -117,6 +117,19 @@
   min-height: 80px;
 }
 
+.help-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.error-text {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #e74c3c;
+}
+
 /* 배치 방식 선택 탭 */
 .placement-tabs {
   display: flex;

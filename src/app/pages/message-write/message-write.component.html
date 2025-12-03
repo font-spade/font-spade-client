@@ -91,8 +91,8 @@
           </div>
         </div>
 
-        <!-- 필드 배치: 타이포그래피 생성기 -->
-        <div *ngIf="placementType === 'field'" class="typography-generator">
+      <!-- 필드 배치: 타이포그래피 생성기 -->
+      <div *ngIf="placementType === 'field'" class="typography-generator">
           <div class="typography-preview">
             <div class="typography-header">
               <span class="typography-title">타이포그래피 이모지 생성</span>
@@ -147,6 +147,23 @@
           </div>
         </div>
       </div>
+
+      <div class="form-group" *ngIf="placementType === 'tree'">
+        <label for="youtubeUrl">YouTube 링크 (선택)</label>
+        <input
+          type="text"
+          id="youtubeUrl"
+          name="youtubeUrl"
+          [(ngModel)]="youtubeUrl"
+          placeholder="https://youtu.be/xxxx"
+          (blur)="youtubeTouched = true"
+        />
+        <small class="help-text">트리에 연결할 배경 음악 YouTube 링크를 입력하세요.</small>
+        <div class="error-text" *ngIf="youtubeTouched && !isYoutubeLinkValid()">
+          유효한 YouTube 링크를 입력해주세요.
+        </div>
+      </div>
+
 
       <div class="form-actions">
         <button type="button" class="cancel-btn" (click)="onCancel()">취소</button>
