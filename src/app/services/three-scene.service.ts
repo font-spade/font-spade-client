@@ -352,19 +352,20 @@ export class ThreeSceneService {
   }
 
   generateRandomTreePosition(): { height: number; angle: number } {
-    // 균등한 높이 분포를 위해 sqrt 제거하고 하단에 더 많이 배치
+    // 더 균등한 분포를 위해 다양한 높이와 각도 생성
     const randomValue = Math.random();
-    const weightedRandom = Math.pow(randomValue, 1.5); // 하단에 더 집중되도록
-    const height = 2.5 + weightedRandom * 7;
+    // 전체 트리 높이에 걸쳐 균등하게 분포
+    const height = 1 + randomValue * 9; // 1-10 높이 범위
     const angle = Math.random() * Math.PI * 2;
     return { height, angle };
   }
 
   attachEmojiToTreeSurface(angle: number, targetHeight: number): { x: number; y: number; z: number } {
-    const rayDistance = 10;
+    // 트리 메시에 직접 레이캐스팅하여 정확한 표면 위치 찾기
+    const rayDistance = 15; // 더 멀리서 시작
     const rayOrigin = new THREE.Vector3(
       Math.cos(angle) * rayDistance,
-      targetHeight - 7,
+      targetHeight - 5, // 트리 높이 조정
       Math.sin(angle) * rayDistance
     );
 
@@ -404,11 +405,39 @@ export class ThreeSceneService {
         z: position.z
       };
     } else {
-      const radius = 4;
+      // 레이캐스팅 실패 시 다른 각도로 재시도
+      const retryAngle = angle + Math.PI * 0.5; // 90도 회전해서 재시도
+      const retryOrigin = new THREE.Vector3(
+        Math.cos(retryAngle) * rayDistance,
+        targetHeight - 5,
+        Math.sin(retryAngle) * rayDistance
+      );
+      const retryDirection = new THREE.Vector3(
+        -Math.cos(retryAngle),
+        0,
+        -Math.sin(retryAngle)
+      ).normalize();
+      
+      raycaster.set(retryOrigin, retryDirection);
+      const retryIntersects = this.mainTreeGroup ? raycaster.intersectObject(this.mainTreeGroup, true) : [];
+      
+      if (retryIntersects.length > 0) {
+        const intersection = retryIntersects[0];
+        const position = intersection.point.clone();
+        const normal = intersection.face?.normal ? 
+          intersection.face.normal.clone().normalize() :
+          new THREE.Vector3(Math.cos(retryAngle), 0, Math.sin(retryAngle));
+        
+        position.add(normal.multiplyScalar(1.0));
+        return { x: position.x, y: position.y, z: position.z };
+      }
+      
+      // 최종 폴백: 트리 주변 원형 배치
+      const fallbackRadius = 3.5 - (targetHeight / 12) * 2; // 높이에 따라 반지름 조정
       return {
-        x: Math.cos(angle) * radius,
-        y: targetHeight - 7,
-        z: Math.sin(angle) * radius
+        x: Math.cos(angle) * fallbackRadius,
+        y: targetHeight - 5,
+        z: Math.sin(angle) * fallbackRadius
       };
     }
   }

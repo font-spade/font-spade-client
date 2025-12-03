@@ -563,14 +563,18 @@ export class EmojiMessageService {
       });
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
     } else {
-      const position = this.threeScene.generateRandomTreePosition();
+      const treePosition = this.threeScene.generateRandomTreePosition();
+      // 레이캐스팅을 사용하여 트리 표면에 정확히 붙이기
+      const attachPosition = this.threeScene.attachEmojiToTreeSurface(treePosition.angle, treePosition.height);
+      
       const isCurrentUser = this.isCurrentUserEmoji(msg.nickname);
-      const mesh = this.threeScene.createEmojiMesh(msg.emoji, 0, position.height, 0, true, isCurrentUser);
+      const mesh = this.threeScene.createEmojiMesh(msg.emoji, attachPosition.x, attachPosition.y, attachPosition.z, true, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['attachToTree'] = true;
-      mesh.userData['height'] = position.height;
-      mesh.userData['angle'] = position.angle;
+      mesh.userData['height'] = treePosition.height;
+      mesh.userData['angle'] = treePosition.angle;
+      mesh.userData['actualPosition'] = attachPosition; // 실제 레이캐스팅 위치 저장
       mesh.userData['rotationSpeed'] = 0.005 + Math.random() * 0.01;
 
       this.emojis.push({
@@ -578,9 +582,9 @@ export class EmojiMessageService {
         nickname: msg.nickname,
         message: msg.message,
         emoji: msg.emoji,
-        x: 0,
-        y: position.height,
-        z: 0,
+        x: attachPosition.x,
+        y: attachPosition.y,
+        z: attachPosition.z,
         nextMessageTime: Date.now() + 3000,
         messageIndex: randomIndex
       });
@@ -637,22 +641,26 @@ export class EmojiMessageService {
       });
       this.scheduleLifetime(this.emojis[this.emojis.length - 1]);
     } else {
-      const position = this.threeScene.generateRandomTreePosition();
-      const treePosition = this.threeScene.attachEmojiToTreeSurface(position.angle, position.height);
-      const mesh = this.threeScene.createEmojiMesh(emoji, treePosition.x, treePosition.y, treePosition.z, false, isCurrentUser);
+      const treePosition = this.threeScene.generateRandomTreePosition();
+      // 레이캐스팅을 사용하여 트리 표면에 정확히 붙이기
+      const attachPosition = this.threeScene.attachEmojiToTreeSurface(treePosition.angle, treePosition.height);
+      const mesh = this.threeScene.createEmojiMesh(emoji, attachPosition.x, attachPosition.y, attachPosition.z, true, isCurrentUser);
       this.threeScene.emojiScene.add(mesh);
 
-      mesh.userData['originalY'] = treePosition.y;
-      mesh.userData['nearTree'] = true;
+      mesh.userData['attachToTree'] = true;
+      mesh.userData['height'] = treePosition.height;
+      mesh.userData['angle'] = treePosition.angle;
+      mesh.userData['actualPosition'] = attachPosition;
+      mesh.userData['rotationSpeed'] = 0.005 + Math.random() * 0.01;
 
       this.emojis.push({
         mesh,
         nickname,
         message,
         emoji,
-        x: treePosition.x,
-        y: treePosition.y,
-        z: treePosition.z,
+        x: attachPosition.x,
+        y: attachPosition.y,
+        z: attachPosition.z,
         nextMessageTime: Date.now() + Math.random() * 5000 + 3000
       });
     }
