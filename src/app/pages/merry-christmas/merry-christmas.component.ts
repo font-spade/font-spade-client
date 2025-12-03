@@ -8,6 +8,7 @@ import { ThreeSceneService } from '../../services/three-scene.service';
 import { EmojiMessageService, EmojiData, VisibleMessage } from '../../services/emoji-message.service';
 import { MerryChristmasApiService } from '../../services/merry-christmas-api.service';
 import { AuthState, Spot } from './merry-christmas.models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-merry-christmas',
@@ -39,10 +40,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   ownerName = '익명';
 
   writeButtonText = '나의 트리 만들기';
-
+  
   get messageCount(): number {
     return this.emojiService.messageCount;
   }
+
+  private kakaoScriptLoading: Promise<void> | null = null;
+  private readonly kakaoSdkUrl = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js';
+  private readonly kakaoSdkIntegrity = 'sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p';
 
   updateWriteButtonText(): void {
     this.refreshSeasonContext();
@@ -237,37 +242,29 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  shareToKakao(): void {
-    const url = window.location.href;
-    const title = `🎄 ${this.ownerName}님의 크리스마스 트리`;
-    const description = '크리스마스 이모티콘 광장에서 메시지를 남겨보세요!';
+  async shareToKakao(): Promise<void> {
+    try {
+      await this.loadKakaoSdk();
+      const kakao = (window as any).Kakao;
+      if (!kakao) {
+        throw new Error('Kakao SDK unavailable');
+      }
 
-    if ((window as any).Kakao) {
-      (window as any).Kakao.Share.sendDefault({
-        objectType: 'feed',
-        content: {
-          title,
-          description,
-          imageUrl: 'https://your-domain.com/christmas-tree-image.png',
-          link: {
-            mobileWebUrl: url,
-            webUrl: url
-          }
-        },
-        buttons: [
-          {
-            title: '트리 보러가기',
-            link: {
-              mobileWebUrl: url,
-              webUrl: url
-            }
-          }
-        ]
+      this.initializeKakao(kakao);
+
+      if (typeof kakao.isInitialized === 'function' && !kakao.isInitialized()) {
+        throw new Error('Kakao SDK init failed');
+      }
+
+      kakao.Share.sendScrap({
+        requestUrl: this.getShareRequestUrl()
       });
-    } else {
-      window.open('https://www.kakaocorp.com/page/service/service/KakaoTalk');
+
+      this.closeShareModal();
+    } catch (error) {
+      console.error('카카오톡 공유 실패:', error);
+      alert('카카오톡 공유를 사용할 수 없습니다. 잠시 후 다시 시도해주세요.');
     }
-    this.closeShareModal();
   }
 
   shareToInstagram(): void {
@@ -285,6 +282,60 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       alert('인스타그램 공유용 텍스트가 복사되었습니다. 인스타그램 웹사이트에서 스토리에 붙여넣어 주세요.');
     }
     this.closeShareModal();
+  }
+
+  private async loadKakaoSdk(): Promise<void> {
+    if (typeof window === 'undefined') {
+      return Promise.reject('window unavailable');
+    }
+
+    if ((window as any).Kakao) {
+      this.initializeKakao((window as any).Kakao);
+      return Promise.resolve();
+    }
+
+    if (!this.kakaoScriptLoading) {
+      this.kakaoScriptLoading = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = this.kakaoSdkUrl;
+        script.integrity = this.kakaoSdkIntegrity;
+        script.crossOrigin = 'anonymous';
+        script.onload = () => {
+          const kakao = (window as any).Kakao;
+          if (!kakao) {
+            reject('Kakao SDK failed to load');
+            return;
+          }
+          this.initializeKakao(kakao);
+          resolve();
+        };
+        script.onerror = (error) => reject(error);
+        document.body.appendChild(script);
+      });
+    }
+
+    return this.kakaoScriptLoading!;
+  }
+
+  private initializeKakao(kakao: any): void {
+    if (!kakao || typeof kakao.init !== 'function') {
+      return;
+    }
+    if (typeof kakao.isInitialized === 'function' && kakao.isInitialized()) {
+      return;
+    }
+    if (environment.kakaoJavascriptKey.includes('YOUR_KAKAO_JAVASCRIPT_KEY')) {
+      console.warn('카카오 JavaScript 키가 설정되어 있지 않습니다. environment.kakaoJavascriptKey를 업데이트하세요.');
+      return;
+    }
+    kakao.init(environment.kakaoJavascriptKey);
+  }
+
+  private getShareRequestUrl(): string {
+    if (typeof window === 'undefined') {
+      return environment.basePath;
+    }
+    return window.location.href || environment.basePath;
   }
 
   private onPointerDown(event: MouseEvent): void {
@@ -748,5 +799,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     await this.threeSceneService.loadOutlineEffect();
     this.threeSceneService.init(this.canvasRef.nativeElement);
     this.registerSceneEvents();
+    this.loadKakaoSdk().catch(error => {
+      console.warn('카카오 SDK 로드 실패:', error);
+    });
   }
 }
