@@ -87,6 +87,29 @@
     </div>
   </div>
 
+  <!-- Share Modal -->
+  <div class="auth-modal" [class.visible]="showShareModal" *ngIf="showShareModal">
+    <div class="modal-content">
+      <h2>🎄 트리 공유하기</h2>
+      <p>친구들에게 {{ownerName}}님의 크리스마스 트리를 공유해보세요!</p>
+      <div class="share-buttons">
+        <button class="share-btn link-btn" (click)="shareToLink()">
+          <span class="share-icon">🔗</span>
+          <span class="share-text">링크 복사하기</span>
+        </button>
+        <button class="share-btn kakao-btn" (click)="shareToKakao()">
+          <span class="share-icon">💬</span>
+          <span class="share-text">카카오톡으로 공유</span>
+        </button>
+        <button class="share-btn instagram-btn" (click)="shareToInstagram()">
+          <span class="share-icon">📸</span>
+          <span class="share-text">인스타그램으로 공유</span>
+        </button>
+      </div>
+      <button class="close-btn" (click)="closeShareModal()">×</button>
+    </div>
+  </div>
+
   <!-- YouTube Player (if spot has YouTube URL) -->
   <div class="youtube-player" *ngIf="currentSpot?.youtube_video_id">
     <div class="youtube-controls">

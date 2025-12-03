@@ -170,7 +170,7 @@
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 8px solid rgba(0, 0, 0, 0.85);
+  border-top: 8px solid rgba(0, 0, 0, 0.4);
 }
 
 .christmas-footer {
@@ -564,6 +564,69 @@
   height: 100%;
 }
 
+/* 공유 버튼 스타일 */
+.share-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  gap: 15px;
+}
+
+.share-icon {
+  font-size: 24px;
+  width: 30px;
+  text-align: center;
+}
+
+.share-text {
+  flex: 1;
+}
+
+.link-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.link-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.kakao-btn {
+  background: linear-gradient(135deg, #fee500 0%, #ffcd00 100%);
+  color: #3c1e1e;
+}
+
+.kakao-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(254, 229, 0, 0.4);
+}
+
+.instagram-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+  color: white;
+}
+
+.instagram-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+}
+
 /* 모바일 대응 */
 @media (max-width: 768px) {
   .youtube-player {
@@ -583,5 +646,20 @@
   
   .form-input {
     font-size: 16px; /* iOS zoom 방지 */
+  }
+
+  .share-buttons {
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .share-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .share-icon {
+    font-size: 20px;
+    width: 25px;
   }
 }

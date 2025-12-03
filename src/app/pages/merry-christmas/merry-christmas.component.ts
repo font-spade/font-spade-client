@@ -72,11 +72,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // 메시지 표시 제어
   private lastMessageTime = 0;
-  private messageInterval = 3000; // 3초 간격으로 늘림
-  private maxMessagesPerSecond = 1; // 한번에 1개만
+  private messageInterval = 3000; // 3초 간격으로 표시
+  private maxMessagesPerSecond = 1; // 한번에 1개만 허용
   private messagesThisSecond = 0;
   private currentSecond = 0;
-  private maxVisibleMessages = 2; // 최대 2개까지만 동시 표시
+  private maxVisibleMessages = 20; // 화면에 최대 20개까지 메시지 표시 가능
 
   // GLB 모델 로더
   private gltfLoader: any = null;
@@ -112,6 +112,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   private lastEmojiUpdateTime = 0;
   private emojiUpdateInterval = 7000; // 7초마다 이모지 업데이트
   private isLoadingMessages = false; // 메시지 로딩 중 플래그
+  private maxEmojis = 8; // 최대 이모지 개수 제한
+  private emojiLifetime = 20000; // 이모지 수명 20초
 
   visibleMessages: Array<{
     id: string;
@@ -168,6 +170,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
   // YouTube 플레이어 관련
   isYouTubeVisible = false;
+
+  // 공유 모달 관련
+  showShareModal = false;
 
   apiBaseUrl = 'http://localhost:8000'; // 서버 URL
 
@@ -1224,6 +1229,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       }
     });
 
+    console.log('현재 표시된 메시지 인덱스:', Array.from(currentDisplayedIndices));
+    console.log('전체 메시지 개수:', this.apiMessages.length);
+
     // 화면에 표시되지 않은 메시지 중에서 선택
     const availableIndices = [];
     for (let i = 0; i < this.apiMessages.length; i++) {
@@ -1231,6 +1239,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
         availableIndices.push(i);
       }
     }
+
+    console.log('사용 가능한 메시지 인덱스:', availableIndices);
 
     // 사용 가능한 메시지가 없으면 아무것도 하지 않음
     if (availableIndices.length === 0) {
@@ -1673,6 +1683,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private showRandomMessage(emojiData: any): void {
+    // 현재 메시지 텍스트가 이미 다른 곳에서 표시 중인지 확인 (텍스트 기반 중복 체크만)
+    const messageText = this.apiMessages[emojiData.messageIndex]?.message ||
+                        this.apiMessages[emojiData.messageIndex]?.text ||
+                        emojiData.message || '';
+
+    const duplicateMessage = this.visibleMessages.find(msg =>
+      msg.text === messageText && msg.visible && !msg.hiding
+    );
+    if (duplicateMessage) {
+      console.log(`동일한 메시지가 이미 표시 중입니다: ${messageText}`);
+      return;
+    }
+
+    console.log(`메시지 표시 시도: ${emojiData.nickname} - ${messageText}`);
+
     const messagePosition = new THREE.Vector3(
       emojiData.mesh.position.x,
       emojiData.mesh.position.y + 2.5, // 이모지 바로 위에 더 가깝게 배치
@@ -1692,7 +1717,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
       nickname: emojiData.nickname,
       text: emojiData.message,
       screenX: screenPos.x - 125, // 메시지 박스 중앙 정렬
-      screenY: screenPos.y + 5,  // 이모지와 더 붙여서 배치
+      screenY: screenPos.y - 80, // 이모지 위쪽에 배치하여 가리지 않도록
       visible: false,
       hiding: false
     };
@@ -1717,14 +1742,68 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           const index = this.visibleMessages.findIndex(m => m.id === messageId);
           if (index > -1) {
             this.visibleMessages.splice(index, 1);
+            // 메시지가 사라진 직후 새로운 메시지 표시 시도
+            this.tryShowNextMessage();
           }
         }, 500);
       }
-      // 다음 메시지 표시 시간 설정 (8-15초 후로 길게)
-      emojiData.nextMessageTime = Date.now() + Math.random() * 7000 + 8000;
+      // 다음 메시지 표시 시간 설정 (5-8초 후로 단축)
+      emojiData.nextMessageTime = Date.now() + Math.random() * 3000 + 5000;
     }, Math.random() * 2000 + 4000); // 4-6초로 조정
   }
 
+  // 메시지가 사라진 후 대기 중인 메시지를 즉시 표시하는 함수
+  private tryShowNextMessage(): void {
+    // 현재 표시 중인 메시지 개수 확인
+    const currentVisibleCount = this.visibleMessages.filter(m => m.visible && !m.hiding).length;
+    const totalMessageCount = this.apiMessages.length;
+
+    // 가능한 메시지 개수에 맞춰서 표시 (최대 20개, 실제 메시지 개수까지)
+    const targetMessageCount = Math.min(totalMessageCount, this.maxVisibleMessages);
+
+    if (currentVisibleCount >= targetMessageCount) {
+      return;
+    }
+
+    // 드래그 중이면 중단
+    if (this.isDragging) {
+      return;
+    }
+
+    const now = Date.now();
+
+    // 표시 가능한 이모지 찾기 (메시지가 적게 표시된 이모지 우선)
+    const availableEmojis = this.emojis.filter(emoji => {
+      // 해당 이모지에서 현재 표시 중인 메시지 개수 확인
+      const messageCount = this.visibleMessages.filter(msg =>
+        msg.nickname === emoji.nickname && msg.visible && !msg.hiding
+      ).length;
+      // 메시지가 없거나 1개만 있는 이모지만 선택 (너무 많이 겹치지 않게)
+      return messageCount < 1;
+    });
+
+    if (availableEmojis.length > 0) {
+      // 현재 표시 중인 메시지 텍스트 수집 (더 엄격한 중복 체크)
+      const currentVisibleTexts = new Set(
+        this.visibleMessages
+          .filter(m => m.visible && !m.hiding)
+          .map(m => m.text)
+      );
+
+      // 사용 가능한 메시지 찾기 (텍스트 기반 중복 체크)
+      const availableMessageIndex = this.apiMessages.findIndex(msg =>
+        !currentVisibleTexts.has(msg.message || msg.text || '')
+      );
+
+      if (availableMessageIndex !== -1) {
+        const randomEmoji = availableEmojis[Math.floor(Math.random() * availableEmojis.length)];
+        randomEmoji.messageIndex = availableMessageIndex;
+        this.showRandomMessage(randomEmoji);
+      } else {
+        console.log('모든 메시지가 현재 표시 중이어서 중복 방지됨');
+      }
+    }
+  }
 
   private onCanvasClick(event: MouseEvent): void {
     console.log('Canvas 클릭됨, hasMouseMoved:', this.hasMouseMoved);
@@ -1820,7 +1899,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
     if (intersects.length > 0) {
       const intersection = intersects[0];
       // 교차점에서 약간 바깥쪽으로 이동 (이모지가 트리에 묻히지 않게)
-      const offsetDistance = 0.5;
+      const offsetDistance = 1.5; // 트리 표면에서 더 멀리 떨어뜨려 이모지가 트리 안에 들어가지 않도록
       const position = intersection.point.clone();
 
       // face normal이 있으면 사용, 없으면 중심에서 바깥쪽 방향 사용
@@ -1944,8 +2023,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
   }
 
   private generateRandomTreePosition(): { height: number, angle: number } {
-    // 트리 높이와 각도 랜덤 생성
-    const height = 2.5 + Math.random() * 9; // 2.5-11.5 높이 범위
+    // 트리 높이와 각도 랜덤 생성 (가중치를 적용해 하단~중간 부분 선호)
+    const randomValue = Math.random();
+    // 제곱근을 사용해 낮은 높이에 더 많이 배치 (하단 선호)
+    const weightedRandom = Math.sqrt(randomValue);
+    const height = 2.5 + weightedRandom * 7; // 2.5-9.5 높이 범위 (꼭대기 피하기)
     const angle = Math.random() * Math.PI * 2; // 0-2π 각도 범위
     return { height, angle };
   }
@@ -2389,9 +2471,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
           return;
         }
 
-        // 메시지 위치를 이모지 가까이 배치
+        // 메시지 위치를 이모지 위쪽에 배치
         message.screenX = screenPos.x - 125; // 메시지 박스 중앙 정렬
-        message.screenY = screenPos.y + 5;  // 이모지와 더 붙여서 배치
+        message.screenY = screenPos.y - 80; // 이모지 위쪽에 배치하여 가리지 않도록
       }
     });
 
@@ -2434,17 +2516,77 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit {
 
 
   onShare(): void {
+    this.showShareModal = true;
+  }
+
+  closeShareModal(): void {
+    this.showShareModal = false;
+  }
+
+  shareToLink(): void {
     const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({
-        title: `🎄 ${this.ownerName}님의 크리스마스`,
-        text: '크리스마스 이모티콘 광장에서 메시지를 남겨보세요!',
-        url: url
+    navigator.clipboard.writeText(url).then(() => {
+      alert('링크가 복사되었습니다!');
+      this.closeShareModal();
+    }).catch(() => {
+      alert('링크 복사에 실패했습니다.');
+    });
+  }
+
+  shareToKakao(): void {
+    const url = window.location.href;
+    const title = `🎄 ${this.ownerName}님의 크리스마스 트리`;
+    const description = '크리스마스 이모티콘 광장에서 메시지를 남겨보세요!';
+
+    // 카카오톡 공유하기 API 사용
+    if ((window as any).Kakao) {
+      (window as any).Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: title,
+          description: description,
+          imageUrl: 'https://your-domain.com/christmas-tree-image.png', // 이미지 URL 추가
+          link: {
+            mobileWebUrl: url,
+            webUrl: url
+          }
+        },
+        buttons: [
+          {
+            title: '트리 보러가기',
+            link: {
+              mobileWebUrl: url,
+              webUrl: url
+            }
+          }
+        ]
       });
     } else {
-      navigator.clipboard.writeText(url);
-      alert('링크가 복사되었습니다!');
+      // 카카오톡이 설치되지 않은 경우 또는 API가 로드되지 않은 경우
+      window.open(`https://www.kakaocorp.com/page/service/service/KakaoTalk`);
     }
+    this.closeShareModal();
+  }
+
+  shareToInstagram(): void {
+    const url = window.location.href;
+    const text = `🎄 ${this.ownerName}님의 크리스마스 트리 ${url}`;
+
+    // 인스타그램 앱이 설치된 경우 시도
+    if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      // 모바일 환경에서 인스타그램 앱 시도
+      window.location.href = `instagram://camera`;
+      setTimeout(() => {
+        // 앱이 열리지 않으면 클립보드에 복사
+        navigator.clipboard.writeText(text);
+        alert('인스타그램 앱을 열어주세요. 텍스트가 복사되었습니다.');
+      }, 1000);
+    } else {
+      // 데스크톱 환경에서는 클립보드에 복사
+      navigator.clipboard.writeText(text);
+      alert('인스타그램 공유용 텍스트가 복사되었습니다. 인스타그램 웹사이트에서 스토리에 붙여넣어 주세요.');
+    }
+    this.closeShareModal();
   }
 
   // 터치/마우스 컨트롤 메서드들
