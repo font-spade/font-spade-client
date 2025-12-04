@@ -16,32 +16,15 @@ export function app(): express.Express {
 // 파일 읽기
 
   let clientFolder = '';
-  clientFolder = join('/Users/doheyonkim/Depot/font-spade-client/dist/font-spade/browser');
+  if (environment.production) {
+    clientFolder = join(process.cwd(), '../browser');
+  } else {
+    clientFolder = join(process.cwd(), '../browser');
+  }
 // JSON 파일 경로
-//   const filePath = clientFolder+'/data/metadata.json';
   // const
 
-  const indexHtml = existsSync(join(clientFolder, 'index.original.html')) ? 'index.original.html' : 'index';
-
-  // readFile(filePath, 'utf8', (err, data) => {
-  //   if (err) {
-  //     console.error('파일을 읽을 수 없습니다.', err);
-  //     return;
-  //   }
-  //
-  //   try {
-  //     // JSON 형식의 데이터로 변환
-  //     jsonData = JSON.parse(data);
-  //
-  //     // 읽은 데이터 출력 또는 활용
-  //     // console.log('JSON 데이터:', jsonData);
-  //     console.log('JSON 파일 Read가 메모리에 올라왔습니다')
-  //
-  //     // 이곳에서 데이터에 대한 추가 작업 수행 가능
-  //   } catch (jsonError) {
-  //     console.error('JSON 데이터를 파싱하는 동안 오류가 발생했습니다.', jsonError);
-  //   }
-  // });
+  const indexHtml = existsSync(join(clientFolder, 'index.original.html')) ? 'index.original.html' : 'index.html';
 
   // Our Universal express-engine (found @ https://github.com/angular/universal/tree/main/modules/express-engine)
   server.engine('html', ngExpressEngine({
