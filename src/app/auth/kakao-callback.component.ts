@@ -21,12 +21,12 @@ import { environment } from '../../environments/environment';
       height: 100vh;
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     }
-    
+
     .loading-spinner {
       text-align: center;
       color: white;
     }
-    
+
     .spinner {
       border: 4px solid #f3f3f3;
       border-top: 4px solid #3498db;
@@ -36,12 +36,12 @@ import { environment } from '../../environments/environment';
       animation: spin 2s linear infinite;
       margin: 0 auto 20px;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
+
     p {
       font-size: 16px;
       margin: 0;
@@ -61,7 +61,7 @@ export class KakaoCallbackComponent implements OnInit {
     console.log('KakaoCallbackComponent initialized');
     console.log('Current URL:', window.location.href);
     console.log('Query params:', this.route.snapshot.queryParams);
-    
+
     try {
       // URL 쿼리 파라미터에서 인가 코드와 state 추출
       const code = this.route.snapshot.queryParams['code'];
@@ -91,7 +91,7 @@ export class KakaoCallbackComponent implements OnInit {
       // 서버로 인가 코드 전송하여 토큰 교환
       console.log('API Base URL:', this.apiBaseUrl);
       console.log('Sending request to:', `${this.apiBaseUrl}/auth/kakao/callback`);
-      
+
       const response = await this.http.post<{
         token: string;
         user: {
