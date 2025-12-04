@@ -6,15 +6,14 @@ import {
   OnInit,
   Output, QueryList, Renderer2,
   ViewChildren,
-  ViewContainerRef
+  ViewContainerRef, PLATFORM_ID
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Cmyk, ColorPickerService } from 'ngx-color-picker';
-import { fabric } from 'fabric';
 import { document } from 'postcss';
 import * as FontFaceObserver from 'fontfaceobserver';
 import { HttpClient } from '@angular/common/http';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-emoji-text',
@@ -78,7 +77,8 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
     private cpService: ColorPickerService,
     private httpClient: HttpClient,
     private renderer: Renderer2,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    @Inject(PLATFORM_ID) private platformId: any
   ) {
     // this.eventbus.on('EG_LOCALE_CHANGED', (locale) => {
     //   // this.fonts = FONTS[locale];
@@ -185,7 +185,19 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
     if (this.router.url.match(/^(?:\/[a-zA-Z-]+)?\/result/)) {
       this._draw(this.activatedRoute.snapshot.queryParams);
     }
-// Define an array with all fonts
+
+    // Fabric.js는 브라우저 환경에서만 실행
+    if (isPlatformBrowser(this.platformId)) {
+      this.initializeFabricCanvas();
+    }
+  }
+
+  private async initializeFabricCanvas(): Promise<void> {
+    // Dynamic import를 사용하여 브라우저 환경에서만 fabric을 로드
+    const fabricModule = await import('fabric');
+    const { fabric } = fabricModule;
+    
+    // Define an array with all fonts
     var fonts = ["Pacifico", "VT323", "Quicksand", "Inconsolata"];
 
     this.canvas = new fabric.Canvas('c');
@@ -221,6 +233,10 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
   }
 
   loadAndUse(font) {
+    if (!isPlatformBrowser(this.platformId) || !this.canvas) {
+      return;
+    }
+    
     var myfont = new FontFaceObserver(font)
     const canvas = this.canvas;
     myfont.load()
@@ -295,13 +311,15 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
   }
 
   onChangeFont (fontFamily: HTMLSelectElement) {
-    this.fontKey = fontFamily.value;fabric
+    this.fontKey = fontFamily.value;
 
-    if (this.fontKey !== 'Times New Roman') {
-      this.loadAndUse(this.fontKey);
-    } else {
-      this.canvas.getActiveObject().set("fontFamily", );
-      this.canvas.requestRenderAll();
+    if (isPlatformBrowser(this.platformId) && this.canvas) {
+      if (this.fontKey !== 'Times New Roman') {
+        this.loadAndUse(this.fontKey);
+      } else {
+        this.canvas.getActiveObject().set("fontFamily", this.fontKey);
+        this.canvas.requestRenderAll();
+      }
     }
   }
 
@@ -311,19 +329,21 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit (): void {
-    //
-    /**
-     * url : https://dev-wfbiz.sandollcloud.com/fonts/all
-     * Bearer Token : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWR4IjoxOTMsImlhdCI6MTcyMjMxNTUzMywiZXhwIjoxNzIyMzI2MzMzLCJhdWQiOiJzZCIsImlzcyI6InNhbmRvbGwiLCJzdWIiOiJhY2Nlc3MifQ.tlhDNQK8DpXqrUHKtWxAD4_wvSGZDro71LOcJ4PRL-Q
-     */
-    const header = {
-      Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWR4IjoxOTMsImlhdCI6MTcyMjgxOTkzOCwiZXhwIjoxNzIyODMwNzM4LCJhdWQiOiJzZCIsImlzcyI6InNhbmRvbGwiLCJzdWIiOiJhY2Nlc3MifQ.oa8OKC3_mFpXzf_wb4FkU3AJyesp8DYqgBwpRFcazys'
+    // 브라우저 환경에서만 HTTP 요청 및 DOM 조작 실행
+    if (isPlatformBrowser(this.platformId)) {
+      /**
+       * url : https://dev-wfbiz.sandollcloud.com/fonts/all
+       * Bearer Token : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWR4IjoxOTMsImlhdCI6MTcyMjMxNTUzMywiZXhwIjoxNzIyMzI2MzMzLCJhdWQiOiJzZCIsImlzcyI6InNhbmRvbGwiLCJzdWIiOiJhY2Nlc3MifQ.tlhDNQK8DpXqrUHKtWxAD4_wvSGZDro71LOcJ4PRL-Q
+       */
+      const header = {
+        Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWR4IjoxOTMsImlhdCI6MTcyMjgxOTkzOCwiZXhwIjoxNzIyODMwNzM4LCJhdWQiOiJzZCIsImlzcyI6InNhbmRvbGwiLCJzdWIiOiJhY2Nlc3MifQ.oa8OKC3_mFpXzf_wb4FkU3AJyesp8DYqgBwpRFcazys'
+      }
+      this.httpClient.post('/sdclound/fonts/family', {}, {headers: header}).subscribe((res: any) => {
+        const result: FamilyInfo[] = res.resultData
+        this.fonts = result;
+      });
+      this.setupIntersectionObserver()
     }
-    this.httpClient.post('/sdclound/fonts/family', {}, {headers: header}).subscribe((res: any) => {
-      const result: FamilyInfo[] = res.resultData
-      this.fonts = result;
-    });
-    this.setupIntersectionObserver()
   }
 
   setupIntersectionObserver() {
@@ -348,7 +368,14 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
     this.fontItems.changes.subscribe(() => {
       this.fontItems.forEach(item => observer.observe(item.nativeElement));
     });
-  }loadImageForItem(item: FamilyInfo) {
+  }
+  
+  loadImageForItem(item: FamilyInfo) {
+    // 브라우저 환경에서만 HTTP 요청 실행
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     const familyId = item.familyID;
     const weight = item.defaultCssInfoDict['font-weight'];
     const font = item.fontList.find((f) => f.cssInfoDict['font-weight'] === weight+'');

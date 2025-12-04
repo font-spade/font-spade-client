@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 interface GlyphPair {
   left: string;
@@ -29,7 +30,7 @@ export class MessageWriteComponent implements OnInit {
 
   // 스팟 ID
   spotId: string = '';
-  apiBaseUrl = 'http://localhost:8000';
+  apiBaseUrl = environment.apiUrl;
   canEditYoutube = false;
   youtubeTouched = false;
 

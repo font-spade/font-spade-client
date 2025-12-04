@@ -1,15 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { lastValueFrom } from 'rxjs';
 import { Spot } from '../pages/merry-christmas/merry-christmas.models';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MerryChristmasApiService {
-  private readonly apiBaseUrl = 'http://localhost:8000';
+  private readonly apiBaseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   private getAuthHeaders(): { [header: string]: string } | undefined {
+    if (!isPlatformBrowser(this.platformId)) {
+      return undefined;
+    }
     const token = localStorage.getItem('authToken');
     return token ? { Authorization: `Bearer ${token}` } : undefined;
   }
@@ -60,6 +68,10 @@ export class MerryChristmasApiService {
   }
 
   async logout(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     const token = localStorage.getItem('authToken');
     if (!token) {
       return;

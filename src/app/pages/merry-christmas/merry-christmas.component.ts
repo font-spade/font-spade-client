@@ -1,7 +1,8 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { isPlatformBrowser } from '@angular/common';
 import * as THREE from 'three';
 
 import { ThreeSceneService } from '../../services/three-scene.service';
@@ -100,7 +101,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     private sanitizer: DomSanitizer,
     public emojiService: EmojiMessageService,
     private threeSceneService: ThreeSceneService,
-    private apiService: MerryChristmasApiService
+    private apiService: MerryChristmasApiService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.refreshSeasonContext();
   }
@@ -124,11 +126,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit(): void {
-    // Three.js 초기화가 완료된 후 메시지 로드
-    setTimeout(() => {
-      this.animate();
-      this.loadMessages();
-    }, 100);
+    if (isPlatformBrowser(this.platformId)) {
+      // Three.js 초기화가 완료된 후 메시지 로드
+      setTimeout(() => {
+        this.animate();
+        this.loadMessages();
+      }, 100);
+    }
   }
 
   // 새 메시지 등록 처리
@@ -137,6 +141,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private registerSceneEvents(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     const renderer = this.threeSceneService.renderer;
     if (!renderer) {
       return;
@@ -236,6 +244,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   shareToLink(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
       alert('링크가 복사되었습니다!');
@@ -246,6 +258,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   async shareToKakao(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     try {
       await this.loadKakaoSdk();
       const kakao = (window as any).Kakao;
@@ -271,6 +287,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   shareToInstagram(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     const url = window.location.href;
     const text = `🎄 ${this.ownerName}님의 크리스마스 트리 ${url}`;
 
@@ -474,6 +494,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   // 인증 관련 메서드들
   async checkAuthStatus(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     // URL 파라미터에서 트리 ID 확인
     const treeId = this.route.snapshot.paramMap.get('id');
     let isOwnerOfCurrentSpot = false;
@@ -544,7 +568,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
         }
       } catch (error) {
         console.error('토큰 파싱 실패:', error);
-        localStorage.removeItem('authToken');
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.removeItem('authToken');
+        }
       }
     }
 
@@ -646,9 +672,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   private kakaoLoginUrl: string = '';
 
   getKakaoLoginUrl(): string {
+    if (!isPlatformBrowser(this.platformId)) {
+      return '';
+    }
+    
     if (!this.kakaoLoginUrl) {
       const clientId = '85c57099905117aec84375e532cb75be';
-      const redirectUri = 'http://localhost/auth/kakao/callback';
+      const redirectUri = `${environment.clientUrl}/auth/kakao/callback`;
       const state = this.generateRandomState();
 
       this.kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=profile_nickname,profile_image`;
@@ -764,8 +794,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     // 클라이언트 상태 초기화
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userInfo');
+    }
 
     // 인증 상태 초기화
     this.authState.isLoggedIn = false;
@@ -823,28 +855,33 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   private async initializeComponent(): Promise<void> {
     await this.checkAuthStatus();
-    await this.threeSceneService.loadGLTFLoader();
-    await this.threeSceneService.loadOutlineEffect();
-    this.threeSceneService.init(this.canvasRef.nativeElement);
-    this.registerSceneEvents();
-    this.loadKakaoSdk().catch(error => {
-      console.warn('카카오 SDK 로드 실패:', error);
-    });
+    
+    if (isPlatformBrowser(this.platformId)) {
+      await this.threeSceneService.loadGLTFLoader();
+      await this.threeSceneService.loadOutlineEffect();
+      this.threeSceneService.init(this.canvasRef.nativeElement);
+      this.registerSceneEvents();
+      this.loadKakaoSdk().catch(error => {
+        console.warn('카카오 SDK 로드 실패:', error);
+      });
+    }
   }
 
   private reinitializeScene(): void {
-    // 기존 리소스 정리
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
+    if (isPlatformBrowser(this.platformId)) {
+      // 기존 리소스 정리
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+      this.emojiService.clearAll();
+      
+      // 씬 재초기화
+      setTimeout(() => {
+        this.animate();
+        this.loadMessages();
+      }, 100);
     }
-    this.emojiService.clearAll();
-    
-    // 씬 재초기화
-    setTimeout(() => {
-      this.animate();
-      this.loadMessages();
-    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -853,15 +890,17 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       this.routerSubscription.unsubscribe();
     }
     
-    // Three.js 리소스 정리
-    this.threeSceneService.dispose();
-    
-    // EmojiMessage 서비스 정리
-    this.emojiService.clearAll();
-    
-    // 애니메이션 프레임 정리
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
+    if (isPlatformBrowser(this.platformId)) {
+      // Three.js 리소스 정리
+      this.threeSceneService.dispose();
+      
+      // EmojiMessage 서비스 정리
+      this.emojiService.clearAll();
+      
+      // 애니메이션 프레임 정리
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+      }
     }
   }
 }

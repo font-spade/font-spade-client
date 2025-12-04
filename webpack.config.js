@@ -1,9 +1,24 @@
 module.exports = {
-  // ... other webpack configurations
-  node: {
-    // Increase the memory limit for webpack
-    // This is equivalent to setting NODE_OPTIONS="--max-old-space-size=4096"
-    // but directly in webpack configuration
-    "max_old_space_size": 4096
+  resolve: {
+    fallback: {
+      "canvas": false,
+      "jsdom": false,
+      "fs": false,
+      "path": false,
+      "stream": false,
+      "buffer": false,
+      "crypto": false,
+      "os": false,
+      "url": false,
+      "assert": false,
+      "util": false,
+      "bufferutil": false,
+      "utf-8-validate": false
+    }
+  },
+  externals: {
+    canvas: "canvas",
+    bufferutil: "bufferutil",
+    "utf-8-validate": "utf-8-validate"
   }
 };
