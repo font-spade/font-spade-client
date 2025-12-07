@@ -233,7 +233,8 @@ export class ThreeSceneService {
       alphaTest: 0.01,
       side: THREE.DoubleSide,
       depthWrite: false,
-      fog: false
+      fog: false,
+      color: 0xA0A0A0 // 이모지 색상을 더 어둡게 조정
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -281,7 +282,8 @@ export class ThreeSceneService {
       alphaTest: 0.01,
       side: THREE.DoubleSide,
       depthWrite: false,
-      fog: false
+      fog: false,
+      color: 0xA0A0A0 // 타이포그래피도 색상을 더 어둡게
     });
 
     const mesh = new THREE.Mesh(geometry, material);
