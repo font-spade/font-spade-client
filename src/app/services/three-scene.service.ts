@@ -1422,7 +1422,9 @@ export class ThreeSceneService {
     (explosion as any).trailPositions = particles.map(() => []);
 
     this.fireworks.push(explosion);
-    this.scene.add(explosion);
+    if (this.scene) {
+      this.scene.add(explosion);
+    }
   }
 
   private getRandomFireworkColors(): THREE.Color[] {
@@ -1522,7 +1524,9 @@ export class ThreeSceneService {
     (explosion as any).life = life;
 
     if (life <= 0) {
-      this.scene.remove(explosion);
+      if (this.scene) {
+        this.scene.remove(explosion);
+      }
       this.fireworks.splice(index, 1);
       return;
     }

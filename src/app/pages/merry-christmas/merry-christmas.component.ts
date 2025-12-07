@@ -50,6 +50,42 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     return this.emojiService.messageCount;
   }
 
+  get shouldShowUserTreeTitle(): boolean {
+    // Show user-specific tree title if:
+    // 1. User is logged in, OR
+    // 2. User is visiting a specific spot (has URL parameter 'id')
+    return this.authState.isLoggedIn || !!this.route.snapshot.paramMap.get('id');
+  }
+
+  get isViewingOwnTree(): boolean {
+    // User is viewing their own tree if logged in and either:
+    // 1. No spot ID in URL (viewing own main tree), OR
+    // 2. The current spot belongs to them
+    const spotId = this.route.snapshot.paramMap.get('id');
+    if (!this.authState.isLoggedIn) return false;
+    
+    if (!spotId) {
+      // No spot ID means viewing own main tree
+      return true;
+    }
+    
+    // Check if current spot belongs to logged-in user
+    return this.currentSpot?.ownerId === this.authState.user?.id;
+  }
+
+  get isViewingOthersTree(): boolean {
+    // User is viewing someone else's tree if:
+    // 1. There's a spot ID in URL, AND
+    // 2. Either not logged in OR the spot doesn't belong to them
+    const spotId = this.route.snapshot.paramMap.get('id');
+    if (!spotId) return false;
+    
+    if (!this.authState.isLoggedIn) return true;
+    
+    // Check if current spot belongs to someone else
+    return this.currentSpot?.ownerId !== this.authState.user?.id;
+  }
+
   private kakaoScriptLoading: Promise<void> | null = null;
   private readonly kakaoSdkUrl = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js';
   private readonly kakaoSdkIntegrity = 'sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p';
@@ -89,6 +125,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   showLoginModal = false;
   showAnonymousModal = false;
   currentSeason: 'winter' | 'spring' | 'summer' | 'autumn' = 'winter';
+  
+  // 뷰 모드 관련
+  viewMode: 'tree' | 'list' = 'tree';
+  showMessageList = false;
+  
+  // 별 파티클 관련
+  stars: Array<{x: number, y: number, delay: number, duration: number}> = [];
 
   // YouTube 플레이어 관련
   isYouTubeVisible = false;
@@ -204,7 +247,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  private showEmojiPopup(emojiData: EmojiData): void {
+  public showEmojiPopup(emojiData: EmojiData): void {
     // fallback 이모지가 있으면 그것을 우선 표시
     const displayEmoji = emojiData.mesh.userData['fallbackEmoji'] || emojiData.emoji;
     this.selectedEmoji = {
@@ -600,13 +643,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 모든 경우에 버튼 텍스트 업데이트
     this.updateWriteButtonText();
 
-    // 스팟 ID가 있으면 메시지 로드 (한 번만)
+    // 스팟 ID가 있으면 메시지 로드
     if (this.authState.currentSpotId) {
       console.log('메시지 로드 시작:', this.authState.currentSpotId);
-      this.loadMessages();
-    } else if (!this.authState.isLoggedIn && !treeId) {
-      // 로그인하지 않은 메인 페이지에서는 샘플 메시지 로드
-      console.log('샘플 메시지 로드 시작');
       this.loadMessages();
     }
   }
@@ -631,6 +670,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       this.currentSpot = await this.apiService.getSpot('sample-winter-1');
       if (this.currentSpot) {
         this.ownerName = this.currentSpot.title || '샘플 트리';
+        this.authState.currentSpotId = 'sample-winter-1'; // 샘플 스팟 ID 설정
         console.log('샘플 스팟 로드 성공:', this.ownerName);
       }
     } catch (error) {
@@ -745,6 +785,52 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     this.router.navigate(['/']);
   }
 
+  // 뷰 모드 토글
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'tree' ? 'list' : 'tree';
+    this.showMessageList = this.viewMode === 'list';
+    
+    // 리스트 뷰로 전환할 때 별 생성
+    if (this.viewMode === 'list') {
+      this.generateStars();
+    }
+  }
+
+  // 별 파티클 생성
+  private generateStars(): void {
+    this.stars = [];
+    const starCount = 50; // 별 개수
+    
+    for (let i = 0; i < starCount; i++) {
+      this.stars.push({
+        x: Math.random() * 100, // 0-100% 랜덤 위치
+        y: Math.random() * 100, // 0-100% 랜덤 위치
+        delay: Math.random() * 10, // 0-10초 랜덤 딜레이
+        duration: 15 + Math.random() * 25 // 15-40초 랜덤 회전 속도 (느리게)
+      });
+    }
+  }
+
+  // 이모지 URL 체크
+  isEmojiUrl(emoji: string): boolean {
+    return emoji.startsWith('http://') || emoji.startsWith('https://') || emoji.startsWith('/');
+  }
+
+  // 긴 이모지 체크 (배경 타입으로 추정)
+  isLongEmoji(emoji: string): boolean {
+    // URL이면 이미지이므로 일반 크기
+    if (this.isEmojiUrl(emoji)) return false;
+    
+    // 텍스트 길이가 3자 이상이면 긴 이모지로 판단
+    return emoji.length >= 3;
+  }
+
+  // trackBy 함수 for ngFor 성능 최적화
+  trackByEmoji(index: number, emoji: EmojiData): any {
+    return emoji.nickname + emoji.message + index;
+  }
+
+
   private async loadMessages(): Promise<void> {
     await this.emojiService.loadMessages(this.authState.currentSpotId);
   }
@@ -853,10 +939,6 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     this.router.navigate(['/4spot']);
   }
 
-  // URL 패턴 감지 유틸리티
-  isEmojiUrl(emoji: string): boolean {
-    return emoji.startsWith('http://') || emoji.startsWith('https://');
-  }
 
   // YouTube 관련 메소드들
   getYouTubeVideoId(url: string): string | null {

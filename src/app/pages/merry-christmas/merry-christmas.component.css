@@ -2,7 +2,7 @@
   width: 100%;
   height: 100vh;
   position: relative;
-  background: linear-gradient(135deg, #3F51B5 0%, #5C6BC0 50%, #3F51B5 100%); /* 카툰 브라이트 블루 하늘 그라데이션 */
+  background: #05001C; /* Match Three.js background color */
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -43,7 +43,7 @@
   justify-content: center;
 }
 
-.tree-decorate-btn, .star-btn, .logout-btn {
+.tree-decorate-btn, .star-btn, .logout-btn, .view-toggle-btn {
   padding: 12px 25px;
   border: none;
   border-radius: 25px;
@@ -75,7 +75,18 @@
   font-size: 12px;
 }
 
-.tree-decorate-btn:hover, .star-btn:hover, .logout-btn:hover {
+.view-toggle-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  padding: 12px 15px;
+  font-size: 16px;
+}
+
+.view-toggle-btn.list-mode {
+  background: linear-gradient(135deg, #ffa726, #ff9800);
+}
+
+.tree-decorate-btn:hover, .star-btn:hover, .logout-btn:hover, .view-toggle-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
@@ -607,13 +618,13 @@
 }
 
 .link-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #ffd700, #f39c12);
+  color: #3c1e1e;
 }
 
 .link-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
 }
 
 .kakao-btn {
@@ -642,12 +653,12 @@
     bottom: 10px;
     right: 10px;
   }
-  
+
   .youtube-embed {
     width: 250px;
     height: 141px;
   }
-  
+
   .modal-content {
     padding: 20px;
     margin: 10px;
@@ -655,7 +666,7 @@
     max-width: 95vw;
     width: 95%;
   }
-  
+
   .form-input {
     font-size: 16px; /* iOS zoom 방지 */
   }
@@ -994,16 +1005,229 @@
 }
 
 .share-btn {
-  background: #9C27B0;
+  background: #ffd700;
 }
 
 .share-btn:hover {
-  background: #7B1FA2;
+  background: #f39c12;
 }
 
 /* 모바일에서만 표시 */
 @media (min-width: 768px) {
   .floating-menu {
     display: none !important;
+  }
+}
+
+/* 메시지 리스트 뷰 스타일 */
+.canvas-container.hidden {
+  display: none;
+}
+
+.message-list-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #05001C; /* Match Three.js background color */
+  overflow-y: auto;
+  padding: 200px 20px 100px;
+  box-sizing: border-box;
+}
+
+.message-list-header {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.message-list-header h3 {
+  color: white;
+  font-size: 1.5rem;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.message-list-header p {
+  color: #ffd700;
+  font-size: 1rem;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.message-list {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  z-index: 2;
+}
+
+.message-item {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.message-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(15px) saturate(180%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.message-item:hover .message-avatar {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.avatar-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.avatar-text {
+  font-size: 24px;
+  color: white;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-sender {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.message-text {
+  color: white;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.message-list-footer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.message-list-footer p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .message-list-container {
+    padding: 120px 15px 80px;
+  }
+
+  .message-item {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .message-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .avatar-img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar-text {
+    font-size: 20px;
+  }
+
+  .message-sender {
+    font-size: 14px;
+  }
+
+  .message-text {
+    font-size: 13px;
+  }
+}
+
+/* 별 파티클 애니메이션 */
+.stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  animation: rotate infinite linear;
+  transform-origin: center;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) translateX(20px) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) translateX(20px) rotate(-360deg);
+    opacity: 0.3;
   }
 }
