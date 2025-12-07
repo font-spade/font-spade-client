@@ -253,6 +253,95 @@ export class ThreeSceneService {
     return mesh;
   }
 
+  // URL 이모지 처리 메서드 (Emoji Kitchen 이미지 등)
+  createUrlEmojiMesh(emojiUrl: string, x: number, y: number, z: number, isCurrentUser: boolean = false, isAttachedToTree: boolean = false): THREE.Mesh {
+    const loader = new THREE.TextureLoader();
+    
+    // 기본 플레이스홀더 생성
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    canvas.width = 128;
+    canvas.height = 128;
+    
+    // 로딩 중 표시
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#cccccc';
+    context.font = '32px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('⏳', canvas.width / 2, canvas.height / 2);
+    
+    const placeholderTexture = new THREE.CanvasTexture(canvas);
+    placeholderTexture.needsUpdate = true;
+    
+    const size = isAttachedToTree ? 1.2 : 2.0;
+    const geometry = new THREE.PlaneGeometry(size, size);
+    const material = new THREE.MeshBasicMaterial({
+      map: placeholderTexture,
+      transparent: true,
+      alphaTest: 0.01,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      fog: false
+    });
+    
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, z);
+    
+    // URL에서 이미지 로드
+    loader.load(
+      emojiUrl,
+      (texture) => {
+        // 로드 성공
+        texture.premultiplyAlpha = false;
+        texture.format = THREE.RGBAFormat;
+        texture.needsUpdate = true;
+        material.map = texture;
+        material.needsUpdate = true;
+      },
+      undefined,
+      (error) => {
+        // 로드 실패 시 랜덤 이모지로 대체
+        console.warn('URL 이모지 로드 실패, 랜덤 이모지로 대체:', emojiUrl);
+        const randomEmojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
+        const randomEmoji = randomEmojis[Math.floor(Math.random() * randomEmojis.length)];
+        
+        // 이모지 데이터 업데이트
+        mesh.userData['fallbackEmoji'] = randomEmoji;
+        
+        const fallbackCanvas = document.createElement('canvas');
+        const fallbackContext = fallbackCanvas.getContext('2d')!;
+        fallbackCanvas.width = 128;
+        fallbackCanvas.height = 128;
+        
+        // 투명 배경으로 설정
+        fallbackContext.clearRect(0, 0, fallbackCanvas.width, fallbackCanvas.height);
+        fallbackContext.font = '64px Arial';
+        fallbackContext.textAlign = 'center';
+        fallbackContext.textBaseline = 'middle';
+        fallbackContext.fillText(randomEmoji, fallbackCanvas.width / 2, fallbackCanvas.height / 2);
+        
+        const fallbackTexture = new THREE.CanvasTexture(fallbackCanvas);
+        fallbackTexture.needsUpdate = true;
+        material.map = fallbackTexture;
+        material.needsUpdate = true;
+      }
+    );
+    
+    // 현재 사용자의 이모지에 빨간 외곽선 추가
+    if (isCurrentUser) {
+      mesh.userData['outlineParameters'] = {
+        thickness: 0.008,
+        color: [1, 0, 0],
+        alpha: 0.9,
+        visible: true
+      };
+    }
+    
+    return mesh;
+  }
+
   createTypographyMesh(typographyEmoji: string, x: number, y: number, z: number, isCurrentUser: boolean = false): THREE.Mesh {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;

@@ -81,10 +81,22 @@ export class EmojiMessageService {
     if (spotId) {
       await this.loadRealMessages(spotId);
     } else {
-      this.loadFallbackMessages();
+      // 로그인하지 않았을 때 sample-winter-1 데이터 로드
+      await this.loadSampleSpotMessages();
     }
 
     this.isLoadingMessages = false;
+  }
+
+  // 샘플 스팟 데이터 로드 메서드
+  private async loadSampleSpotMessages(): Promise<void> {
+    try {
+      console.log('샘플 스팟 데이터 로드 시작: sample-winter-1');
+      await this.loadRealMessages('sample-winter-1');
+    } catch (error) {
+      console.warn('샘플 스팟 데이터 로드 실패, 폴백 메시지 사용:', error);
+      this.loadFallbackMessages();
+    }
   }
 
   clearAll(): void {
@@ -100,6 +112,11 @@ export class EmojiMessageService {
   private scheduleLifetime(emoji: EmojiData): void {
     emoji.createdAt = Date.now();
     emoji.removing = false;
+  }
+
+  // URL 패턴 감지 유틸리티
+  private isEmojiUrl(emoji: string): boolean {
+    return emoji.startsWith('http://') || emoji.startsWith('https://');
   }
 
   addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field', youtube_url?: string): void {
@@ -122,9 +139,19 @@ export class EmojiMessageService {
     this.threeScene.createRegistrationEffect(x, y, z);
 
     setTimeout(() => {
-      const mesh = placementType === 'field'
-        ? this.threeScene.createTypographyMesh(emoji, x, y, z)
-        : this.threeScene.createEmojiMesh(emoji, x, y, z);
+      let mesh: THREE.Mesh;
+      
+      if (placementType === 'field') {
+        // 필드에는 타이포그래피로 배치 (URL이어도 텍스트로 표시)
+        mesh = this.threeScene.createTypographyMesh(emoji, x, y, z);
+      } else {
+        // 트리에 붙는 경우 URL 여부에 따라 다르게 처리
+        if (this.isEmojiUrl(emoji)) {
+          mesh = this.threeScene.createUrlEmojiMesh(emoji, x, y, z, false, true);
+        } else {
+          mesh = this.threeScene.createEmojiMesh(emoji, x, y, z, false, true);
+        }
+      }
 
       this.threeScene.emojiScene.add(mesh);
       mesh.userData['originalY'] = y;
@@ -402,7 +429,9 @@ export class EmojiMessageService {
       setTimeout(() => {
         const treePosition = this.threeScene.attachEmojiToTreeSurface(msg.angle, msg.height);
 
-        const mesh = this.threeScene.createEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z);
+        const mesh = this.isEmojiUrl(msg.emoji) 
+          ? this.threeScene.createUrlEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z, false, true)
+          : this.threeScene.createEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z, false, true);
         this.threeScene.emojiScene.add(mesh);
 
         mesh.userData['originalY'] = treePosition.y;
@@ -530,6 +559,8 @@ export class EmojiMessageService {
 
   private addNextApiMessage(): void {
     if (!this.apiMessages || this.apiMessages.length === 0) {
+      console.warn('API 메시지가 없음, 하드코딩된 이모지 사용');
+      this.addRandomEmoji();
       return;
     }
 
@@ -548,12 +579,27 @@ export class EmojiMessageService {
     }
 
     if (availableIndices.length === 0) {
-      this.addRandomEmoji();
-      return;
+      // 모든 메시지를 다 표시했으면 다시 순환
+      for (let i = 0; i < this.apiMessages.length; i++) {
+        availableIndices.push(i);
+      }
+      
+      // 그래도 메시지가 없으면 폴백
+      if (availableIndices.length === 0) {
+        this.addRandomEmoji();
+        return;
+      }
     }
 
     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     const msg = this.apiMessages[randomIndex];
+    
+    console.log('새 API 메시지 추가:', {
+      nickname: msg.nickname,
+      emoji: msg.emoji,
+      placementType: msg.placementType,
+      isUrl: this.isEmojiUrl(msg.emoji)
+    });
 
     if (msg.placementType === 'background') {
       const position = this.threeScene.generateRandomFieldPosition();
@@ -591,7 +637,9 @@ export class EmojiMessageService {
       const attachPosition = this.threeScene.attachEmojiToTreeSurface(treePosition.angle, treePosition.height);
       
       const isCurrentUser = this.isCurrentUserEmoji(msg.nickname);
-      const mesh = this.threeScene.createEmojiMesh(msg.emoji, attachPosition.x, attachPosition.y, attachPosition.z, true, isCurrentUser);
+      const mesh = this.isEmojiUrl(msg.emoji)
+        ? this.threeScene.createUrlEmojiMesh(msg.emoji, attachPosition.x, attachPosition.y, attachPosition.z, isCurrentUser, true)
+        : this.threeScene.createEmojiMesh(msg.emoji, attachPosition.x, attachPosition.y, attachPosition.z, isCurrentUser, true);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['attachToTree'] = true;
@@ -669,7 +717,9 @@ export class EmojiMessageService {
       const treePosition = this.threeScene.generateRandomTreePosition();
       // 레이캐스팅을 사용하여 트리 표면에 정확히 붙이기
       const attachPosition = this.threeScene.attachEmojiToTreeSurface(treePosition.angle, treePosition.height);
-      const mesh = this.threeScene.createEmojiMesh(emoji, attachPosition.x, attachPosition.y, attachPosition.z, true, isCurrentUser);
+      const mesh = this.isEmojiUrl(emoji)
+        ? this.threeScene.createUrlEmojiMesh(emoji, attachPosition.x, attachPosition.y, attachPosition.z, isCurrentUser, true)
+        : this.threeScene.createEmojiMesh(emoji, attachPosition.x, attachPosition.y, attachPosition.z, isCurrentUser, true);
       this.threeScene.emojiScene.add(mesh);
 
       mesh.userData['attachToTree'] = true;
@@ -811,11 +861,8 @@ export class EmojiMessageService {
         this.startEmojiRemoval(emojiToRemove);
 
         setTimeout(() => {
-          if (!options.isLoggedIn && !options.hasSpot) {
-            this.addRandomEmoji();
-          } else {
-            this.addNextApiMessage();
-          }
+          // 항상 API 메시지를 사용 (sample-winter-1 또는 실제 스팟 메시지)
+          this.addNextApiMessage();
         }, 1000);
       }
     }

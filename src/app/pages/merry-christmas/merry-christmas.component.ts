@@ -205,7 +205,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private showEmojiPopup(emojiData: EmojiData): void {
-    this.selectedEmoji = emojiData;
+    // fallback 이모지가 있으면 그것을 우선 표시
+    const displayEmoji = emojiData.mesh.userData['fallbackEmoji'] || emojiData.emoji;
+    this.selectedEmoji = {
+      ...emojiData,
+      emoji: displayEmoji
+    };
     this.isEmojiPopupVisible = true;
   }
 
@@ -587,8 +592,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     if (!this.authState.isLoggedIn && treeId) {
       this.showVisitorOptions();
     } else if (!this.authState.isLoggedIn && !treeId) {
-      // 로그인되지 않고 스팟 ID도 없으면 홈에서 로그인 유도
+      // 로그인되지 않고 스팟 ID도 없으면 홈에서 로그인 유도하고 샘플 데이터 로드
       this.showLoginModal = true;
+      await this.loadSampleSpotData();
     }
 
     // 모든 경우에 버튼 텍스트 업데이트
@@ -597,6 +603,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 스팟 ID가 있으면 메시지 로드 (한 번만)
     if (this.authState.currentSpotId) {
       console.log('메시지 로드 시작:', this.authState.currentSpotId);
+      this.loadMessages();
+    } else if (!this.authState.isLoggedIn && !treeId) {
+      // 로그인하지 않은 메인 페이지에서는 샘플 메시지 로드
+      console.log('샘플 메시지 로드 시작');
       this.loadMessages();
     }
   }
@@ -611,6 +621,21 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       this.updateWriteButtonText();
     } catch (error) {
       console.error('스팟 데이터 로드 실패:', error);
+    }
+  }
+
+  // 샘플 스팟 데이터 로드 (로그인하지 않은 메인 페이지용)
+  async loadSampleSpotData(): Promise<void> {
+    try {
+      console.log('샘플 스팟 데이터 로드 시작: sample-winter-1');
+      this.currentSpot = await this.apiService.getSpot('sample-winter-1');
+      if (this.currentSpot) {
+        this.ownerName = this.currentSpot.title || '샘플 트리';
+        console.log('샘플 스팟 로드 성공:', this.ownerName);
+      }
+    } catch (error) {
+      console.warn('샘플 스팟 데이터 로드 실패:', error);
+      this.ownerName = '샘플 트리';
     }
   }
 
@@ -826,6 +851,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
     // 메인 페이지로 이동
     this.router.navigate(['/4spot']);
+  }
+
+  // URL 패턴 감지 유틸리티
+  isEmojiUrl(emoji: string): boolean {
+    return emoji.startsWith('http://') || emoji.startsWith('https://');
   }
 
   // YouTube 관련 메소드들
