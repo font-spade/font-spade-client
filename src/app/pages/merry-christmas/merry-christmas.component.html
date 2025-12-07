@@ -21,7 +21,7 @@
     </div>
   </header>
 
-  <div class="canvas-container" [class.hidden]="showMessageList">
+  <div class="canvas-container" [class.hidden]="showMessageList" [class.canvas-interaction-mode]="isCanvasInteractionMode">
     <canvas #threeCanvas></canvas>
 
     <!-- HTML 메시지 오버레이 -->
@@ -184,23 +184,57 @@
     </div>
   </div>
 
-  <!-- 플로팅 메뉴 버튼 (모바일에서만 표시) -->
-  <div class="floating-menu" [class.visible]="isHeaderHidden">
+  <!-- 플로팅 메뉴 버튼 (모바일용) -->
+  <div class="floating-menu">
     <button class="floating-menu-btn" (click)="toggleFloatingMenu()" 
             [class.active]="isFloatingMenuOpen">
-      <span class="menu-icon" [class.close]="isFloatingMenuOpen">☰</span>
+      <span class="menu-icon" [class.close]="isFloatingMenuOpen"></span>
     </button>
     
     <!-- 플로팅 메뉴 옵션들 -->
     <div class="floating-menu-options" [class.open]="isFloatingMenuOpen">
-      <button class="floating-option scroll-top" (click)="scrollToTop()" title="맨 위로">
-        ↑
+      <!-- 3D 뷰 조작 모드 토글 -->
+      <button class="floating-option canvas-mode" 
+              (click)="toggleCanvasInteractionMode(); closeFloatingMenu()" 
+              [class.active]="isCanvasInteractionMode">
+        <span class="floating-option-icon">🎮</span>
+        <span class="floating-option-text">3D 조작</span>
       </button>
-      <button class="floating-option home-btn" (click)="goToHome()" title="홈으로">
-        🏠
+      
+      <!-- 보기 전환 -->
+      <button class="floating-option view-toggle" (click)="toggleViewMode(); closeFloatingMenu()" 
+              [class.list-mode]="viewMode === 'list'">
+        <span class="floating-option-icon">
+          <span *ngIf="viewMode === 'tree'">📋</span>
+          <span *ngIf="viewMode === 'list'">🎄</span>
+        </span>
+        <span class="floating-option-text">
+          {{viewMode === 'tree' ? '목록보기' : '트리보기'}}
+        </span>
       </button>
-      <button class="floating-option share-btn" (click)="onShare()" title="공유하기">
-        🔗
+      
+      <!-- 메시지 작성 -->
+      <button class="floating-option decorate-btn" (click)="onWriteMessage(); closeFloatingMenu()">
+        <span class="floating-option-icon">✍️</span>
+        <span class="floating-option-text">메시지 작성</span>
+      </button>
+      
+      <!-- 공유하기 -->
+      <button class="floating-option share-btn" (click)="onShare(); closeFloatingMenu()">
+        <span class="floating-option-icon">⭐</span>
+        <span class="floating-option-text">공유하기</span>
+      </button>
+      
+      <!-- 나의 트리 만들기 (익명 방문자용) -->
+      <button *ngIf="isAnonymousViewing" class="floating-option create-tree" (click)="onCreateMyTree(); closeFloatingMenu()">
+        <span class="floating-option-icon">🌲</span>
+        <span class="floating-option-text">내 트리 만들기</span>
+      </button>
+      
+      <!-- 로그아웃 -->
+      <button *ngIf="authState.isLoggedIn" class="floating-option logout-btn" (click)="onLogout(); closeFloatingMenu()">
+        <span class="floating-option-icon">🚪</span>
+        <span class="floating-option-text">로그아웃</span>
       </button>
     </div>
   </div>

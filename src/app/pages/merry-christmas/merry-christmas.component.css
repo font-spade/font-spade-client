@@ -104,6 +104,13 @@
   position: absolute;
   top: 0;
   left: 0;
+  transition: all 0.3s ease;
+}
+
+/* 캔버스 터치 모드 활성화 시 스타일 */
+.canvas-container.canvas-interaction-mode {
+  border: 3px solid rgba(233, 30, 99, 0.6);
+  box-shadow: inset 0 0 20px rgba(233, 30, 99, 0.2);
 }
 
 
@@ -316,14 +323,9 @@
     font-size: 1.5rem;
   }
 
+  /* 모바일에서 헤더 버튼들 숨김 */
   .header-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .tree-decorate-btn, .star-btn, .create-tree-btn {
-    width: auto;
-    min-width: 120px;
+    display: none;
   }
 
   .popup-content {
@@ -904,14 +906,17 @@
   bottom: 20px;
   left: 20px;
   z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
+  opacity: 1;
+  visibility: visible;
   transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
 
-.floating-menu.visible {
-  opacity: 1;
-  visibility: visible;
+/* 데스크톱에서는 플로팅 메뉴 숨김 */
+@media (min-width: 768px) {
+  .floating-menu {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 .floating-menu-btn {
@@ -943,15 +948,20 @@
 }
 
 .menu-icon {
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  display: block;
 }
 
 .menu-icon.close {
-  transform: rotate(45deg);
+  font-size: 18px;
 }
 
-.menu-icon.close::before {
+.menu-icon.close::after {
   content: '✕';
+}
+
+.menu-icon:not(.close)::after {
+  content: '☰';
 }
 
 /* 플로팅 메뉴 옵션들 */
@@ -975,22 +985,46 @@
 }
 
 .floating-option {
-  width: 48px;
+  position: relative;
+  min-width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 24px;
   border: none;
   color: white;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   cursor: pointer;
   font-size: 16px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
+  padding: 0 16px 0 12px;
+  white-space: nowrap;
 }
 
 .floating-option:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
+}
+
+.floating-option-icon {
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  margin-right: 8px;
+}
+
+.floating-option-text {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.floating-menu-options.open .floating-option-text {
+  opacity: 1;
+  max-width: 120px;
 }
 
 .scroll-top {
@@ -1011,12 +1045,71 @@
   background: #F57C00;
 }
 
+/* 플로팅 메뉴 각 버튼별 스타일 */
+.canvas-mode {
+  background: #9c27b0;
+}
+
+.canvas-mode:hover {
+  background: #7b1fa2;
+}
+
+.canvas-mode.active {
+  background: #e91e63;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 0 20px rgba(233, 30, 99, 0.3);
+  }
+  50% { 
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), 0 0 30px rgba(233, 30, 99, 0.6);
+  }
+}
+
+.view-toggle {
+  background: #ff6b6b;
+}
+
+.view-toggle:hover {
+  background: #ee5a24;
+}
+
+.view-toggle.list-mode {
+  background: #ffa726;
+}
+
+.decorate-btn {
+  background: #ff4757;
+}
+
+.decorate-btn:hover {
+  background: #c44569;
+}
+
 .share-btn {
   background: #ffd700;
 }
 
 .share-btn:hover {
   background: #f39c12;
+}
+
+.create-tree {
+  background: #4CAF50;
+}
+
+.create-tree:hover {
+  background: #45a049;
+}
+
+.logout-btn {
+  background: #6c757d;
+}
+
+.logout-btn:hover {
+  background: #495057;
 }
 
 /* 모바일에서만 표시 */

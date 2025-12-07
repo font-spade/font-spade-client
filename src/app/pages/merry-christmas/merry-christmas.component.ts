@@ -152,6 +152,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   private lastScrollY = 0;
   private scrollThreshold = 100;
 
+  // 캔버스 터치 모드 관련
+  isCanvasInteractionMode = false;
+  private canvasInteractionModeTimeout: any;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -473,6 +477,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private onTouchStart(event: TouchEvent): void {
+    // 캔버스 터치 모드 활성화
+    this.enableCanvasInteractionMode();
+    
     event.preventDefault();
 
     if (event.touches.length === 1) {
@@ -778,7 +785,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   onAnonymousStart(): void {
     this.showAnonymousModal = false;
-    // 로그인 상태는 유지하면서 다른 사람의 스팟을 방문하ㅏ니 는 모드
+    // 로그인 상태는 유지하면서 다른 사람의 스팟을 방문하ᅡ니 는 모드
     console.log('익명으로 다른 사람의 스팟 방문');
     // URL 파라미터로 익명 상태 설정 (현재 URL을 교체)
     const visitingSpotId = this.route.snapshot.paramMap.get('id');
@@ -1099,6 +1106,40 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     this.isFloatingMenuOpen = !this.isFloatingMenuOpen;
   }
 
+  closeFloatingMenu(): void {
+    this.isFloatingMenuOpen = false;
+  }
+
+  // 캔버스 터치 모드 관련 메서드들
+  enableCanvasInteractionMode(): void {
+    this.isCanvasInteractionMode = true;
+    
+    // 5초 후에 자동으로 비활성화
+    if (this.canvasInteractionModeTimeout) {
+      clearTimeout(this.canvasInteractionModeTimeout);
+    }
+    
+    this.canvasInteractionModeTimeout = setTimeout(() => {
+      this.disableCanvasInteractionMode();
+    }, 5000);
+  }
+
+  disableCanvasInteractionMode(): void {
+    this.isCanvasInteractionMode = false;
+    if (this.canvasInteractionModeTimeout) {
+      clearTimeout(this.canvasInteractionModeTimeout);
+      this.canvasInteractionModeTimeout = null;
+    }
+  }
+
+  toggleCanvasInteractionMode(): void {
+    if (this.isCanvasInteractionMode) {
+      this.disableCanvasInteractionMode();
+    } else {
+      this.enableCanvasInteractionMode();
+    }
+  }
+
   scrollToTop(): void {
     if (isPlatformBrowser(this.platformId)) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1163,6 +1204,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 라우터 구독 해제
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
+    }
+
+    // 캔버스 터치 모드 타이머 정리
+    if (this.canvasInteractionModeTimeout) {
+      clearTimeout(this.canvasInteractionModeTimeout);
     }
 
     if (isPlatformBrowser(this.platformId)) {
