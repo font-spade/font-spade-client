@@ -116,7 +116,7 @@ export class KakaoCallbackComponent implements OnInit {
           profile_image?: string;
         };
         spot_id: string;
-      }>(`${environment.clientUrl}/api/auth/kakao/callback`, {
+      }>(`${environment.apiUrl}/auth/kakao/callback`, { // 서버단 API 넣어야함.
         code,
         state
       }).toPromise();

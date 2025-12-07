@@ -25,6 +25,7 @@ const routes: Routes = [
   { path: 'merry-christmas', redirectTo: '/4spot', pathMatch: 'full' },
   { path: 'message-write', component: MessageWriteComponent},
   { path: 'auth/kakao/callback', component: KakaoCallbackComponent},
+  { path: '**', redirectTo: '/' } // 이것이 맨 마지막에 있어야 함
 ];
 
 @NgModule({

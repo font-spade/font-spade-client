@@ -40,11 +40,11 @@ export class EmojiMessageService {
   private maxMessagesPerSecond = 1;
   private messagesThisSecond = 0;
   private currentSecond = 0;
-  private maxVisibleMessages = 20;
+  private maxVisibleMessages = 2;
   private lastEmojiUpdateTime = 0;
   private emojiUpdateInterval = 180000; // 3분 (180초)
   private isLoadingMessages = false;
-  private maxEmojis = 8;
+  private maxEmojis = 2;
   private emojiLifetime = 600000; // 10분 (600초)
 
   constructor(

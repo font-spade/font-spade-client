@@ -63,12 +63,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 2. The current spot belongs to them
     const spotId = this.route.snapshot.paramMap.get('id');
     if (!this.authState.isLoggedIn) return false;
-    
+
     if (!spotId) {
       // No spot ID means viewing own main tree
       return true;
     }
-    
+
     // Check if current spot belongs to logged-in user
     return this.currentSpot?.ownerId === this.authState.user?.id;
   }
@@ -79,9 +79,9 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 2. Either not logged in OR the spot doesn't belong to them
     const spotId = this.route.snapshot.paramMap.get('id');
     if (!spotId) return false;
-    
+
     if (!this.authState.isLoggedIn) return true;
-    
+
     // Check if current spot belongs to someone else
     return this.currentSpot?.ownerId !== this.authState.user?.id;
   }
@@ -125,11 +125,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   showLoginModal = false;
   showAnonymousModal = false;
   currentSeason: 'winter' | 'spring' | 'summer' | 'autumn' = 'winter';
-  
+
   // 뷰 모드 관련
   viewMode: 'tree' | 'list' = 'tree';
   showMessageList = false;
-  
+
   // 별 파티클 관련
   stars: Array<{x: number, y: number, delay: number, duration: number}> = [];
 
@@ -789,7 +789,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   toggleViewMode(): void {
     this.viewMode = this.viewMode === 'tree' ? 'list' : 'tree';
     this.showMessageList = this.viewMode === 'list';
-    
+
     // 리스트 뷰로 전환할 때 별 생성
     if (this.viewMode === 'list') {
       this.generateStars();
@@ -800,7 +800,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   private generateStars(): void {
     this.stars = [];
     const starCount = 50; // 별 개수
-    
+
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
         x: Math.random() * 100, // 0-100% 랜덤 위치
@@ -820,7 +820,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   isLongEmoji(emoji: string): boolean {
     // URL이면 이미지이므로 일반 크기
     if (this.isEmojiUrl(emoji)) return false;
-    
+
     // 텍스트 길이가 3자 이상이면 긴 이모지로 판단
     return emoji.length >= 3;
   }
@@ -850,11 +850,10 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       return;
     }
 
-    let targetSpotId = this.authState.currentSpotId; // 기본값은 내 스팟
+    let targetSpotId = visitingSpotId || this.authState.currentSpotId; // 방문 중인 스팟이 우선
 
     if (visitingSpotId) {
       // 다른 사람의 스팟을 방문 중이면 해당 스팟에 메시지 작성
-      targetSpotId = visitingSpotId;
       console.log('다른 사람의 스팟에 메시지 작성:', targetSpotId);
     } else {
       // 내 스팟인 경우
@@ -962,7 +961,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   private setupSeo(): void {
     const spotId = this.route.snapshot.paramMap.get('id');
     const isVisitingOtherSpot = spotId && !this.authState.isLoggedIn;
-    
+
     let seoData: SeoData;
 
     if (isVisitingOtherSpot && this.currentSpot) {
@@ -1015,7 +1014,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     const currentScrollY = window.scrollY;
-    
+
     // 스크롤 방향과 임계값 확인
     if (currentScrollY > this.scrollThreshold) {
       if (currentScrollY > this.lastScrollY) {
