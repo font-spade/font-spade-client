@@ -471,17 +471,20 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private onPointerUp(event?: Event): void {
-    // 터치 클릭 감지 (드래그하지 않고 터치한 경우)
-    if (!this.hasMouseMoved && event instanceof TouchEvent && event.changedTouches.length === 1) {
+    // 터치 클릭 감지: 3D 조작 모드가 비활성화되고, 드래그하지 않은 경우에만
+    if (!this.isCanvasInteractionMode && !this.hasMouseMoved && event instanceof TouchEvent && event.changedTouches.length === 1) {
       this.handleTouchClick(event.changedTouches[0]);
     }
     
     this.isDragging = false;
     this.isZooming = false;
     this.lastTouchDistance = 0;
+    // hasMouseMoved는 다음 터치 시작에서 재설정됨
   }
 
   private handleTouchClick(touch: Touch): void {
+    console.log('handleTouchClick 호출됨 - hasMouseMoved:', this.hasMouseMoved, 'isCanvasInteractionMode:', this.isCanvasInteractionMode);
+    
     const renderer = this.threeSceneService.renderer;
     const camera = this.threeSceneService.camera;
     if (!renderer || !camera) {
@@ -560,12 +563,8 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       event.preventDefault();
     }
 
-    if (event.touches.length === 1 && this.isDragging) {
-      const deltaMove = {
-        x: event.touches[0].clientX - this.previousMousePosition.x,
-        y: event.touches[0].clientY - this.previousMousePosition.y
-      };
-
+    // 움직임 감지 (3D 조작 모드 여부와 관계없이)
+    if (event.touches.length === 1) {
       const distanceFromStart = Math.sqrt(
         Math.pow(event.touches[0].clientX - this.mouseStartPosition.x, 2) +
         Math.pow(event.touches[0].clientY - this.mouseStartPosition.y, 2)
@@ -574,6 +573,14 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
       if (distanceFromStart > 5) {
         this.hasMouseMoved = true;
       }
+    }
+
+    // 3D 조작 모드에서만 실제 카메라 조작 수행
+    if (event.touches.length === 1 && this.isDragging) {
+      const deltaMove = {
+        x: event.touches[0].clientX - this.previousMousePosition.x,
+        y: event.touches[0].clientY - this.previousMousePosition.y
+      };
 
       this.cameraAngleY += deltaMove.x * 0.001;
       this.cameraAngleX -= deltaMove.y * 0.001;

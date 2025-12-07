@@ -25,6 +25,15 @@ export class ThreeSceneService {
   lastFireworkTime = 0;
   fireworkInterval = 4000;
   lastTime = 0;
+  
+  // 모바일 감지 및 아웃라인 두께 계산 헬퍼
+  private isMobile(): boolean {
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+  
+  private getOutlineThickness(baseThickness: number): number {
+    return this.isMobile() ? baseThickness * 2.5 : baseThickness;
+  }
 
   async loadGLTFLoader(): Promise<void> {
     try {
@@ -59,9 +68,12 @@ export class ThreeSceneService {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      alpha: true
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance"
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setClearColor(0x05001C, 1);
     this.renderer.shadowMap.enabled = false;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -69,9 +81,9 @@ export class ThreeSceneService {
 
     if (OutlineEffectClass) {
       this.outlineEffect = new OutlineEffectClass(this.renderer, {
-        defaultThickness: 0.003,
+        defaultThickness: this.getOutlineThickness(0.003),
         defaultColor: [0, 0, 0],
-        defaultAlpha: 0.8,
+        defaultAlpha: 0.9,
         defaultKeepAlive: true
       });
     }
@@ -123,6 +135,7 @@ export class ThreeSceneService {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   }
 
   updateCameraPosition(cameraRadius: number, cameraAngleX: number, cameraAngleY: number): void {
@@ -669,7 +682,7 @@ export class ThreeSceneService {
     });
 
     groundMaterial.userData['outlineParameters'] = {
-      thickness: 0.003,
+      thickness: this.getOutlineThickness(0.003),
       color: [0.9, 0.95, 0.98],
       alpha: 0.7,
       visible: true
@@ -960,7 +973,7 @@ export class ThreeSceneService {
     const bodyGeometry = new THREE.SphereGeometry(0.6, 12, 12);
     const furMaterial = new THREE.MeshToonMaterial({ color: 0xFFF3E0 });
     furMaterial.userData['outlineParameters'] = {
-      thickness: 0.003,
+      thickness: this.getOutlineThickness(0.003),
       color: [0.9, 0.9, 0.85],
       alpha: 0.7,
       visible: true
@@ -1010,7 +1023,7 @@ export class ThreeSceneService {
     penguinBodyGeometry.scale(1, 1.3, 1);
     const blackMaterial = new THREE.MeshToonMaterial({ color: 0x424242 });
     blackMaterial.userData['outlineParameters'] = {
-      thickness: 0.003,
+      thickness: this.getOutlineThickness(0.003),
       color: [0.0, 0.0, 0.0],
       alpha: 0.7,
       visible: true
@@ -1023,7 +1036,7 @@ export class ThreeSceneService {
     bellyGeometry.scale(1, 1.2, 0.8);
     const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
     whiteMaterial.userData['outlineParameters'] = {
-      thickness: 0.003,
+      thickness: this.getOutlineThickness(0.003),
       color: [0.9, 0.9, 0.9],
       alpha: 0.6,
       visible: true
@@ -1089,7 +1102,7 @@ export class ThreeSceneService {
       const treeGeometry = new THREE.ConeGeometry(0.4, 0.8, 8);
       const treeMaterial = new THREE.MeshToonMaterial({ color: 0x4CAF50 });
       treeMaterial.userData['outlineParameters'] = {
-        thickness: 0.003,
+        thickness: this.getOutlineThickness(0.003),
         color: [0.0, 0.3, 0.0],
         alpha: 0.6,
         visible: true
@@ -1199,7 +1212,7 @@ export class ThreeSceneService {
     });
 
     trunkMaterial.userData['outlineParameters'] = {
-      thickness: 0.005,
+      thickness: this.getOutlineThickness(0.005),
       color: [0.1, 0.05, 0],
       alpha: 0.6,
       visible: true
