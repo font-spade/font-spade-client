@@ -781,8 +781,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   closeAnonymousModal(): void {
     this.showAnonymousModal = false;
-    // 메인 페이지로 리다이렉트
-    this.router.navigate(['/']);
+    // 현재 페이지에 그대로 머물러서 익명으로 구경할 수 있게 함
   }
 
   // 뷰 모드 토글
@@ -844,10 +843,24 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     console.log('방문 중인 스팟 ID:', visitingSpotId);
     console.log('내 스팟 ID:', this.authState.currentSpotId);
 
+    // 로그인되지 않은 상태에서 다른 사람의 트리를 방문한 경우 바로 메시지 작성 허용
     if (!this.authState.isLoggedIn) {
-      console.log('로그인되지 않아서 로그인 모달 표시');
-      this.showLoginModal = true;
-      return;
+      if (visitingSpotId) {
+        console.log('익명으로 다른 사람의 트리에 메시지 작성');
+        // 바로 메시지 작성 페이지로 이동
+        this.router.navigate(['/message-write'], {
+          queryParams: {
+            spotId: visitingSpotId,
+            nickname: '사용자',
+            canEditYoutube: 'false'
+          }
+        });
+        return;
+      } else {
+        console.log('로그인되지 않아서 로그인 모달 표시');
+        this.showLoginModal = true;
+        return;
+      }
     }
 
     let targetSpotId = visitingSpotId || this.authState.currentSpotId; // 방문 중인 스팟이 우선
