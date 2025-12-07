@@ -128,11 +128,11 @@ export class EmojiMessageService {
       const angle = Math.random() * Math.PI * 2;
       const radius = 3 + Math.random() * 3;
       x = Math.cos(angle) * radius;
-      y = Math.random() * 3 + 1;
+      y = Math.random() * 3 + 0.5; // 0.5~6.5
       z = Math.sin(angle) * radius;
     } else {
       x = (Math.random() - 0.5) * 10;
-      y = -4 + Math.random() * 0.5;
+      y = -4.5 + Math.random() * 1;
       z = Math.random() * 8 + 2;
     }
 
@@ -140,7 +140,7 @@ export class EmojiMessageService {
 
     setTimeout(() => {
       let mesh: THREE.Mesh;
-      
+
       if (placementType === 'field') {
         // 필드에는 타이포그래피로 배치 (URL이어도 텍스트로 표시)
         mesh = this.threeScene.createTypographyMesh(emoji, x, y, z);
@@ -223,12 +223,12 @@ export class EmojiMessageService {
           let currentAngle = emojiData.mesh.userData['angle'] || 0;
           currentAngle += rotationSpeed;
           emojiData.mesh.userData['angle'] = currentAngle;
-          
+
           const height = emojiData.mesh.userData['height'] || 5;
           // 레이캐스팅으로 트리 표면의 새 위치 계산
           const newPosition = this.threeScene.attachEmojiToTreeSurface(currentAngle, height);
           emojiData.mesh.position.set(newPosition.x, newPosition.y, newPosition.z);
-          
+
           // 실제 위치 데이터도 업데이트
           emojiData.x = newPosition.x;
           emojiData.y = newPosition.y;
@@ -429,7 +429,7 @@ export class EmojiMessageService {
       setTimeout(() => {
         const treePosition = this.threeScene.attachEmojiToTreeSurface(msg.angle, msg.height);
 
-        const mesh = this.isEmojiUrl(msg.emoji) 
+        const mesh = this.isEmojiUrl(msg.emoji)
           ? this.threeScene.createUrlEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z, false, true)
           : this.threeScene.createEmojiMesh(msg.emoji, treePosition.x, treePosition.y, treePosition.z, false, true);
         this.threeScene.emojiScene.add(mesh);
@@ -583,7 +583,7 @@ export class EmojiMessageService {
       for (let i = 0; i < this.apiMessages.length; i++) {
         availableIndices.push(i);
       }
-      
+
       // 그래도 메시지가 없으면 폴백
       if (availableIndices.length === 0) {
         this.addRandomEmoji();
@@ -593,7 +593,7 @@ export class EmojiMessageService {
 
     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     const msg = this.apiMessages[randomIndex];
-    
+
     console.log('새 API 메시지 추가:', {
       nickname: msg.nickname,
       emoji: msg.emoji,
@@ -635,7 +635,7 @@ export class EmojiMessageService {
       const treePosition = this.threeScene.generateRandomTreePosition();
       // 레이캐스팅을 사용하여 트리 표면에 정확히 붙이기
       const attachPosition = this.threeScene.attachEmojiToTreeSurface(treePosition.angle, treePosition.height);
-      
+
       const isCurrentUser = this.isCurrentUserEmoji(msg.nickname);
       const mesh = this.isEmojiUrl(msg.emoji)
         ? this.threeScene.createUrlEmojiMesh(msg.emoji, attachPosition.x, attachPosition.y, attachPosition.z, isCurrentUser, true)

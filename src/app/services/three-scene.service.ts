@@ -234,7 +234,7 @@ export class ThreeSceneService {
       side: THREE.DoubleSide,
       depthWrite: false,
       fog: false,
-      color: 0xA0A0A0 // 이모지 색상을 더 어둡게 조정
+      color: isAttachedToTree ? 0x909090 : 0xffffff // 트리 부착 시 약간 어둡게
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -256,13 +256,13 @@ export class ThreeSceneService {
   // URL 이모지 처리 메서드 (Emoji Kitchen 이미지 등)
   createUrlEmojiMesh(emojiUrl: string, x: number, y: number, z: number, isCurrentUser: boolean = false, isAttachedToTree: boolean = false): THREE.Mesh {
     const loader = new THREE.TextureLoader();
-    
+
     // 기본 플레이스홀더 생성
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     canvas.width = 128;
     canvas.height = 128;
-    
+
     // 로딩 중 표시
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -271,10 +271,10 @@ export class ThreeSceneService {
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText('⏳', canvas.width / 2, canvas.height / 2);
-    
+
     const placeholderTexture = new THREE.CanvasTexture(canvas);
     placeholderTexture.needsUpdate = true;
-    
+
     const size = isAttachedToTree ? 1.2 : 2.0;
     const geometry = new THREE.PlaneGeometry(size, size);
     const material = new THREE.MeshBasicMaterial({
@@ -283,12 +283,13 @@ export class ThreeSceneService {
       alphaTest: 0.01,
       side: THREE.DoubleSide,
       depthWrite: false,
-      fog: false
+      fog: false,
+      color: isAttachedToTree ? 0x909090 : 0xffffff // 트리 부착 시 약간 어둡게
     });
-    
+
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
-    
+
     // URL에서 이미지 로드
     loader.load(
       emojiUrl,
@@ -306,29 +307,29 @@ export class ThreeSceneService {
         console.warn('URL 이모지 로드 실패, 랜덤 이모지로 대체:', emojiUrl);
         const randomEmojis = ['🎄', '🎅', '🤶', '🎁', '⭐', '❄️', '🔔', '🕯️', '🦌', '☃️', '🎊', '🎉'];
         const randomEmoji = randomEmojis[Math.floor(Math.random() * randomEmojis.length)];
-        
+
         // 이모지 데이터 업데이트
         mesh.userData['fallbackEmoji'] = randomEmoji;
-        
+
         const fallbackCanvas = document.createElement('canvas');
         const fallbackContext = fallbackCanvas.getContext('2d')!;
         fallbackCanvas.width = 128;
         fallbackCanvas.height = 128;
-        
+
         // 투명 배경으로 설정
         fallbackContext.clearRect(0, 0, fallbackCanvas.width, fallbackCanvas.height);
         fallbackContext.font = '64px Arial';
         fallbackContext.textAlign = 'center';
         fallbackContext.textBaseline = 'middle';
         fallbackContext.fillText(randomEmoji, fallbackCanvas.width / 2, fallbackCanvas.height / 2);
-        
+
         const fallbackTexture = new THREE.CanvasTexture(fallbackCanvas);
         fallbackTexture.needsUpdate = true;
         material.map = fallbackTexture;
         material.needsUpdate = true;
       }
     );
-    
+
     // 현재 사용자의 이모지에 빨간 외곽선 추가
     if (isCurrentUser) {
       mesh.userData['outlineParameters'] = {
@@ -338,7 +339,7 @@ export class ThreeSceneService {
         visible: true
       };
     }
-    
+
     return mesh;
   }
 
@@ -372,7 +373,7 @@ export class ThreeSceneService {
       side: THREE.DoubleSide,
       depthWrite: false,
       fog: false,
-      color: 0xA0A0A0 // 타이포그래피도 색상을 더 어둡게
+      // color 제거로 원래 타이포그래피 색상 유지
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -445,8 +446,8 @@ export class ThreeSceneService {
   generateRandomTreePosition(): { height: number; angle: number } {
     // 더 균등한 분포를 위해 다양한 높이와 각도 생성
     const randomValue = Math.random();
-    // 전체 트리 높이에 걸쳐 균등하게 분포
-    const height = 1 + randomValue * 9; // 1-10 높이 범위
+    // 전체 트리 높이에 더 고르게 분포 (중앙-상단에서 중앙-하단까지)
+    const height = 0.5 + randomValue * 8.5; // 0.5-8.5 높이 범위
     const angle = Math.random() * Math.PI * 2;
     return { height, angle };
   }
@@ -514,21 +515,21 @@ export class ThreeSceneService {
         0,
         -Math.sin(retryAngle)
       ).normalize();
-      
+
       raycaster.set(retryOrigin, retryDirection);
       const retryIntersects = this.mainTreeGroup ? raycaster.intersectObject(this.mainTreeGroup, true) : [];
-      
+
       if (retryIntersects.length > 0) {
         const intersection = retryIntersects[0];
         const position = intersection.point.clone();
-        const normal = intersection.face?.normal ? 
+        const normal = intersection.face?.normal ?
           intersection.face.normal.clone().normalize() :
           new THREE.Vector3(Math.cos(retryAngle), 0, Math.sin(retryAngle));
-        
+
         position.add(normal.multiplyScalar(0.5)); // 트리에 더 가깝게
         return { x: position.x, y: position.y, z: position.z };
       }
-      
+
       // 최종 폴백: 트리 주변 원형 배치
       const fallbackRadius = 3.5 - (targetHeight / 12) * 2; // 높이에 따라 반지름 조정
       return {
@@ -810,7 +811,7 @@ export class ThreeSceneService {
     // 입 - 더 크고 앞으로
     const mouthGeometry = new THREE.SphereGeometry(0.08, 8, 8);
     const mouthMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
-    
+
     for (let i = 0; i < 5; i++) {
       const mouthDot = new THREE.Mesh(mouthGeometry, mouthMaterial);
       const angle = (i - 2) * 0.15; // 더 좁게
@@ -821,11 +822,11 @@ export class ThreeSceneService {
     // 단추들 - 더 크고 눈에 잘 띄게
     const buttonGeometry = new THREE.SphereGeometry(0.1, 8, 8);
     const buttonMaterial = new THREE.MeshToonMaterial({ color: 0x000000 });
-    
+
     const button1 = new THREE.Mesh(buttonGeometry, buttonMaterial);
     button1.position.set(0, -0.5, 1.15); // 가운데 몸통
     snowmanGroup.add(button1);
-    
+
     const button2 = new THREE.Mesh(buttonGeometry, buttonMaterial);
     button2.position.set(0, -0.9, 1.15);
     snowmanGroup.add(button2);
@@ -836,18 +837,18 @@ export class ThreeSceneService {
 
     // 팔 (나뭇가지 스타일) - 더 두껍고 눈에 잘 띄게
     const stickGeometry = new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8);
-    const stickMaterial = new THREE.MeshToonMaterial({ 
+    const stickMaterial = new THREE.MeshToonMaterial({
       color: 0x8B4513,
-      transparent: false 
+      transparent: false
     });
-    
+
     // 왼쪽 팔
     const leftArm = new THREE.Mesh(stickGeometry, stickMaterial);
     leftArm.position.set(-1.1, -0.5, 0);
     leftArm.rotation.z = Math.PI / 6; // 30도로 줄임
     snowmanGroup.add(leftArm);
-    
-    // 오른쪽 팔  
+
+    // 오른쪽 팔
     const rightArm = new THREE.Mesh(stickGeometry, stickMaterial);
     rightArm.position.set(1.1, -0.5, 0);
     rightArm.rotation.z = -Math.PI / 6; // -30도로 줄임
@@ -1265,7 +1266,9 @@ export class ThreeSceneService {
     }
 
     rocket.position.set(startX, startY, startZ);
-    this.scene.add(rocket);
+    if (this.scene) {
+      this.scene.add(rocket);
+    }
 
     // 로켓 데이터 설정
     const launchTime = 1.5 + Math.random() * 0.5; // 1.5-2초 발사 시간
