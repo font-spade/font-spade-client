@@ -86,6 +86,13 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     return this.currentSpot?.ownerId !== this.authState.user?.id;
   }
 
+  get isAnonymousViewing(): boolean {
+    // 익명으로 다른 사람의 트리를 구경하고 있는 상태
+    const spotId = this.route.snapshot.paramMap.get('id');
+    const isAnonymous = this.route.snapshot.queryParams['anonymous'] === 'true';
+    return !this.authState.isLoggedIn && !!spotId && isAnonymous;
+  }
+
   private kakaoScriptLoading: Promise<void> | null = null;
   private readonly kakaoSdkUrl = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js';
   private readonly kakaoSdkIntegrity = 'sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p';
@@ -633,7 +640,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
     // 로그인되지 않은 상태에서 스팟 ID가 있으면 방문자 모드
     if (!this.authState.isLoggedIn && treeId) {
-      this.showVisitorOptions();
+      // anonymous 파라미터가 이미 있으면 모달을 표시하지 않음
+      const isAnonymous = this.route.snapshot.queryParams['anonymous'] === 'true';
+      if (!isAnonymous) {
+        this.showVisitorOptions();
+      }
     } else if (!this.authState.isLoggedIn && !treeId) {
       // 로그인되지 않고 스팟 ID도 없으면 홈에서 로그인 유도하고 샘플 데이터 로드
       this.showLoginModal = true;
@@ -767,8 +778,16 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   onAnonymousStart(): void {
     this.showAnonymousModal = false;
-    // 로그인 상태는 유지하면서 다른 사람의 스팟을 방문하는 모드
+    // 로그인 상태는 유지하면서 다른 사람의 스팟을 방문하ㅏ니 는 모드
     console.log('익명으로 다른 사람의 스팟 방문');
+    // URL 파라미터로 익명 상태 설정 (현재 URL을 교체)
+    const visitingSpotId = this.route.snapshot.paramMap.get('id');
+    if (visitingSpotId) {
+      this.router.navigate(['/4spot', visitingSpotId], {
+        queryParams: { anonymous: 'true' },
+        replaceUrl: true
+      });
+    }
   }
 
   onCreateMyTree(): void {
@@ -846,16 +865,27 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     // 로그인되지 않은 상태에서 다른 사람의 트리를 방문한 경우 바로 메시지 작성 허용
     if (!this.authState.isLoggedIn) {
       if (visitingSpotId) {
-        console.log('익명으로 다른 사람의 트리에 메시지 작성');
-        // 바로 메시지 작성 페이지로 이동
-        this.router.navigate(['/message-write'], {
-          queryParams: {
-            spotId: visitingSpotId,
-            nickname: '사용자',
-            canEditYoutube: 'false'
-          }
-        });
-        return;
+        // URL 파라미터로 익명 상태 확인
+        const isAnonymousBrowsing = this.route.snapshot.queryParams['anonymous'] === 'true';
+
+        if (isAnonymousBrowsing) {
+          console.log('익명으로 다른 사람의 트리에 메시지 작성');
+          // 바로 메시지 작성 페이지로 이동 (anonymous 파라미터도 함께 전달)
+          this.router.navigate(['/message-write'], {
+            queryParams: {
+              spotId: visitingSpotId,
+              nickname: '사용자',
+              canEditYoutube: 'false',
+              anonymous: 'true'
+            }
+          });
+          return;
+        } else {
+          // 아직 익명 모달을 보지 않았으면 모달 표시
+          console.log('방문자 옵션 모달 표시');
+          this.showVisitorOptions();
+          return;
+        }
       } else {
         console.log('로그인되지 않아서 로그인 모달 표시');
         this.showLoginModal = true;

@@ -43,7 +43,7 @@
   justify-content: center;
 }
 
-.tree-decorate-btn, .star-btn, .logout-btn, .view-toggle-btn {
+.tree-decorate-btn, .star-btn, .logout-btn, .view-toggle-btn, .create-tree-btn {
   padding: 12px 25px;
   border: none;
   border-radius: 25px;
@@ -86,7 +86,14 @@
   background: linear-gradient(135deg, #ffa726, #ff9800);
 }
 
-.tree-decorate-btn:hover, .star-btn:hover, .logout-btn:hover, .view-toggle-btn:hover {
+.create-tree-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 12px 20px;
+  font-size: 13px;
+}
+
+.tree-decorate-btn:hover, .star-btn:hover, .logout-btn:hover, .view-toggle-btn:hover, .create-tree-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
@@ -314,7 +321,7 @@
     align-items: center;
   }
 
-  .tree-decorate-btn, .star-btn {
+  .tree-decorate-btn, .star-btn, .create-tree-btn {
     width: auto;
     min-width: 120px;
   }

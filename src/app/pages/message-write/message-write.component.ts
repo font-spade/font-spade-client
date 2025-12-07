@@ -77,12 +77,15 @@ export class MessageWriteComponent implements OnInit {
     @Inject(PLATFORM_ID) private platformId: string
   ) {}
 
+  private isAnonymous: boolean = false;
+
   ngOnInit(): void {
     // URL 쿼리 파라미터에서 스팟 ID와 닉네임 가져오기
     this.route.queryParams.subscribe(params => {
       this.spotId = params['spotId'] || '';
       const userNickname = params['nickname'] || '';
       this.canEditYoutube = params['canEditYoutube'] === 'true';
+      this.isAnonymous = params['anonymous'] === 'true';
       
       if (!this.spotId) {
         console.error('스팟 ID가 없습니다. 메인 페이지로 이동합니다.');
@@ -222,7 +225,14 @@ export class MessageWriteComponent implements OnInit {
       try {
         if (isPlatformBrowser(this.platformId)) {
           await firstValueFrom(this.http.post(`${this.apiBaseUrl}/messages`, messageData));
-          this.router.navigate(['/4spot', this.spotId]);
+          // 익명 상태면 anonymous 파라미터를 유지하면서 리다이렉트
+          if (this.isAnonymous) {
+            this.router.navigate(['/4spot', this.spotId], {
+              queryParams: { anonymous: 'true' }
+            });
+          } else {
+            this.router.navigate(['/4spot', this.spotId]);
+          }
         }
       } catch (error) {
         console.error('메시지 전송 실패:', error);
@@ -267,7 +277,14 @@ export class MessageWriteComponent implements OnInit {
   onCancel(): void {
     // 스팟 ID가 있으면 해당 스팟으로, 없으면 메인으로
     if (this.spotId) {
-      this.router.navigate(['/4spot', this.spotId]);
+      // 익명 상태면 anonymous 파라미터를 유지하면서 리다이렉트
+      if (this.isAnonymous) {
+        this.router.navigate(['/4spot', this.spotId], {
+          queryParams: { anonymous: 'true' }
+        });
+      } else {
+        this.router.navigate(['/4spot', this.spotId]);
+      }
     } else {
       this.router.navigate(['/4spot']);
     }

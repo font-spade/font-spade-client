@@ -16,6 +16,7 @@
       </button>
       <button class="tree-decorate-btn" (click)="onWriteMessage()">{{writeButtonText}}</button>
       <button class="star-btn" (click)="onShare()">⭐</button>
+      <button *ngIf="isAnonymousViewing" class="create-tree-btn" (click)="onCreateMyTree()">나의 트리 만들기</button>
       <button *ngIf="authState.isLoggedIn" class="logout-btn" (click)="onLogout()">로그아웃</button>
     </div>
   </header>
