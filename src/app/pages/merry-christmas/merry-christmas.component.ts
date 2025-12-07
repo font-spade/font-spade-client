@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { ThreeSceneService } from '../../services/three-scene.service';
 import { EmojiMessageService, EmojiData, VisibleMessage } from '../../services/emoji-message.service';
 import { MerryChristmasApiService } from '../../services/merry-christmas-api.service';
+import { AppSeoService, SeoData } from '../../seo/app-seo.service';
 import { AuthState, Spot } from './merry-christmas.models';
 import { environment } from '../../../environments/environment';
 
@@ -95,6 +96,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   // 공유 모달 관련
   showShareModal = false;
 
+  // 헤더 숨김 및 플로팅 메뉴 관련
+  isHeaderHidden = false;
+  isFloatingMenuOpen = false;
+  private lastScrollY = 0;
+  private scrollThreshold = 100;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -102,6 +109,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     public emojiService: EmojiMessageService,
     private threeSceneService: ThreeSceneService,
     private apiService: MerryChristmasApiService,
+    private seoService: AppSeoService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.refreshSeasonContext();
@@ -160,6 +168,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     canvas.addEventListener('touchend', () => this.onPointerUp());
 
     window.addEventListener('resize', () => this.onWindowResize());
+    window.addEventListener('scroll', () => this.handleScroll());
   }
 
   private onCanvasClick(event: MouseEvent): void {
@@ -837,6 +846,117 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     this.isYouTubeVisible = !this.isYouTubeVisible;
   }
 
+  // SEO 설정 메서드
+  private setupSeo(): void {
+    const spotId = this.route.snapshot.paramMap.get('id');
+    const isVisitingOtherSpot = spotId && !this.authState.isLoggedIn;
+    
+    let seoData: SeoData;
+
+    if (isVisitingOtherSpot && this.currentSpot) {
+      // 다른 사람의 트리 방문 중
+      seoData = {
+        title: `${this.ownerName}님의 크리스마스 트리 - 내 트리를 꾸며줘!`,
+        description: `${this.ownerName}님의 특별한 크리스마스 트리를 구경하고 메시지를 남겨보세요! AI가 자동으로 이모티콘으로 꾸며드립니다.`,
+        keywords: `${this.ownerName}, 크리스마스 트리, AI 이모티콘, 메시지 트리, 친구 트리, 꾸미기`,
+        author: 'FontSpade',
+        lang: 'ko',
+        site_name: '내 트리를 꾸며줘!',
+        site_url: `https://fontspade.loeaf.com/4spot/${spotId}`,
+        src: `${environment.basePath}/assets/icon/open_graph.png`
+      };
+    } else if (this.authState.isLoggedIn && this.authState.user) {
+      // 내 트리
+      seoData = {
+        title: `${this.authState.user.nickname}님의 크리스마스 트리 - 내 트리를 꾸며줘!`,
+        description: `${this.authState.user.nickname}님의 크리스마스 트리입니다. 친구들과 함께 AI가 꾸며주는 특별한 트리를 만들어보세요!`,
+        keywords: `${this.authState.user.nickname}, 내 트리, 크리스마스 트리, AI 이모티콘, 메시지 트리, 친구들과 함께`,
+        author: 'FontSpade',
+        lang: 'ko',
+        site_name: '내 트리를 꾸며줘!',
+        site_url: `https://fontspade.loeaf.com/4spot/${this.authState.currentSpotId}`,
+        src: `${environment.basePath}/assets/icon/open_graph.png`
+      };
+    } else {
+      // 메인 페이지 (로그인 전)
+      seoData = {
+        title: '내 트리를 꾸며줘! - AI가 만드는 크리스마스 트리',
+        description: 'AI가 친구들의 메시지를 분석해서 6만 종류 이상의 이모티콘으로 자동으로 꾸며주는 크리스마스 트리 만들기. 친구들과 함께 특별한 추억을 만들어보세요!',
+        keywords: '크리스마스 트리, AI 이모티콘, 메시지 트리, 친구 메시지, 이모지 트리, Christmas Tree, AI Emoji, 감성 분석, 자동 꾸미기, 트리 만들기',
+        author: 'FontSpade',
+        lang: 'ko',
+        site_name: '내 트리를 꾸며줘!',
+        site_url: `https://fontspade.loeaf.com/4spot`,
+        src: `${environment.basePath}/assets/icon/open_graph.png`
+      };
+    }
+
+    this.seoService.setSeoData(seoData);
+    this.seoService.setJsonLd(seoData);
+    this.seoService.changeLanguage('ko');
+  }
+
+  // 스크롤 처리 메서드
+  private handleScroll(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const currentScrollY = window.scrollY;
+    
+    // 스크롤 방향과 임계값 확인
+    if (currentScrollY > this.scrollThreshold) {
+      if (currentScrollY > this.lastScrollY) {
+        // 아래로 스크롤: 헤더 숨김
+        this.hideMainHeader();
+        this.isHeaderHidden = true;
+      } else {
+        // 위로 스크롤: 헤더 표시
+        this.showMainHeader();
+        this.isHeaderHidden = false;
+      }
+    } else {
+      // 상단 근처: 헤더 표시
+      this.showMainHeader();
+      this.isHeaderHidden = false;
+    }
+
+    this.lastScrollY = currentScrollY;
+  }
+
+  private hideMainHeader(): void {
+    const header = document.querySelector('app-header') as HTMLElement;
+    if (header) {
+      header.style.transform = 'translateY(-100%)';
+      header.style.transition = 'transform 0.3s ease-in-out';
+    }
+  }
+
+  private showMainHeader(): void {
+    const header = document.querySelector('app-header') as HTMLElement;
+    if (header) {
+      header.style.transform = 'translateY(0)';
+      header.style.transition = 'transform 0.3s ease-in-out';
+    }
+  }
+
+  // 플로팅 메뉴 메서드들
+  toggleFloatingMenu(): void {
+    this.isFloatingMenuOpen = !this.isFloatingMenuOpen;
+  }
+
+  scrollToTop(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.isFloatingMenuOpen = false;
+    }
+  }
+
+  goToHome(): void {
+    this.router.navigate(['/']);
+    this.isFloatingMenuOpen = false;
+  }
+
   // ngOnInit 수정
   async ngOnInit(): Promise<void> {
     this.currentUrl = this.router.url;
@@ -855,6 +975,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   private async initializeComponent(): Promise<void> {
     await this.checkAuthStatus();
+    this.setupSeo();
 
     if (isPlatformBrowser(this.platformId)) {
       await this.threeSceneService.loadGLTFLoader();

@@ -869,3 +869,141 @@
     font-size: 0.9rem;
   }
 }
+
+/* 헤더 스페이서 */
+.header-spacer {
+  height: 56px; /* app-header 높이 */
+  transition: height 0.3s ease-in-out;
+}
+
+.header-spacer.hidden {
+  height: 0;
+}
+
+/* 플로팅 메뉴 스타일 */
+.floating-menu {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.floating-menu.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.floating-menu-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  position: relative;
+  z-index: 1001;
+}
+
+.floating-menu-btn:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.floating-menu-btn.active {
+  background: #f44336;
+  transform: rotate(45deg);
+}
+
+.menu-icon {
+  transition: transform 0.3s ease;
+}
+
+.menu-icon.close {
+  transform: rotate(45deg);
+}
+
+.menu-icon.close::before {
+  content: '✕';
+}
+
+/* 플로팅 메뉴 옵션들 */
+.floating-menu-options {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+.floating-menu-options.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.floating-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.floating-option:hover {
+  transform: scale(1.1);
+}
+
+.scroll-top {
+  background: #2196F3;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.scroll-top:hover {
+  background: #1976D2;
+}
+
+.home-btn {
+  background: #FF9800;
+}
+
+.home-btn:hover {
+  background: #F57C00;
+}
+
+.share-btn {
+  background: #9C27B0;
+}
+
+.share-btn:hover {
+  background: #7B1FA2;
+}
+
+/* 모바일에서만 표시 */
+@media (min-width: 768px) {
+  .floating-menu {
+    display: none !important;
+  }
+}

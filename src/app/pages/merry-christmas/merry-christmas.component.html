@@ -1,6 +1,10 @@
 <div class="christmas-container">
+  <!-- 메인 앱 헤더 스크롤 숨김 제어 -->
+  <div class="header-spacer" [class.hidden]="isHeaderHidden"></div>
+  
   <header class="christmas-header">
-    <h1>🎄 {{ownerName}}님의 트리</h1>
+    <h1 *ngIf="authState.isLoggedIn || currentSpot">🎄 {{ownerName}}님의 트리</h1>
+    <h1 *ngIf="!authState.isLoggedIn && !currentSpot">🎄 내 트리를 꾸며줘!</h1>
     <div class="message-count">
       {{messageCount}}개의 메시지가 도착했어요!
     </div>
@@ -66,30 +70,30 @@
   <div class="auth-modal" [class.visible]="showLoginModal" *ngIf="showLoginModal">
     <div class="modal-content">
       <div class="feature-showcase">
-        <h2>🎄 마법같은 크리스마스 트리 만들기</h2>
+        <h2>🎄 내 트리를 꾸며줘!</h2>
         
         <div class="feature-highlights">
           <div class="feature-item">
-            <span class="feature-icon">✨</span>
+            <span class="feature-icon">🤖</span>
             <div class="feature-text">
-              <strong>AI 감성 분석</strong>
-              <p>당신의 마음을 담은 메시지를 AI가 이해하고 아름다운 이모지로 변환해요</p>
+              <strong>AI가 꾸며주는 마법</strong>
+              <p>친구들의 따뜻한 메시지를 AI가 분석해서 6만 종류 이상의 이모티콘으로 자동 꾸며줘요</p>
             </div>
           </div>
           
           <div class="feature-item">
-            <span class="feature-icon">🎨</span>
+            <span class="feature-icon">💝</span>
             <div class="feature-text">
-              <strong>개성 있는 표현</strong>
-              <p>텍스트 아트와 다양한 이모티콘으로 나만의 스타일을 표현해보세요</p>
+              <strong>메시지 재해석의 즐거움</strong>
+              <p>단순한 텍스트가 AI의 감성 분석을 통해 생동감 넘치는 이모티콘 트리로 변신해요</p>
             </div>
           </div>
           
           <div class="feature-item">
-            <span class="feature-icon">🤝</span>
+            <span class="feature-icon">🎁</span>
             <div class="feature-text">
-              <strong>함께 만드는 즐거움</strong>
-              <p>친구들과 함께 꾸미는 특별한 크리스마스 트리를 만들어보세요</p>
+              <strong>함께 만드는 특별함</strong>
+              <p>친구들이 보낸 메시지가 AI를 통해 나만의 아름다운 트리가 되는 경험을 함께해요</p>
             </div>
           </div>
         </div>
@@ -149,6 +153,27 @@
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen>
       </iframe>
+    </div>
+  </div>
+
+  <!-- 플로팅 메뉴 버튼 (모바일에서만 표시) -->
+  <div class="floating-menu" [class.visible]="isHeaderHidden">
+    <button class="floating-menu-btn" (click)="toggleFloatingMenu()" 
+            [class.active]="isFloatingMenuOpen">
+      <span class="menu-icon" [class.close]="isFloatingMenuOpen">☰</span>
+    </button>
+    
+    <!-- 플로팅 메뉴 옵션들 -->
+    <div class="floating-menu-options" [class.open]="isFloatingMenuOpen">
+      <button class="floating-option scroll-top" (click)="scrollToTop()" title="맨 위로">
+        ↑
+      </button>
+      <button class="floating-option home-btn" (click)="goToHome()" title="홈으로">
+        🏠
+      </button>
+      <button class="floating-option share-btn" (click)="onShare()" title="공유하기">
+        🔗
+      </button>
     </div>
   </div>
 </div>
