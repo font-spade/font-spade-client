@@ -446,33 +446,53 @@ export class ThreeSceneService {
   private static treeEmojiCounter = 0; // 트리 이모지 배치 카운터
 
   generateRandomTreePosition(): { height: number; angle: number } {
-    // 상단(7-9), 중단(4-6), 하단(1-3)으로 10개씩 순차 배치
-    const sectionSize = 10;
-    const currentSection = Math.floor(ThreeSceneService.treeEmojiCounter / sectionSize) % 3;
-    const positionInSection = ThreeSceneService.treeEmojiCounter % sectionSize;
+    // 상단 5개, 중단 7개, 하단 14개로 배치
+    const sectionSizes = [5, 7, 14]; // [상단, 중단, 하단]
+    const totalEmojis = sectionSizes.reduce((sum, size) => sum + size, 0);
+
+    const cyclePosition = ThreeSceneService.treeEmojiCounter % totalEmojis;
+    let currentSection = 0;
+    let positionInSection = cyclePosition;
+
+    // 현재 섹션과 섹션 내 위치 계산
+    for (let i = 0; i < sectionSizes.length; i++) {
+      if (positionInSection < sectionSizes[i]) {
+        currentSection = i;
+        break;
+      }
+      positionInSection -= sectionSizes[i];
+    }
 
     let heightRange: { min: number; max: number };
+    let sectionSize: number;
+
     switch (currentSection) {
-      case 0: // 상단
+      case 0: // 상단 (5개)
         heightRange = { min: 7, max: 9 };
+        sectionSize = 5;
         break;
-      case 1: // 중단
+      case 1: // 중단 (7개)
         heightRange = { min: 4, max: 6 };
+        sectionSize = 7;
         break;
-      case 2: // 하단
-        heightRange = { min: 2, max: 3 };
+      case 2: // 하단 (14개)
+        heightRange = { min: 2.5, max: 5 };
+        sectionSize = 14;
         break;
       default:
         heightRange = { min: 4, max: 6 };
+        sectionSize = 7;
     }
 
-    // 각 섹션 내에서 고르게 분포
-    const heightProgress = positionInSection / (sectionSize - 1);
-    const height = heightRange.min + (heightRange.max - heightRange.min) * heightProgress;
+    // 각 섹션 내에서 고르게 분포 + 랜덤 변화로 더 자연스럽게
+    const heightProgress = sectionSize > 1 ? positionInSection / (sectionSize - 1) : 0;
+    const baseHeight = heightRange.min + (heightRange.max - heightRange.min) * heightProgress;
+    const heightVariation = (Math.random() - 0.5) * 0.8; // 높이에도 변화 추가
+    const height = Math.max(heightRange.min, Math.min(heightRange.max, baseHeight + heightVariation));
 
-    // 각도는 섹션별로 겹치지 않게 배치
+    // 각도는 더 넓게 퍼뜨려서 배치 (겹치지 않게)
     const baseAngle = (positionInSection / sectionSize) * Math.PI * 2;
-    const angleVariation = (Math.random() - 0.5) * 0.3; // 약간의 랜덤 변화
+    const angleVariation = (Math.random() - 0.5) * 1.0; // 더 큰 랜덤 변화
     const angle = baseAngle + angleVariation;
 
     ThreeSceneService.treeEmojiCounter++;
