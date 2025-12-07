@@ -678,7 +678,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
     if (!this.kakaoLoginUrl) {
       const clientId = '85c57099905117aec84375e532cb75be';
-      const redirectUri = `${environment.clientUrl}/auth/kakao/callback`;
+      const redirectUri = `${environment.clientUrl}/auth/kakao/callback`; // client 쪽 리다이렉트 서버 주소
       const state = this.generateRandomState();
 
       this.kakaoLoginUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=profile_nickname,profile_image`;

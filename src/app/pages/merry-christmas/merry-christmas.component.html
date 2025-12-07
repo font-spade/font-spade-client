@@ -14,13 +14,6 @@
   <div class="canvas-container">
     <canvas #threeCanvas></canvas>
 
-    <!-- 뒤 배경 트리들의 이름 라벨 -->
-    <div class="tree-label" *ngFor="let treeName of backgroundTreeNames; let i = index"
-         [style.left.px]="getBackgroundTreePosition(i).x - 40"
-         [style.top.px]="getBackgroundTreePosition(i).y - 20">
-      <div class="tree-name-tag">{{treeName}}</div>
-    </div>
-
     <!-- HTML 메시지 오버레이 -->
     <div class="message-overlay" *ngFor="let message of emojiService.visibleMessages"
          [style.left.px]="message.screenX"

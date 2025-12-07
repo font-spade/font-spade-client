@@ -1,5 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 @Injectable({
   providedIn: 'root'
 })
@@ -48,6 +49,9 @@ export class EmojiKitchenService {
     return res;
   }
   async getEmojiData(emojiCodepoint: string) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     const data = await this.httpClient.get<any>(`/api?path=data.${emojiCodepoint}`).toPromise();
     this.emojiData = data;
     if (this.emojiMetadata == null) {

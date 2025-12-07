@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://127.0.0.1:8022/api',
-  basePath: 'https://fontspade.loeaf.com',
-  clientUrl: 'http://localhost:4200',
-  kakaoJavascriptKey: 'YOUR_KAKAO_JAVASCRIPT_KEY'
+  apiUrl: 'http://127.0.0.1:8000/api',
+  basePath: 'http://localhost',
+  clientUrl: 'http://localhost',
+  kakaoJavascriptKey: '2ebe985894f5615ee20dd66f0ae7f81c'
 };

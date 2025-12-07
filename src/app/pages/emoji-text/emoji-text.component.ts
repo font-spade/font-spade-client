@@ -30,7 +30,6 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
   selectedImageId: number | null = null;
 
 
-  canvas = null;
   // Font
   // fonts = FONTS[getLocale()];
   fonts: FamilyInfo[] = [];
@@ -186,69 +185,9 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
       this._draw(this.activatedRoute.snapshot.queryParams);
     }
 
-    // Fabric.js는 브라우저 환경에서만 실행
-    if (isPlatformBrowser(this.platformId)) {
-      this.initializeFabricCanvas();
-    }
   }
 
-  private async initializeFabricCanvas(): Promise<void> {
-    // Dynamic import를 사용하여 브라우저 환경에서만 fabric을 로드
-    const fabricModule = await import('fabric');
-    const { fabric } = fabricModule;
-    
-    // Define an array with all fonts
-    var fonts = ["Pacifico", "VT323", "Quicksand", "Inconsolata"];
 
-    this.canvas = new fabric.Canvas('c');
-    const textbox = new fabric.Textbox('Lorum ipsum dolor sit amet', {
-      left: 50,
-      top: 50,
-      width: 150,
-      fontSize: 20
-    });
-    this.canvas.add(textbox).setActiveObject(textbox);
-    fonts.unshift('Times New Roman');
-
-// Populate the fontFamily select
-//     var select = document.getElementById("font-family");
-//
-//     fonts.forEach(function(font) {
-//       var option = document.createElement('option');
-//       option.innerHTML = font;
-//       option.value = font;
-//       select.appendChild(option);
-//     });
-
-
-    // A new emoji generated
-    // this.eventbus.on('EG_EMOJI_GENERATE', (query) => {
-    //   this._draw(query);
-    // });
-
-    // Browser extension attached
-    // this.eventbus.on('CE_ATTACH', () => {
-    //   this.browserExtensionEnabled = true;
-    // });
-  }
-
-  loadAndUse(font) {
-    if (!isPlatformBrowser(this.platformId) || !this.canvas) {
-      return;
-    }
-    
-    var myfont = new FontFaceObserver(font)
-    const canvas = this.canvas;
-    myfont.load()
-      .then(function() {
-        // when font is loaded, use it.
-        canvas.getActiveObject().set("fontFamily", font);
-        canvas.requestRenderAll();
-      }).catch(function(e) {
-      console.log(e)
-      alert('font loading failed ' + font);
-    });
-  }
 
   private _draw(query: any): void {
     console.debug('A new emoji generated', query);
@@ -312,15 +251,6 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
 
   onChangeFont (fontFamily: HTMLSelectElement) {
     this.fontKey = fontFamily.value;
-
-    if (isPlatformBrowser(this.platformId) && this.canvas) {
-      if (this.fontKey !== 'Times New Roman') {
-        this.loadAndUse(this.fontKey);
-      } else {
-        this.canvas.getActiveObject().set("fontFamily", this.fontKey);
-        this.canvas.requestRenderAll();
-      }
-    }
   }
 
   selectImage (id: any) {
@@ -338,10 +268,12 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
       const header = {
         Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaWR4IjoxOTMsImlhdCI6MTcyMjgxOTkzOCwiZXhwIjoxNzIyODMwNzM4LCJhdWQiOiJzZCIsImlzcyI6InNhbmRvbGwiLCJzdWIiOiJhY2Nlc3MifQ.oa8OKC3_mFpXzf_wb4FkU3AJyesp8DYqgBwpRFcazys'
       }
-      this.httpClient.post('/sdclound/fonts/family', {}, {headers: header}).subscribe((res: any) => {
-        const result: FamilyInfo[] = res.resultData
-        this.fonts = result;
-      });
+      if (isPlatformBrowser(this.platformId)) {
+        this.httpClient.post('/sdclound/fonts/family', {}, {headers: header}).subscribe((res: any) => {
+          const result: FamilyInfo[] = res.resultData
+          this.fonts = result;
+        });
+      }
       this.setupIntersectionObserver()
     }
   }
@@ -381,21 +313,23 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
     const font = item.fontList.find((f) => f.cssInfoDict['font-weight'] === weight+'');
 
     if (font) {
-      this.httpClient.get(`/django/api/getWDWFExampleCrop/`, {
-        params: {
-          fontID: font.fontID,
-          familyID: familyId,
-        },
-        responseType: 'blob'  // 응답 타입을 'blob'으로 지정
-      }).subscribe(
-        (blob: Blob) => {
-          const imageUrl = URL.createObjectURL(blob);
-          item.imageUrl = imageUrl;
-        },
-        (error) => {
-          console.error('Error loading image:', error);
-        }
-      );
+      if (isPlatformBrowser(this.platformId)) {
+        this.httpClient.get(`/django/api/getWDWFExampleCrop/`, {
+          params: {
+            fontID: font.fontID,
+            familyID: familyId,
+          },
+          responseType: 'blob'  // 응답 타입을 'blob'으로 지정
+        }).subscribe(
+          (blob: Blob) => {
+            const imageUrl = URL.createObjectURL(blob);
+            item.imageUrl = imageUrl;
+          },
+          (error) => {
+            console.error('Error loading image:', error);
+          }
+        );
+      }
     }
   }
 }

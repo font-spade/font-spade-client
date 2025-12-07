@@ -110,6 +110,9 @@ export class MessageWriteComponent implements OnInit {
   }
 
   private loadExistingYoutube(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     this.http.get<any>(`${this.apiBaseUrl}/spots/${this.spotId}`).subscribe({
       next: (spot) => {
         if (spot && spot.youtube_url) {
@@ -217,8 +220,10 @@ export class MessageWriteComponent implements OnInit {
       console.log('메시지 등록:', messageData);
 
       try {
-        await firstValueFrom(this.http.post(`${this.apiBaseUrl}/messages`, messageData));
-        this.router.navigate(['/4spot', this.spotId]);
+        if (isPlatformBrowser(this.platformId)) {
+          await firstValueFrom(this.http.post(`${this.apiBaseUrl}/messages`, messageData));
+          this.router.navigate(['/4spot', this.spotId]);
+        }
       } catch (error) {
         console.error('메시지 전송 실패:', error);
         alert('메시지 전송에 실패했습니다. 다시 시도해주세요.');

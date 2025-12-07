@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -49,20 +50,30 @@ import { environment } from '../../environments/environment';
   `]
 })
 export class KakaoCallbackComponent implements OnInit {
-  private apiBaseUrl = environment.apiUrl;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   async ngOnInit() {
     console.log('KakaoCallbackComponent initialized');
-    console.log('Current URL:', window.location.href);
+
+    // SSR에서는 브라우저 API 사용 불가
+    if (isPlatformBrowser(this.platformId)) {
+      console.log('Current URL:', window.location.href);
+    }
+
     console.log('Query params:', this.route.snapshot.queryParams);
 
     try {
+      // SSR에서는 실제 로그인 처리를 하지 않음
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+
       // URL 쿼리 파라미터에서 인가 코드와 state 추출
       const code = this.route.snapshot.queryParams['code'];
       const state = this.route.snapshot.queryParams['state'];
@@ -88,9 +99,14 @@ export class KakaoCallbackComponent implements OnInit {
         return;
       }
 
-      // 서버로 인가 코드 전송하여 토큰 교환
-      console.log('API Base URL:', this.apiBaseUrl);
-      console.log('Sending request to:', `${this.apiBaseUrl}/auth/kakao/callback`);
+      // 서버로 인가 코드 전송하여 토큰 교환 (브라우저에서만)
+      if (!isPlatformBrowser(this.platformId)) {
+        console.log('SSR 환경에서는 HTTP 요청을 건너뜁니다.');
+        return;
+      }
+
+      console.log('API Base URL:', environment.apiUrl);
+      console.log('Sending request to:', `${environment.apiUrl}/auth/kakao/callback`);
 
       const response = await this.http.post<{
         token: string;
@@ -100,19 +116,19 @@ export class KakaoCallbackComponent implements OnInit {
           profile_image?: string;
         };
         spot_id: string;
-      }>(`${this.apiBaseUrl}/auth/kakao/callback`, {
+      }>(`${environment.clientUrl}/api/auth/kakao/callback`, {
         code,
         state
       }).toPromise();
 
       if (response) {
-        // JWT 토큰 저장
-        if (response.token) {
+        // JWT 토큰 저장 (브라우저에서만)
+        if (response.token && isPlatformBrowser(this.platformId)) {
           localStorage.setItem('authToken', response.token);
         }
 
-        // 사용자 정보 저장
-        if (response.user) {
+        // 사용자 정보 저장 (브라우저에서만)
+        if (response.user && isPlatformBrowser(this.platformId)) {
           localStorage.setItem('userInfo', JSON.stringify(response.user));
         }
 
