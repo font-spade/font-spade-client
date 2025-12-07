@@ -443,12 +443,40 @@ export class ThreeSceneService {
     return { x, y, z };
   }
 
+  private static treeEmojiCounter = 0; // 트리 이모지 배치 카운터
+
   generateRandomTreePosition(): { height: number; angle: number } {
-    // 더 균등한 분포를 위해 다양한 높이와 각도 생성
-    const randomValue = Math.random();
-    // 전체 트리 높이에 더 고르게 분포 (중앙-상단에서 중앙-하단까지)
-    const height = 0.5 + randomValue * 8.5; // 0.5-8.5 높이 범위
-    const angle = Math.random() * Math.PI * 2;
+    // 상단(7-9), 중단(4-6), 하단(1-3)으로 10개씩 순차 배치
+    const sectionSize = 10;
+    const currentSection = Math.floor(ThreeSceneService.treeEmojiCounter / sectionSize) % 3;
+    const positionInSection = ThreeSceneService.treeEmojiCounter % sectionSize;
+
+    let heightRange: { min: number; max: number };
+    switch (currentSection) {
+      case 0: // 상단
+        heightRange = { min: 7, max: 9 };
+        break;
+      case 1: // 중단
+        heightRange = { min: 4, max: 6 };
+        break;
+      case 2: // 하단
+        heightRange = { min: 2, max: 3 };
+        break;
+      default:
+        heightRange = { min: 4, max: 6 };
+    }
+
+    // 각 섹션 내에서 고르게 분포
+    const heightProgress = positionInSection / (sectionSize - 1);
+    const height = heightRange.min + (heightRange.max - heightRange.min) * heightProgress;
+
+    // 각도는 섹션별로 겹치지 않게 배치
+    const baseAngle = (positionInSection / sectionSize) * Math.PI * 2;
+    const angleVariation = (Math.random() - 0.5) * 0.3; // 약간의 랜덤 변화
+    const angle = baseAngle + angleVariation;
+
+    ThreeSceneService.treeEmojiCounter++;
+
     return { height, angle };
   }
 
