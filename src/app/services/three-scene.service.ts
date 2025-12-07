@@ -25,12 +25,12 @@ export class ThreeSceneService {
   lastFireworkTime = 0;
   fireworkInterval = 4000;
   lastTime = 0;
-  
+
   // 모바일 감지 및 아웃라인 두께 계산 헬퍼
   private isMobile(): boolean {
     return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
-  
+
   private getOutlineThickness(baseThickness: number): number {
     return this.isMobile() ? baseThickness * 2.5 : baseThickness;
   }
@@ -444,7 +444,7 @@ export class ThreeSceneService {
     const distanceFromCenter = Math.sqrt(x * x + z * z);
     const height = Math.sin(distanceFromCenter * 0.1) * 2 +
                    Math.sin(x * 0.05) * Math.sin(z * 0.05) * 1.5;
-    return height - 5;
+    return height - 2; // 지면 높이를 -5에서 -2로 상승
   }
 
   generateRandomFieldPosition(): { x: number; y: number; z: number } {
@@ -481,19 +481,19 @@ export class ThreeSceneService {
 
     switch (currentSection) {
       case 0: // 상단 (5개)
-        heightRange = { min: 7, max: 9 };
+        heightRange = { min: 7, max: 9.5 }; // 7~9에서 10~12로 상승
         sectionSize = 5;
         break;
       case 1: // 중단 (7개)
-        heightRange = { min: 4, max: 6 };
+        heightRange = { min: 5, max: 7 }; // 4~6에서 7~9로 상승
         sectionSize = 7;
         break;
       case 2: // 하단 (14개)
-        heightRange = { min: 2.5, max: 5 };
+        heightRange = { min: 2.7, max: 6 }; // 2.5~5에서 5.5~8로 상승
         sectionSize = 14;
         break;
       default:
-        heightRange = { min: 4, max: 6 };
+        heightRange = { min: 7, max: 9 }; // 4~6에서 7~9로 상승
         sectionSize = 7;
     }
 
@@ -518,7 +518,7 @@ export class ThreeSceneService {
     const rayDistance = 15; // 더 멀리서 시작
     const rayOrigin = new THREE.Vector3(
       Math.cos(angle) * rayDistance,
-      targetHeight - 5, // 트리 높이 조정
+      targetHeight - 2, // 트리 높이를 -5에서 -2로 상승
       Math.sin(angle) * rayDistance
     );
 
@@ -568,7 +568,7 @@ export class ThreeSceneService {
       const retryAngle = angle + Math.PI * 0.5; // 90도 회전해서 재시도
       const retryOrigin = new THREE.Vector3(
         Math.cos(retryAngle) * rayDistance,
-        targetHeight - 5,
+        targetHeight - 2, // 트리 높이를 -5에서 -2로 상승
         Math.sin(retryAngle) * rayDistance
       );
       const retryDirection = new THREE.Vector3(
@@ -595,7 +595,7 @@ export class ThreeSceneService {
       const fallbackRadius = 3.5 - (targetHeight / 12) * 2; // 높이에 따라 반지름 조정
       return {
         x: Math.cos(angle) * fallbackRadius,
-        y: targetHeight - 5,
+        y: targetHeight - 2, // 트리 높이를 -5에서 -2로 상승
         z: Math.sin(angle) * fallbackRadius
       };
     }
