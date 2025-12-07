@@ -88,8 +88,8 @@ export class ThreeSceneService {
       snowflake.position.y -= snowflake.userData['velocity'];
       snowflake.position.x += snowflake.userData['drift'];
 
-      if (snowflake.position.y < -6) {
-        snowflake.position.y = 15 + Math.random() * 5;
+      if (snowflake.position.y < -3) { // -6에서 -3으로 상승
+        snowflake.position.y = 18 + Math.random() * 5; // 15에서 18로 상승
         snowflake.position.x = (Math.random() - 0.5) * 30;
         snowflake.position.z = (Math.random() - 0.5) * 30;
       }
@@ -130,7 +130,7 @@ export class ThreeSceneService {
       return;
     }
     const centerX = 0;
-    const centerY = 3;
+    const centerY = 3; // 카메라 중심을 3에서 6으로 상승
     const centerZ = 0;
 
     const x = centerX + cameraRadius * Math.sin(cameraAngleX) * Math.cos(cameraAngleY);
@@ -439,7 +439,7 @@ export class ThreeSceneService {
     const radius = 2 + Math.random() * 6;
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
-    const y = -4.8;
+    const y = -1.8; // 필드 이모지 Y 위치를 -4.8에서 -1.8로 상승
     return { x, y, z };
   }
 
@@ -604,7 +604,7 @@ export class ThreeSceneService {
 
     return {
       x: Math.cos(finalAngle) * radius,
-      y: height - 5,
+      y: height - 2, // 트리 이모지 Y 위치를 -5에서 -2로 상승
       z: Math.sin(finalAngle) * radius
     };
   }
@@ -659,7 +659,7 @@ export class ThreeSceneService {
       const height = Math.sin(distanceFromCenter * 0.1) * 2 +
                      Math.sin(x * 0.05) * Math.sin(y * 0.05) * 1.5;
 
-      vertices.setZ(i, height - 5);
+      vertices.setZ(i, height - 2); // 지면 높이를 -5에서 -2로 상승
     }
     groundGeometry.computeVertexNormals();
 
@@ -804,7 +804,7 @@ export class ThreeSceneService {
       const height = Math.sin(Math.sqrt(x * x + z * z) * 0.1) * 2 +
                     Math.sin(x * 0.05) * Math.sin(z * 0.05) * 1.5;
 
-      snowball.position.set(x, height - 5 + size, z);
+      snowball.position.set(x, height - 2 + size, z); // -5에서 -2로 상승
       this.scene.add(snowball);
     }
   }
@@ -914,7 +914,7 @@ export class ThreeSceneService {
     hatTop.position.set(0, 1.35, 0);
     snowmanGroup.add(hatTop);
 
-    snowmanGroup.position.set(-5, -1, 8);
+    snowmanGroup.position.set(-5, 2, 8); // 눈사람 Y 위치를 -1에서 2로 상승
     this.scene.add(snowmanGroup);
   }
 
@@ -949,7 +949,7 @@ export class ThreeSceneService {
       giftGroup.add(verticalRibbon);
 
       const groundHeight = this.getGroundHeight(pos.x, pos.z);
-      giftGroup.position.set(pos.x, groundHeight + boxSize / 2, pos.z);
+      giftGroup.position.set(pos.x, groundHeight + boxSize / 2 + 3, pos.z); // 3만큼 추가 상승
       this.scene.add(giftGroup);
     });
   }
@@ -1001,7 +1001,7 @@ export class ThreeSceneService {
     rabbitGroup.add(nose);
 
     const rabbitGroundHeight = this.getGroundHeight(4, -6);
-    rabbitGroup.position.set(4, rabbitGroundHeight + 4.5, -6);
+    rabbitGroup.position.set(4, rabbitGroundHeight + 7.5, -6); // 4.5에서 7.5로 상승
     this.scene.add(rabbitGroup);
 
     const penguinGroup = new THREE.Group();
@@ -1040,7 +1040,7 @@ export class ThreeSceneService {
     penguinGroup.add(beak);
 
     const penguinGroundHeight = this.getGroundHeight(-10, -4);
-    penguinGroup.position.set(-10, penguinGroundHeight + 4.3, -4);
+    penguinGroup.position.set(-10, penguinGroundHeight + 7.3, -4); // 4.3에서 7.3으로 상승
     this.scene.add(penguinGroup);
   }
 
@@ -1072,7 +1072,7 @@ export class ThreeSceneService {
       const candyZ = Math.sin(angle) * radius;
 
       const candyGroundHeight = this.getGroundHeight(candyX, candyZ);
-      candyCaneGroup.position.set(candyX, candyGroundHeight + 4.5, candyZ);
+      candyCaneGroup.position.set(candyX, candyGroundHeight + 7.5, candyZ); // 4.5에서 7.5로 상승
 
       this.scene.add(candyCaneGroup);
     }
@@ -1105,7 +1105,7 @@ export class ThreeSceneService {
       miniTreeGroup.add(trunk);
 
       const miniTreeGroundHeight = this.getGroundHeight(pos.x, pos.z);
-      miniTreeGroup.position.set(pos.x, miniTreeGroundHeight + 4.7, pos.z);
+      miniTreeGroup.position.set(pos.x, miniTreeGroundHeight + 7.7, pos.z); // 4.7에서 7.7로 상승
 
       this.scene.add(miniTreeGroup);
     });
@@ -1145,7 +1145,7 @@ export class ThreeSceneService {
 
         this.addTreeDecorations(treeGroup);
 
-        treeGroup.position.set(0, -5, 0);
+        treeGroup.position.set(0, -2, 0); // 트리 위치를 -5에서 -2로 상승
         treeGroup.scale.set(10, 10, 10);
 
         this.mainTreeGroup = treeGroup;
@@ -1215,7 +1215,7 @@ export class ThreeSceneService {
     star.position.set(0, 2.8, 0);
     treeGroup.add(star);
 
-    treeGroup.position.set(0, -5, 0);
+    treeGroup.position.set(0, -2, 0); // 폴백 트리 위치도 -5에서 -2로 상승
     treeGroup.scale.set(4, 4, 4);
 
     this.mainTreeGroup = treeGroup;
@@ -1234,7 +1234,7 @@ export class ThreeSceneService {
       const snowflake = new THREE.Mesh(snowflakeGeometry, snowflakeMaterial.clone());
       snowflake.position.set(
         (Math.random() - 0.5) * 30,
-        Math.random() * 20 + 5,
+        Math.random() * 20 + 8, // 5에서 8로 상승
         (Math.random() - 0.5) * 30
       );
       snowflake.userData['velocity'] = Math.random() * 0.02 + 0.01;
