@@ -92,7 +92,6 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
   }
 
   loadFontAndApplyStyle() {
-    debugger;
     // 스크립트 동적 삽입
     const script = this.renderer.createElement('script');
     script.type = 'module';
@@ -301,13 +300,13 @@ export class EmojiTextComponent implements OnInit, AfterViewInit {
       this.fontItems.forEach(item => observer.observe(item.nativeElement));
     });
   }
-  
+
   loadImageForItem(item: FamilyInfo) {
     // 브라우저 환경에서만 HTTP 요청 실행
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    
+
     const familyId = item.familyID;
     const weight = item.defaultCssInfoDict['font-weight'];
     const font = item.fontList.find((f) => f.cssInfoDict['font-weight'] === weight+'');
