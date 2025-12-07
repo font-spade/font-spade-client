@@ -219,7 +219,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     canvas.addEventListener('mouseup', () => this.onPointerUp());
     canvas.addEventListener('touchstart', (event) => this.onTouchStart(event));
     canvas.addEventListener('touchmove', (event) => this.onTouchMove(event));
-    canvas.addEventListener('touchend', () => this.onPointerUp());
+    canvas.addEventListener('touchend', (event) => this.onPointerUp(event));
 
     window.addEventListener('resize', () => this.onWindowResize());
     window.addEventListener('scroll', () => this.handleScroll());
@@ -470,47 +470,95 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     };
   }
 
-  private onPointerUp(): void {
+  private onPointerUp(event?: Event): void {
+    // 터치 클릭 감지 (드래그하지 않고 터치한 경우)
+    if (!this.hasMouseMoved && event instanceof TouchEvent && event.changedTouches.length === 1) {
+      this.handleTouchClick(event.changedTouches[0]);
+    }
+    
     this.isDragging = false;
     this.isZooming = false;
     this.lastTouchDistance = 0;
   }
 
-  private onTouchStart(event: TouchEvent): void {
-    // 캔버스 터치 모드 활성화
-    this.enableCanvasInteractionMode();
-    
-    event.preventDefault();
+  private handleTouchClick(touch: Touch): void {
+    const renderer = this.threeSceneService.renderer;
+    const camera = this.threeSceneService.camera;
+    if (!renderer || !camera) {
+      return;
+    }
 
-    if (event.touches.length === 1) {
-      this.isDragging = true;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2();
+    mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(this.emojiService.emojis.map(e => e.mesh));
+
+    if (intersects.length > 0) {
+      const clickedMesh = intersects[0].object as THREE.Mesh;
+      const emojiData = this.emojiService.emojis.find(e => e.mesh === clickedMesh);
+
+      if (emojiData) {
+        console.log('터치 클릭으로 이모지 선택:', emojiData.nickname, emojiData.message);
+        this.showEmojiPopup(emojiData);
+      }
+    } else {
+      this.hideEmojiPopup();
+    }
+  }
+
+  private onTouchStart(event: TouchEvent): void {
+    // 3D 조작 모드가 활성화된 경우에만 캔버스 드래그 허용
+    if (this.isCanvasInteractionMode) {
+      this.enableCanvasInteractionMode(); // 타이머 갱신
+      event.preventDefault();
+
+      if (event.touches.length === 1) {
+        this.isDragging = true;
+        this.isZooming = false;
+        this.hasMouseMoved = false;
+        this.mouseStartPosition = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY
+        };
+        this.previousMousePosition = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY
+        };
+      } else if (event.touches.length === 2) {
+        this.isDragging = false;
+        this.isZooming = true;
+        this.hasMouseMoved = false;
+
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+          Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        this.lastTouchDistance = distance;
+      }
+    } else {
+      // 3D 조작 모드가 비활성화된 경우 클릭만 감지
+      this.isDragging = false;
       this.isZooming = false;
       this.hasMouseMoved = false;
       this.mouseStartPosition = {
         x: event.touches[0].clientX,
         y: event.touches[0].clientY
       };
-      this.previousMousePosition = {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY
-      };
-    } else if (event.touches.length === 2) {
-      this.isDragging = false;
-      this.isZooming = true;
-      this.hasMouseMoved = false;
-
-      const touch1 = event.touches[0];
-      const touch2 = event.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      this.lastTouchDistance = distance;
     }
   }
 
   private onTouchMove(event: TouchEvent): void {
-    event.preventDefault();
+    // 3D 조작 모드일 때만 preventDefault로 스크롤 차단
+    if (this.isCanvasInteractionMode) {
+      event.preventDefault();
+    }
 
     if (event.touches.length === 1 && this.isDragging) {
       const deltaMove = {
