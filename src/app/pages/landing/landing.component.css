@@ -139,7 +139,7 @@
 .tree-demo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 20px;
 }
 
@@ -370,8 +370,11 @@
 
 .step-item {
   display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  padding: 2rem 1rem;
 }
 
 .step-icon {
@@ -392,6 +395,42 @@
   color: white;
 }
 
+.step-number-badge {
+  background: linear-gradient(45deg, var(--primary-purple), var(--accent-red));
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.step-image {
+  width: 100%;
+  max-width: 300px;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 15px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 3px solid #f8f9fa;
+}
+
+.step-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .step-emoji {
   font-size: 2rem;
 }
@@ -400,12 +439,13 @@
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: var(--gold);
+  color: #333;
 }
 
 .step-content p {
   line-height: 1.6;
-  opacity: 0.9;
+  opacity: 0.8;
+  color: #666;
 }
 
 .step-content em {
@@ -564,23 +604,23 @@
   .hero-title {
     font-size: 3.5rem;
   }
-  
+
   .upload-text-desktop {
     display: block;
   }
-  
+
   .upload-text-mobile {
     display: none;
   }
-  
+
   .upload-button-mobile {
     display: none;
   }
-  
+
   .upload-button-desktop {
     display: block;
   }
-  
+
   .upload-area {
     min-height: 300px;
   }
@@ -592,52 +632,52 @@
     gap: 2rem;
     text-align: center;
   }
-  
+
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .hero-description {
     font-size: 1.2rem;
   }
-  
+
   .tree-preview-large {
-    height: 250px;
+    height: 380px;
   }
-  
+
   .tree-preview {
     width: 250px;
     height: 250px;
   }
-  
+
   .tree-emoji {
     font-size: 6rem;
   }
-  
+
   .emoji {
     font-size: 1.5rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .feature-showcase h2 {
     font-size: 2rem;
   }
-  
+
   .feature-highlights {
     grid-template-columns: 1fr;
   }
-  
+
   .features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .steps-container {
     grid-template-columns: 1fr;
   }
-  
+
   .cta-content h2 {
     font-size: 1.8rem;
   }
