@@ -446,6 +446,19 @@
   line-height: 1.6;
   opacity: 0.8;
   color: #666;
+  margin-bottom: 1rem;
+}
+
+.step-content ul {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.step-content li {
+  margin-bottom: 0.5rem;
+  color: #555;
+  line-height: 1.5;
 }
 
 .step-content em {
