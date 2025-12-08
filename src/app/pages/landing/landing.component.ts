@@ -7,7 +7,9 @@ import { Component } from '@angular/core';
 })
 export class LandingComponent {
   
-  constructor() { }
+  constructor() { 
+    console.log('🎄 단우야! 아빠가 만든 트리야~ 사랑해! ❤️');
+  }
 
   navigateToTree(): void {
     window.open('/4spot', '_blank');
