@@ -41,7 +41,8 @@
               "src/favicon.ico",
               "src/assets",
               "src/fonts",
-              "src/data"
+              "src/data",
+              "src/sitemap.xml"
             ],
             "styles": [
               "src/styles.css"
