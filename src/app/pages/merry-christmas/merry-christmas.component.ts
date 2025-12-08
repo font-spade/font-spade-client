@@ -197,11 +197,6 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  // 새 메시지 등록 처리
-  addNewMessage(nickname: string, message: string, emoji: string, placementType: 'tree' | 'field', youtube_url?: string): void {
-    this.emojiService.addNewMessage(nickname, message, emoji, placementType, youtube_url);
-  }
-
   private registerSceneEvents(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -354,27 +349,6 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  shareToInstagram(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const url = window.location.href;
-    const text = `🎄 ${this.ownerName}님의 크리스마스 트리 ${url}`;
-
-    if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      window.location.href = 'instagram://camera';
-      setTimeout(() => {
-        navigator.clipboard.writeText(text);
-        alert('인스타그램 앱을 열어주세요. 텍스트가 복사되었습니다.');
-      }, 1000);
-    } else {
-      navigator.clipboard.writeText(text);
-      alert('인스타그램 공유용 텍스트가 복사되었습니다. 인스타그램 웹사이트에서 스토리에 붙여넣어 주세요.');
-    }
-    this.closeShareModal();
-  }
-
   private async loadKakaoSdk(): Promise<void> {
     if (typeof window === 'undefined') {
       return Promise.reject('window unavailable');
@@ -475,7 +449,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     if (!this.isCanvasInteractionMode && !this.hasMouseMoved && event instanceof TouchEvent && event.changedTouches.length === 1) {
       this.handleTouchClick(event.changedTouches[0]);
     }
-    
+
     this.isDragging = false;
     this.isZooming = false;
     this.lastTouchDistance = 0;
@@ -484,7 +458,7 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
 
   private handleTouchClick(touch: Touch): void {
     console.log('handleTouchClick 호출됨 - hasMouseMoved:', this.hasMouseMoved, 'isCanvasInteractionMode:', this.isCanvasInteractionMode);
-    
+
     const renderer = this.threeSceneService.renderer;
     const camera = this.threeSceneService.camera;
     if (!renderer || !camera) {
@@ -1168,12 +1142,12 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
   // 캔버스 터치 모드 관련 메서드들
   enableCanvasInteractionMode(): void {
     this.isCanvasInteractionMode = true;
-    
+
     // 5초 후에 자동으로 비활성화
     if (this.canvasInteractionModeTimeout) {
       clearTimeout(this.canvasInteractionModeTimeout);
     }
-    
+
     this.canvasInteractionModeTimeout = setTimeout(() => {
       this.disableCanvasInteractionMode();
     }, 5000);

@@ -962,7 +962,7 @@ export class ThreeSceneService {
       giftGroup.add(verticalRibbon);
 
       const groundHeight = this.getGroundHeight(pos.x, pos.z);
-      giftGroup.position.set(pos.x, groundHeight + boxSize / 2, pos.z); // 3만큼 추가 상승
+      giftGroup.position.set(pos.x, groundHeight + boxSize / 2, pos.z);
       this.scene.add(giftGroup);
     });
   }
@@ -1014,7 +1014,7 @@ export class ThreeSceneService {
     rabbitGroup.add(nose);
 
     const rabbitGroundHeight = this.getGroundHeight(4, -6);
-    rabbitGroup.position.set(4, rabbitGroundHeight + 5.1, -6); // 4.5에서 7.5로 상승
+    rabbitGroup.position.set(4, rabbitGroundHeight + 5.1, -6);
     this.scene.add(rabbitGroup);
 
     const penguinGroup = new THREE.Group();
@@ -1053,7 +1053,7 @@ export class ThreeSceneService {
     penguinGroup.add(beak);
 
     const penguinGroundHeight = this.getGroundHeight(-10, -4);
-    penguinGroup.position.set(-10, penguinGroundHeight + 4.7, -4); // 4.3에서 7.3으로 상승
+    penguinGroup.position.set(-10, penguinGroundHeight + 4.7, -4);
     this.scene.add(penguinGroup);
   }
 
@@ -1085,7 +1085,7 @@ export class ThreeSceneService {
       const candyZ = Math.sin(angle) * radius;
 
       const candyGroundHeight = this.getGroundHeight(candyX, candyZ);
-      candyCaneGroup.position.set(candyX, candyGroundHeight + 4.7, candyZ); // 4.5에서 7.5로 상승
+      candyCaneGroup.position.set(candyX, candyGroundHeight + 4.7, candyZ);
 
       this.scene.add(candyCaneGroup);
     }
@@ -1118,7 +1118,7 @@ export class ThreeSceneService {
       miniTreeGroup.add(trunk);
 
       const miniTreeGroundHeight = this.getGroundHeight(pos.x, pos.z);
-      miniTreeGroup.position.set(pos.x, miniTreeGroundHeight + 5.3, pos.z); // 4.7에서 7.7로 상승
+      miniTreeGroup.position.set(pos.x, miniTreeGroundHeight + 5.3, pos.z);
 
       this.scene.add(miniTreeGroup);
     });
