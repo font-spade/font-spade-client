@@ -345,15 +345,31 @@
   padding: 0 2rem;
 }
 
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
 .section-title {
   font-size: 2.5rem;
   font-weight: 700;
-  text-align: center;
-  margin-bottom: 3rem;
-  background: linear-gradient(45deg, var(--gold), white);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.section-subtitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.section-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #777;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* How It Works Section */
