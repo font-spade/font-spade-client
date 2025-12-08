@@ -1,0 +1,175 @@
+<div class="landing-wrapper">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          친구들의 메시지로<br>
+          <span class="highlight-text">나만의 크리스마스 트리를</span><br>
+          AI가 감쪽같이 꾸며줍니다.
+        </h1>
+        <div class="hero-description">
+          <p>단 몇 초 만에 감쪽같이 꾸며집니다</p>
+        </div>
+        <div class="hero-actions">
+          <button class="cta-button primary" (click)="navigateToTree()">
+            <span class="button-text">지금 트리 만들기</span>
+          </button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="tree-preview-large">
+          <!-- Use the actual tree image from the screenshots -->
+          <img class="tree-demo-image" src="/assets/tree.webp" alt="크리스마스 트리 데모">
+          <!-- Fallback animated preview -->
+          <div class="tree-preview fallback" style="display: none;">
+            <div class="tree-emoji">🎄</div>
+            <div class="floating-emojis">
+              <span class="emoji float-1">🎁</span>
+              <span class="emoji float-2">⭐</span>
+              <span class="emoji float-3">🎉</span>
+              <span class="emoji float-4">💝</span>
+              <span class="emoji float-5">🤖</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section class="quick-start-section">
+    <div class="section-container">
+      <div class="quick-start-content">
+        <h2 class="text-center mb-8">지금 바로 트리 만들어보세요</h2>
+        <div class="upload-area" (click)="navigateToTree()">
+          <div class="upload-icon">🎄</div>
+          <p class="upload-text-desktop">클릭해서 트리 만들기를 시작하거나 친구들에게 공유해보세요</p>
+          <p class="upload-text-mobile">지금 나만의 트리를 만들어보세요</p>
+          <div class="upload-button-mobile">
+            <button class="upload-btn">트리 만들기</button>
+          </div>
+        </div>
+        <div class="upload-button-desktop">
+          <button class="upload-btn-large" (click)="navigateToTree()">트리 만들기 시작</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="how-it-works-section">
+    <div class="section-container">
+      <h2 class="section-title">내 크리스마스 트리를 만드는 법</h2>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-icon">
+            <span class="step-emoji">⭐</span>
+          </div>
+          <div class="step-content">
+            <h3>별 모양 클릭해서 링크 공유</h3>
+            <p>화면의 별 모양(⭐) 버튼을 클릭하면 공유 링크가 생성돼요. 친구들에게 링크를 보내주세요</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon">
+            <span class="step-emoji">✍️</span>
+          </div>
+          <div class="step-content">
+            <h3>친구들이 메시지 작성</h3>
+            <p>친구들이 트리에 다양한 글을 남겨줘요<br>
+            <em>"올해 고생했어", "나 너 좋아했다", "너만의 명예 소방관 시켜줘!" 등</em></p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon">
+            <span class="step-emoji">🤖</span>
+          </div>
+          <div class="step-content">
+            <h3>AI가 이모티콘으로 변환</h3>
+            <p>AI가 친구들의 메시지를 분석해서 감정에 맞는 6만 종류의 이모티콘으로 트리를 자동 꾸며줍니다</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="section-container">
+      <div class="feature-showcase">
+        <h2>🎄 내 트리를 꾸며줘!</h2>
+        <div class="feature-highlights">
+          <div class="feature-item">
+            <span class="feature-icon">🤖</span>
+            <div class="feature-text">
+              <strong>AI가 꾸며주는 마법</strong>
+              <p>친구들의 따뜻한 메시지를 AI가 분석해서 6만 종류 이상의 이모티콘으로 자동 꾸며줘요</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">💝</span>
+            <div class="feature-text">
+              <strong>메시지 재해석의 즐거움</strong>
+              <p>단순한 텍스트가 AI의 감성 분석을 통해 생동감 넘치는 이모티콘 트리로 변신해요</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🎁</span>
+            <div class="feature-text">
+              <strong>함께 만드는 특별함</strong>
+              <p>친구들이 보낸 메시지가 AI를 통해 나만의 아름다운 트리가 되는 경험을 함께해요</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Detail -->
+  <section class="features-detail-section">
+    <div class="section-container">
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3>3D 인터랙티브 조작</h3>
+          <p>마우스나 터치로 자유롭게 트리를 회전하고 확대해서 모든 각도에서 감상할 수 있어요</p>
+          <div class="feature-controls">
+            <span class="control-icon">🎮</span>
+            <span class="control-text">3D 조작</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <h3>간편한 공유</h3>
+          <p>완성된 트리를 인스타그램, 페이스북 등 SNS에 쉽게 공유하고 친구들에게 자랑하세요</p>
+          <div class="feature-controls">
+            <span class="control-icon">⭐</span>
+            <span class="control-text">공유하기</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <h3>실시간 업데이트</h3>
+          <p>새로운 메시지가 도착할 때마다 트리가 실시간으로 업데이트되어 더욱 풍성해져요</p>
+          <div class="feature-controls">
+            <span class="control-icon">✍️</span>
+            <span class="control-text">메시지 작성</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="section-container">
+      <div class="cta-content">
+        <h2>지금 바로 나만의 크리스마스 트리를 만들어보세요!</h2>
+        <p>친구들과 함께 특별한 크리스마스 추억을 만들 시간입니다.</p>
+        <button class="cta-button large" (click)="navigateToTree()">
+          <span class="button-icon">🎄</span>
+          <span class="button-text">트리 만들기 시작</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>

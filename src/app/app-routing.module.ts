@@ -8,11 +8,13 @@ import { EmojiKitchenComponent } from './pages/emoji-kitchen/emoji-kitchen.compo
 import { EmojiTextComponent } from './pages/emoji-text/emoji-text.component';
 import { MerryChristmasComponent } from './pages/merry-christmas/merry-christmas.component';
 import { MessageWriteComponent } from './pages/message-write/message-write.component';
+import { LandingComponent } from './pages/landing/landing.component';
 import { KakaoCallbackComponent } from './auth/kakao-callback.component';
 
 const routes: Routes = [
   // { path: 'home', component: HomeComponent},
-  { path: '', redirectTo: '/4spot', pathMatch: 'full' },
+  { path: '', component: LandingComponent },
+  { path: 'about', component: LandingComponent },
   { path: 'intro', component: IntroComponent},
   { path: 'emoji-generate', component: EmojiKitchenComponent },
   { path: 'emoticon-generate' , component: HomeComponent },

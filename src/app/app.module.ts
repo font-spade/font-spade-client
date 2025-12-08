@@ -24,6 +24,7 @@ import { ToastModule } from './components/common/toast/toast.module';
 import { EmojiTextModule } from './pages/emoji-text/emoji-text.module';
 import { MerryChristmasModule } from './pages/merry-christmas/merry-christmas.module';
 import { MessageWriteModule } from './pages/message-write/message-write.module';
+import { LandingModule } from './pages/landing/landing.module';
 import { KakaoCallbackComponent } from './auth/kakao-callback.component';
 //
 // export function initializeApp(emojiService: EmojiKitchenService) {
@@ -68,6 +69,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     EmojiTextModule,
     MerryChristmasModule,
     MessageWriteModule,
+    LandingModule,
     ToastModule,
   ],
   providers: [ provideClientHydration() ,
