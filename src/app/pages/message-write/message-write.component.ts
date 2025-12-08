@@ -208,7 +208,7 @@ export class MessageWriteComponent implements OnInit {
       const messageData: any = {
         nickname: this.nickname,
         message: this.message,
-        emoji: this.selectedEmoji,
+        emoji: this.placementType === 'field' ? '' : this.selectedEmoji,
         placement_type: serverPlacementType,
         spot_id: this.spotId,
         position_x: null,
