@@ -884,6 +884,11 @@ export class MerryChristmasComponent implements OnInit, AfterViewInit, OnDestroy
     return emoji.nickname + emoji.message + index;
   }
 
+  // 목록 보기용 - 트리에 있는 모든 메시지 표시
+  get filteredEmojis(): EmojiData[] {
+    return this.emojiService.emojis;
+  }
+
 
   private async loadMessages(): Promise<void> {
     await this.emojiService.loadMessages(this.authState.currentSpotId);

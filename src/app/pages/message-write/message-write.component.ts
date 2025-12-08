@@ -26,7 +26,7 @@ export class MessageWriteComponent implements OnInit {
   youtubeUrl: string = '';
 
   // 배치 방식 선택
-  placementType: 'tree' | 'field' = 'tree';
+  placementType: 'tree' | 'field' | 'ai' = 'tree';
 
   // 스팟 ID
   spotId: string = '';
@@ -170,21 +170,29 @@ export class MessageWriteComponent implements OnInit {
   initializeRandomValues(): void {
     // 닉네임은 ngOnInit에서 이미 설정됨
     
-    // 배치 방식 랜덤 선택
-    this.placementType = Math.random() > 0.5 ? 'tree' : 'field';
+    // 배치 방식 랜덤 선택 (3개 옵션 중 하나)
+    const rand = Math.random();
+    if (rand < 0.33) {
+      this.placementType = 'ai'; // AI가 꾸미기
+    } else if (rand < 0.66) {
+      this.placementType = 'tree'; // 이모지
+    } else {
+      this.placementType = 'field'; // 이모티콘
+    }
 
     // 이모지 랜덤 선택
     if (this.placementType === 'tree') {
-      // 트리 배치 시 일반 이모지 랜덤 선택
+      // 트리 배치(이모지) 시 일반 이모지 랜덤 선택
       const allEmojis = this.emojiCategories.flatMap(category => category.emojis);
       this.selectedEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
-    } else {
-      // 필드 배치 시 타이포그래피 이모지 랜덤 생성
+    } else if (this.placementType === 'field') {
+      // 필드 배치(이모티콘) 시 타이포그래피 이모지 랜덤 생성
       // 데이터 로드 후 실행되도록 지연
       setTimeout(() => {
         this.randomizeAndSelectTypographyEmoji();
       }, 100);
     }
+    // AI가 꾸미기(placementType === 'ai')의 경우는 이모지 선택 없음
   }
 
   selectEmoji(emoji: string): void {
@@ -202,13 +210,32 @@ export class MessageWriteComponent implements OnInit {
 
   async onSubmit(): Promise<void> {
     if (this.isFormValid()) {
-      // 이모티콘이면 'background', 이모지면 'center'로 매핑
-      const serverPlacementType = this.placementType === 'field' ? 'background' : 'center';
+      // 배치 유형에 따른 서버 매핑
+      let serverPlacementType: string;
+      let emojiValue: string;
+      
+      if (this.placementType === 'ai') {
+        // AI가 꾸미기 - 기존 'tree' 로직과 동일하지만 emoji만 빈값
+        serverPlacementType = 'center';
+        emojiValue = ''; // 빈 이모지 전달
+      } else if (this.placementType === 'tree') {
+        // 이모지
+        serverPlacementType = 'center';
+        emojiValue = this.selectedEmoji;
+      } else if (this.placementType === 'field') {
+        // 이모티콘 (타이포그래피)
+        serverPlacementType = 'background';
+        emojiValue = this.selectedEmoji;
+      } else {
+        // 기본값
+        serverPlacementType = 'center';
+        emojiValue = this.selectedEmoji;
+      }
       
       const messageData: any = {
         nickname: this.nickname,
         message: this.message,
-        emoji: this.placementType === 'field' ? '' : this.selectedEmoji,
+        emoji: emojiValue,
         placement_type: serverPlacementType,
         spot_id: this.spotId,
         position_x: null,
@@ -409,21 +436,22 @@ export class MessageWriteComponent implements OnInit {
     }
   }
 
-  setPlacementType(type: 'tree' | 'field'): void {
+  setPlacementType(type: 'tree' | 'field' | 'ai'): void {
     this.placementType = type;
     this.selectedEmoji = '';
     this.showEmojiPicker = false;
 
     // 배치 방식에 따라 적절한 이모지를 자동 선택
     if (type === 'tree') {
-      // 트리 배치 시 일반 이모지 랜덤 선택
+      // 트리 배치(이모지) 시 일반 이모지 랜덤 선택
       const allEmojis = this.emojiCategories.flatMap(category => category.emojis);
       this.selectedEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
     } else if (type === 'field') {
-      // 필드 배치 시 타이포그래피 이모지 랜덤 생성
+      // 필드 배치(이모티콘) 시 타이포그래피 이모지 랜덤 생성
       setTimeout(() => {
         this.randomizeAndSelectTypographyEmoji();
       }, 100);
     }
+    // AI가 꾸미기('ai')의 경우는 이모지 선택 없음
   }
 }

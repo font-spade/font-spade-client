@@ -38,32 +38,41 @@
           <button 
             type="button"
             class="placement-tab"
+            [class.active]="placementType === 'ai'"
+            (click)="setPlacementType('ai')">
+            ✨ AI가 꾸미기
+          </button>
+          <button 
+            type="button"
+            class="placement-tab"
             [class.active]="placementType === 'tree'"
             (click)="setPlacementType('tree')">
-            🎄 트리 꾸미기
+            😊 이모지
           </button>
           <button 
             type="button"
             class="placement-tab"
             [class.active]="placementType === 'field'"
             (click)="setPlacementType('field')">
-            ✨ AI가 꾸미기
+            ( ͡° ͜ʖ ͡°) 이모티콘
           </button>
         </div>
       </div>
 
-      <!-- 이모티콘/타이포그래피 선택 -->
-      <div class="form-group">
-        <label>
-          <span *ngIf="placementType === 'tree'">이모티콘 선택</span>
-          <span *ngIf="placementType === 'field'">타이포그래피 이모지 생성</span>
-        </label>
-        
-        <!-- 트리 꾸미기: 이모티콘 선택 -->
-        <div *ngIf="placementType === 'tree'" class="emoji-selector">
+      <!-- AI가 꾸미기: 이모지 선택 없음 -->
+      <div *ngIf="placementType === 'ai'" class="ai-decoration-info">
+        <div class="info-card">
+          <p>✨ AI가 자동으로 예쁘게 꾸며드려요!</p>
+        </div>
+      </div>
+
+      <!-- 이모지: 이모지 선택 -->
+      <div *ngIf="placementType === 'tree'" class="form-group">
+        <label>이모지 선택</label>
+        <div class="emoji-selector">
           <div class="selected-emoji-display" (click)="toggleEmojiPicker()">
             <span class="selected-emoji">{{selectedEmoji || '🎄'}}</span>
-            <span class="select-text">{{selectedEmoji ? '선택됨' : '이모티콘을 선택하세요'}}</span>
+            <span class="select-text">{{selectedEmoji ? '선택됨' : '이모지를 선택하세요'}}</span>
             <span class="dropdown-arrow">▼</span>
           </div>
           
@@ -91,9 +100,12 @@
             </div>
           </div>
         </div>
+      </div>
 
-      <!-- 필드 배치: 타이포그래피 생성기 -->
-      <div *ngIf="placementType === 'field'" class="typography-generator">
+      <!-- 이모티콘: 타이포그래피 생성기 -->
+      <div *ngIf="placementType === 'field'" class="form-group">
+        <label>이모티콘 생성</label>
+        <div class="typography-generator">
           <div class="typography-preview">
             <div class="typography-header">
               <span class="typography-title">타이포그래피 이모지 생성</span>

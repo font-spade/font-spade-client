@@ -53,7 +53,7 @@
     
     
     <div class="message-list">
-      <div class="message-item" *ngFor="let emoji of emojiService.emojis; trackBy: trackByEmoji" 
+      <div class="message-item" *ngFor="let emoji of filteredEmojis; trackBy: trackByEmoji" 
            (click)="showEmojiPopup(emoji)">
         <div class="message-avatar">
           <img *ngIf="isEmojiUrl(emoji.emoji)" [src]="emoji.emoji" alt="emoji" class="avatar-img">
@@ -66,7 +66,7 @@
       </div>
     </div>
     
-    <div class="message-list-footer" *ngIf="emojiService.emojis.length === 0">
+    <div class="message-list-footer" *ngIf="filteredEmojis.length === 0">
       <p>아직 받은 메시지가 없어요 💌</p>
     </div>
   </div>
