@@ -317,6 +317,13 @@ export class EmojiMessageService {
   private async loadRealMessages(spotId: string): Promise<void> {
     this.apiMessages = await this.apiService.fetchMessages(spotId);
 
+    // created_at 기준 최신순으로 정렬
+    this.apiMessages.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return dateB - dateA; // 최신순 (내림차순)
+    });
+
     const typographyEmojis: any[] = [];
     const treeEmojis: any[] = [];
 

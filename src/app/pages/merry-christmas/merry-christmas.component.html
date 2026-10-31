@@ -55,13 +55,13 @@
     <div class="message-list">
       <div class="message-item" *ngFor="let emoji of filteredEmojis; trackBy: trackByEmoji" 
            (click)="showEmojiPopup(emoji)">
-        <div class="message-avatar">
-          <img *ngIf="isEmojiUrl(emoji.emoji)" [src]="emoji.emoji" alt="emoji" class="avatar-img">
-          <span *ngIf="!isEmojiUrl(emoji.emoji)" class="avatar-text">{{emoji.emoji}}</span>
-        </div>
         <div class="message-content">
           <div class="message-sender">{{emoji.nickname}}</div>
           <div class="message-text">{{emoji.message}}</div>
+        </div>
+        <div class="message-avatar" [class.long-emoticon]="isLongEmoji(emoji.emoji)">
+          <img *ngIf="isEmojiUrl(emoji.emoji)" [src]="emoji.emoji" alt="emoji" class="avatar-img">
+          <span *ngIf="!isEmojiUrl(emoji.emoji)" class="avatar-text">{{emoji.emoji}}</span>
         </div>
       </div>
     </div>
